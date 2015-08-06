@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"net/smtp"
 	"os"
 	"time"
 
@@ -14,19 +15,46 @@ import (
 	"github.com/yext/revere/probes"
 )
 
+const (
+	mailServer string = "localhost:25"
+	sender     string = "revere@yext.com"
+)
+
 func main() {
+	if len(os.Args) < 3 {
+		fmt.Println("Not enough arguments.")
+		return
+	}
 	probeSettings := os.Args[1]
 	emails := os.Args[2:]
 
-	probe := probes.NewGraphiteThreshold(probeSettings)
+	probe, err := probes.NewGraphiteThreshold(probeSettings)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	ticker := time.Tick(5 * time.Minute)
 	for _ = range ticker {
-		readings := probe.Check()
+		readings, err := probe.Check()
+		if err != nil {
+			fmt.Print(err)
+		}
 		for subprobe, reading := range readings {
 			if reading.State != revere.Normal {
-				// TODO(eefi): Email.
-				fmt.Printf("%v %v\n", subprobe, emails)
+				message := "Subject: Revere reported unhealthy state for " +
+					subprobe +
+					"\n" +
+					"Probe " +
+					subprobe +
+					" reported unhealthy state with message: \n\n" +
+					reading.Details.Text()
+				smtp.SendMail(
+					mailServer,
+					nil,
+					sender,
+					emails,
+					[]byte(message))
 			}
 		}
 	}
