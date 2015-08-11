@@ -6,9 +6,11 @@ TODO(eefi): Detailed usage documentation.
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/smtp"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/yext/revere"
@@ -38,23 +40,26 @@ func main() {
 	for _ = range ticker {
 		readings, err := probe.Check()
 		if err != nil {
-			fmt.Print(err)
+			fmt.Println(err)
+			continue
 		}
 		for subprobe, reading := range readings {
 			if reading.State != revere.Normal {
-				message := "Subject: Revere reported unhealthy state for " +
-					subprobe +
-					"\n" +
-					"Probe " +
-					subprobe +
-					" reported unhealthy state with message: \n\n" +
-					reading.Details.Text()
-				smtp.SendMail(
-					mailServer,
-					nil,
-					sender,
-					emails,
-					[]byte(message))
+				headers := make(map[string]string)
+				headers["To"] = strings.Join(emails, ", ")
+				headers["Subject"] = "Revere reported unhealthy state for " + subprobe
+
+				b := new(bytes.Buffer)
+				for k, v := range headers {
+					fmt.Fprintf(b, "%s: %s\r\n", k, v)
+				}
+				fmt.Fprintf(b, "\r\nProbe %s reported unhealthy state with message: \n\n%s",
+					subprobe, reading.Details.Text())
+
+				err = smtp.SendMail(mailServer, nil, sender, emails, b.Bytes())
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
 		}
 	}
