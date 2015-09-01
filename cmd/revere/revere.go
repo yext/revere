@@ -31,6 +31,8 @@ var (
 
 var (
 	db *sql.DB
+
+	lastStates map[uint]map[string]revere.State = make(map[uint]map[string]revere.State)
 )
 
 type config struct {
@@ -56,7 +58,8 @@ func main() {
 		"%s:%s@tcp(%s:3306)/revere?loc=Local",
 		db_username, db_password, db_host)
 
-	db, err := sql.Open("mysql", dbspec)
+	var err error
+	db, err = sql.Open("mysql", dbspec)
 	if err != nil {
 		fmt.Printf("Error connecting to db: %s", err.Error())
 		return
@@ -100,6 +103,22 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 		return
 	}
 	for subprobe, reading := range readings {
+		if lastStates[configId] == nil {
+			lastStates[configId] = make(map[string]revere.State)
+		}
+		lastState := lastStates[configId][subprobe]
+		lastStates[configId][subprobe] = reading.State
+		if lastState != reading.State {
+			// Record alert if it has changed
+			_, err = db.Exec(`
+			INSERT INTO readings (config_id, subprobe, state)
+			VALUES (?, ?, ?)
+			`, configId, subprobe, reading.State)
+			if err != nil {
+				fmt.Printf("Error recording alert: %s", err.Error())
+			}
+		}
+
 		if reading.State != revere.Normal {
 			// Send alert
 			headers := make(map[string]string)
