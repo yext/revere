@@ -6,6 +6,10 @@ type Reading struct {
 	Details Details
 }
 
+const (
+	CheckFrequency = 1
+)
+
 // A State represents the health of a service being monitored.
 type State int
 

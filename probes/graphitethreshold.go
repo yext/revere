@@ -2,6 +2,7 @@ package probes
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,17 +19,21 @@ const (
 
 // A GraphiteThreshold probe compares Graphite metrics to static values.
 type GraphiteThreshold struct {
-	graphite   string
-	metric     string
-	triggerIf  string
-	thresholds map[revere.State]float64
+	graphite        string
+	metric          string
+	triggerIf       string
+	thresholds      map[revere.State]float64
+	holdRequirement uint
+	checkFrequency  uint
 }
 
 type graphiteThresholdSettings struct {
-	Graphite   string
-	Metric     string
-	TriggerIf  string
-	Thresholds thresholds
+	Graphite        string
+	Metric          string
+	TriggerIf       string
+	Thresholds      thresholds
+	HoldRequirement uint
+	CheckFrequency  uint
 }
 
 type thresholds struct {
@@ -64,6 +69,15 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 	gt.graphite = builder.Graphite
 	gt.metric = builder.Metric
 	gt.triggerIf = builder.TriggerIf
+	gt.holdRequirement = builder.HoldRequirement
+	if gt.holdRequirement == 0 {
+		gt.holdRequirement = 1
+	}
+	gt.checkFrequency = builder.CheckFrequency
+	if gt.checkFrequency == 0 {
+		gt.checkFrequency = revere.CheckFrequency
+	}
+	gt.alertFrequency = builder.AlertFrequency
 
 	gt.thresholds = make(map[revere.State]float64)
 	gt.thresholds[revere.Warning] = builder.Thresholds.Warning
@@ -74,13 +88,13 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 }
 
 func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
+	time := gt.checkFrequency * gt.holdRequirement
 	resp, err := http.Get(
-		"http://" +
-			url.QueryEscape(gt.graphite) +
-			"/render?target=" +
-			url.QueryEscape(gt.metric) +
-			"&from=-5min" +
-			"&format=json")
+		fmt.Sprintf(
+			"http://%s/render?target=%s&from=-%dmin&format=json",
+			url.QueryEscape(gt.graphite),
+			url.QueryEscape(gt.metric),
+			time))
 	if err != nil {
 		return nil, err
 	}
@@ -99,30 +113,23 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 
 	var readings = make(map[string]revere.Reading)
 	for _, target := range data {
-		val := 0.0
-		for i := len(target.Datapoints) - 1; i >= 0; i-- {
-			if target.Datapoints[i][0] != nil {
-				val = *target.Datapoints[i][0]
-			}
-		}
-
 		var reading revere.Reading
 		reading.State = revere.Normal
 		state := "NORMAL"
 		if trhld, ok := gt.thresholds[revere.Warning]; ok {
-			if compare(gt.triggerIf, trhld, val) {
+			if compare(gt.triggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Warning
 				state = "WARNING"
 			}
 		}
 		if trhld, ok := gt.thresholds[revere.Error]; ok {
-			if compare(gt.triggerIf, trhld, val) {
+			if compare(gt.triggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Error
 				state = "ERROR"
 			}
 		}
 		if trhld, ok := gt.thresholds[revere.Critical]; ok {
-			if compare(gt.triggerIf, trhld, val) {
+			if compare(gt.triggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Critical
 				state = "CRITICAL"
 			}
@@ -140,24 +147,33 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 	return readings, nil
 }
 
-func compare(comparator string, threshold float64, val float64) bool {
-	switch comparator {
-	case greaterThan:
-		if val > threshold {
-			return true
+func compare(comparator string, threshold float64, datapoints [][]*float64) bool {
+	allNil := true
+	for _, datapoint := range datapoints {
+		if datapoint[0] == nil {
+			continue
 		}
-	case greaterThanEq:
-		if val >= threshold {
-			return true
-		}
-	case lessThan:
-		if val < threshold {
-			return true
-		}
-	case lessThanEq:
-		if val <= threshold {
-			return true
+		allNil = false
+		val := *datapoint[0]
+
+		switch comparator {
+		case greaterThan:
+			if !(val > threshold) {
+				return false
+			}
+		case greaterThanEq:
+			if !(val >= threshold) {
+				return false
+			}
+		case lessThan:
+			if !(val < threshold) {
+				return false
+			}
+		case lessThanEq:
+			if !(val <= threshold) {
+				return false
+			}
 		}
 	}
-	return false
+	return !allNil
 }

@@ -83,9 +83,10 @@ func main() {
 	}
 	cRows.Close()
 
-	ticker := time.Tick(1 * time.Minute)
+	ticker := time.Tick(revere.CheckFrequency * time.Minute)
 	for _ = range ticker {
 		for _, config := range allconfigs {
+			// TODO(dp): validate configurations
 			probe, err := probes.NewGraphiteThreshold(config.Config)
 			if err != nil {
 				fmt.Println(err)
