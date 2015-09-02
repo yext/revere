@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"net/smtp"
 	"os"
@@ -19,10 +20,14 @@ import (
 
 const (
 	mailServer string = "localhost:25"
-	sender     string = "revere@yext.com"
+)
+
+var (
+	sender *string = flag.String("emailSender", "revere@example.com", "The email from which alerts will be sent")
 )
 
 func main() {
+	flag.Parse()
 	if len(os.Args) < 3 {
 		fmt.Println("Not enough arguments.")
 		return
@@ -56,7 +61,7 @@ func main() {
 				fmt.Fprintf(b, "\r\nProbe %s reported unhealthy state with message: \n\n%s",
 					subprobe, reading.Details.Text())
 
-				err = smtp.SendMail(mailServer, nil, sender, emails, b.Bytes())
+				err = smtp.SendMail(mailServer, nil, *sender, emails, b.Bytes())
 				if err != nil {
 					fmt.Println(err)
 				}
