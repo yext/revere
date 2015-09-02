@@ -41,7 +41,7 @@ func main() {
 		return
 	}
 
-	ticker := time.Tick(5 * time.Minute)
+	ticker := time.Tick(1 * time.Minute)
 	for _ = range ticker {
 		readings, err := probe.Check()
 		if err != nil {
