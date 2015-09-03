@@ -24,6 +24,7 @@ type GraphiteThreshold struct {
 	triggerIf       string
 	thresholds      map[revere.State]float64
 	holdRequirement uint
+	alertFrequency  uint
 	checkFrequency  uint
 }
 
@@ -33,6 +34,7 @@ type graphiteThresholdSettings struct {
 	TriggerIf       string
 	Thresholds      thresholds
 	HoldRequirement uint
+	AlertFrequency  uint
 	CheckFrequency  uint
 }
 
@@ -78,6 +80,9 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 		gt.checkFrequency = revere.CheckFrequency
 	}
 	gt.alertFrequency = builder.AlertFrequency
+	if gt.alertFrequency == 0 {
+		gt.alertFrequency = gt.checkFrequency
+	}
 
 	gt.thresholds = make(map[revere.State]float64)
 	gt.thresholds[revere.Warning] = builder.Thresholds.Warning

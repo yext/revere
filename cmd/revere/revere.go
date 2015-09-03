@@ -122,21 +122,36 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 
 		if reading.State != revere.Normal {
 			// Send alert
-			headers := make(map[string]string)
-			headers["To"] = strings.Join(emails, ", ")
-			headers["Subject"] = "Revere reported unhealthy state for " + subprobe
-
-			b := new(bytes.Buffer)
-			for k, v := range headers {
-				fmt.Fprintf(b, "%s: %s\r\n", k, v)
-			}
-			fmt.Fprintf(b, "\r\nProbe %s reported unhealthy state with message: \n\n%s",
-				subprobe, reading.Details.Text())
-
-			err = smtp.SendMail(mailServer, nil, *sender, emails, b.Bytes())
-			if err != nil {
-				fmt.Println(err)
-			}
+			sendAlert(configId, subprobe, reading.Details.Text(), emails)
 		}
+	}
+}
+
+func sendAlert(configId uint, subprobe, errorDetails string, emails []string) {
+	headers := make(map[string]string)
+	headers["To"] = strings.Join(emails, ", ")
+	headers["Subject"] = "Revere reported unhealthy state for " + subprobe
+
+	b := new(bytes.Buffer)
+	for k, v := range headers {
+		fmt.Fprintf(b, "%s: %s\r\n", k, v)
+	}
+	fmt.Fprintf(b, "\r\nProbe %s reported unhealthy state with message: \n\n%s",
+		subprobe, errorDetails)
+
+	err := smtp.SendMail(mailServer, nil, *sender, emails, b.Bytes())
+	if err != nil {
+		fmt.Printf("error sending email: %s\n", err.Error())
+		return
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO alert_histories
+		(config_id, subprobe)
+		VALUES (?, ?)
+		`, configId, subprobe)
+	if err != nil {
+		fmt.Printf("error saving alert: %s\n", err.Error())
+		return
 	}
 }
