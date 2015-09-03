@@ -49,14 +49,14 @@ func main() {
 	}
 
 	var (
-		db_host     = flag.Arg(0)
-		db_username = flag.Arg(1)
-		db_password = flag.Arg(2)
-	)
+		dbHost     = flag.Arg(0)
+		dbUsername = flag.Arg(1)
+		dbPassword = flag.Arg(2)
 
-	dbspec := fmt.Sprintf(
-		"%s:%s@tcp(%s:3306)/revere?loc=Local&parseTime=true",
-		db_username, db_password, db_host)
+		dbspec = fmt.Sprintf(
+			"%s:%s@tcp(%s:3306)/revere?loc=Local&parseTime=true",
+			dbUsername, dbPassword, dbHost)
+	)
 
 	var err error
 	db, err = sql.Open("mysql", dbspec)
@@ -68,24 +68,31 @@ func main() {
 	fmt.Println("Loading configs from db")
 
 	cRows, err := db.Query("SELECT * FROM configurations")
+	if err != nil {
+		fmt.Printf("Error retrieving configs: %s", err.Error())
+		return
+	}
 
-	allconfigs := make([]config, 0)
+	var allConfigs []config
 	for cRows.Next() {
 		// TODO(dp): change this into debugger level logs
-		var (
-			id         uint
-			configJson string
-			email      string
-		)
-		err = cRows.Scan(&id, &configJson, &email)
-		allconfigs = append(allconfigs, config{id, strings.Replace(configJson, "\n", "", -1), email})
-		fmt.Printf("Loaded config %s\n", configJson)
+		var c config
+		if err := cRows.Scan(&c.Id, &c.Config, &c.Emails); err != nil {
+			fmt.Printf("Error scanning rows: %s\n", err.Error())
+			continue
+		}
+		allConfigs = append(allConfigs, c)
+		fmt.Printf("Loaded config %s\n", c.Config)
 	}
 	cRows.Close()
+	if err := cRows.Err(); err != nil {
+		fmt.Printf("Got err with configs: %s\n", err.Error())
+		return
+	}
 
 	ticker := time.Tick(revere.CheckFrequency * time.Minute)
 	for _ = range ticker {
-		for _, config := range allconfigs {
+		for _, config := range allConfigs {
 			// TODO(dp): validate configurations
 			probe, err := probes.NewGraphiteThreshold(config.Config)
 			if err != nil {
@@ -112,8 +119,8 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 		if lastState != reading.State {
 			// Record alert if it has changed
 			_, err = db.Exec(`
-			INSERT INTO readings (config_id, subprobe, state)
-			VALUES (?, ?, ?)
+			INSERT INTO readings (config_id, subprobe, state, time)
+			VALUES (?, ?, ?, UTC_TIMESTAMP())
 			`, configId, subprobe, reading.State)
 			if err != nil {
 				fmt.Printf("Error recording alert: %s\n", err.Error())
@@ -181,8 +188,8 @@ func sendAlert(configId uint, subprobe string, reading revere.Reading, emails []
 
 	_, err = db.Exec(`
 		INSERT INTO alerts
-		(config_id, subprobe)
-		VALUES (?, ?)
+		(config_id, subprobe, time)
+		VALUES (?, ?, UTC_TIMESTAMP())
 		`, configId, subprobe)
 	if err != nil {
 		fmt.Printf("error saving alert: %s\n", err.Error())

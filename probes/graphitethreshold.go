@@ -61,7 +61,7 @@ func (r graphiteReadingDetails) Text() string {
 //
 // TODO(eefi): Detail the serialization format.
 func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
-	builder := new(graphiteThresholdSettings)
+	var builder graphiteThresholdSettings
 	err := json.Unmarshal([]byte(settings), &builder)
 	if err != nil {
 		return nil, err
