@@ -11,7 +11,6 @@ import (
 	"flag"
 	"fmt"
 	"net/smtp"
-	"os"
 	"strings"
 	"time"
 
@@ -44,15 +43,15 @@ type config struct {
 func main() {
 	flag.Parse()
 	// TODO(dp): add more documentation
-	if len(os.Args) < 4 {
+	if flag.NArg() < 4 {
 		fmt.Println("Not enough arguments.\nrevere [db-hostname] [db-username] [db-password]")
 		return
 	}
 
 	var (
-		db_host     = os.Args[1]
-		db_username = os.Args[2]
-		db_password = os.Args[3]
+		db_host     = flag.Arg(1)
+		db_username = flag.Arg(2)
+		db_password = flag.Arg(3)
 	)
 
 	dbspec := fmt.Sprintf(
