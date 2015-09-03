@@ -42,6 +42,7 @@ type config struct {
 }
 
 func main() {
+	flag.Parse()
 	// TODO(dp): add more documentation
 	if len(os.Args) < 4 {
 		fmt.Println("Not enough arguments.\nrevere [db-hostname] [db-username] [db-password]")
