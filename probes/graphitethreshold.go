@@ -110,6 +110,13 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 		return nil, err
 	}
 
+	if body[0] == '<' {
+		// TODO(dp): It looks like this happens sometimes.
+		// Remove this debugger statement and return an error,
+		// when we see what happens.
+		fmt.Printf("Body was %s\n", string(body[:]))
+	}
+
 	var data []graphiteData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
