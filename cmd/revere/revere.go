@@ -120,7 +120,7 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 			}
 
 			// Since state changed, we should send an alert
-			sendAlert(configId, subprobe, reading.Details.Text(), emails)
+			sendAlert(configId, subprobe, reading, emails)
 			return
 		}
 
@@ -130,7 +130,7 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 			return
 		}
 		if reading.State != revere.Normal && shouldAlert {
-			sendAlert(configId, subprobe, reading.Details.Text(), emails)
+			sendAlert(configId, subprobe, reading, emails)
 		}
 	}
 }
@@ -150,17 +150,21 @@ func shouldSendAlert(configId uint, subprobe string, alertFrequency uint) (bool,
 	return time.Now().Add(-time.Duration(alertFrequency) * time.Second).After(lastAlert), nil
 }
 
-func sendAlert(configId uint, subprobe, errorDetails string, emails []string) {
+func sendAlert(configId uint, subprobe string, reading revere.Reading, emails []string) {
 	headers := make(map[string]string)
 	headers["To"] = strings.Join(emails, ", ")
-	headers["Subject"] = "Revere reported unhealthy state for " + subprobe
+	if reading.State == revere.Normal {
+		headers["Subject"] = "Revere reported recovery for " + subprobe
+	} else {
+		headers["Subject"] = "Revere reported unhealthy state for " + subprobe
+	}
 
 	b := new(bytes.Buffer)
 	for k, v := range headers {
 		fmt.Fprintf(b, "%s: %s\r\n", k, v)
 	}
 	fmt.Fprintf(b, "\r\nProbe %s reported unhealthy state with message: \n\n%s",
-		subprobe, errorDetails)
+		subprobe, reading.Details.Text())
 
 	err := smtp.SendMail(mailServer, nil, *sender, emails, b.Bytes())
 	if err != nil {
