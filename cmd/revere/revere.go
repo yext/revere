@@ -153,18 +153,25 @@ func shouldSendAlert(configId uint, subprobe string, alertFrequency uint) (bool,
 func sendAlert(configId uint, subprobe string, reading revere.Reading, emails []string) {
 	headers := make(map[string]string)
 	headers["To"] = strings.Join(emails, ", ")
+	var stateString string
 	if reading.State == revere.Normal {
-		headers["Subject"] = "Revere reported recovery for " + subprobe
+		stateString = "recovery"
 	} else {
-		headers["Subject"] = "Revere reported unhealthy state for " + subprobe
+		stateString = "unhealthy"
+	}
+
+	if reading.State == revere.Normal {
+		headers["Subject"] = "Revere reported " + stateString + " for " + subprobe
+	} else {
+		headers["Subject"] = "Revere reported " + stateString + " for " + subprobe
 	}
 
 	b := new(bytes.Buffer)
 	for k, v := range headers {
 		fmt.Fprintf(b, "%s: %s\r\n", k, v)
 	}
-	fmt.Fprintf(b, "\r\nProbe %s reported unhealthy state with message: \n\n%s",
-		subprobe, reading.Details.Text())
+	fmt.Fprintf(b, "\r\nProbe %s reported %s state with message: \n\n%s",
+		subprobe, stateString, reading.Details.Text())
 
 	err := smtp.SendMail(mailServer, nil, *sender, emails, b.Bytes())
 	if err != nil {
