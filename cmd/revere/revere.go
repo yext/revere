@@ -55,7 +55,7 @@ func main() {
 	)
 
 	dbspec := fmt.Sprintf(
-		"%s:%s@tcp(%s:3306)/revere?loc=Local",
+		"%s:%s@tcp(%s:3306)/revere?loc=Local&parseTime=true",
 		db_username, db_password, db_host)
 
 	var err error
@@ -116,15 +116,38 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 			VALUES (?, ?, ?)
 			`, configId, subprobe, reading.State)
 			if err != nil {
-				fmt.Printf("Error recording alert: %s", err.Error())
+				fmt.Printf("Error recording alert: %s\n", err.Error())
 			}
+
+			// Since state changed, we should send an alert
+			sendAlert(configId, subprobe, reading.Details.Text(), emails)
+			return
 		}
 
-		if reading.State != revere.Normal {
-			// Send alert
+		shouldAlert, err := shouldSendAlert(configId, subprobe, p.AlertFrequency())
+		if err != nil {
+			fmt.Printf("Error checking should send alert: %s\n", err.Error())
+			return
+		}
+		if reading.State != revere.Normal && shouldAlert {
 			sendAlert(configId, subprobe, reading.Details.Text(), emails)
 		}
 	}
+}
+
+func shouldSendAlert(configId uint, subprobe string, alertFrequency uint) (bool, error) {
+	row := db.QueryRow(`
+		SELECT time FROM alerts
+		WHERE config_id = ? AND subprobe = ?
+		ORDER BY time DESC
+		LIMIT 1;
+		`, configId, subprobe)
+	var lastAlert time.Time
+	err := row.Scan(&lastAlert)
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	return time.Now().Add(-time.Duration(alertFrequency) * time.Second).After(lastAlert), nil
 }
 
 func sendAlert(configId uint, subprobe, errorDetails string, emails []string) {
@@ -146,7 +169,7 @@ func sendAlert(configId uint, subprobe, errorDetails string, emails []string) {
 	}
 
 	_, err = db.Exec(`
-		INSERT INTO alert_histories
+		INSERT INTO alerts
 		(config_id, subprobe)
 		VALUES (?, ?)
 		`, configId, subprobe)

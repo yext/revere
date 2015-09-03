@@ -81,7 +81,8 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 	}
 	gt.alertFrequency = builder.AlertFrequency
 	if gt.alertFrequency == 0 {
-		gt.alertFrequency = gt.checkFrequency
+		// alertFrequency is in seconds
+		gt.alertFrequency = gt.checkFrequency * 60
 	}
 
 	gt.thresholds = make(map[revere.State]float64)
@@ -90,6 +91,10 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 	gt.thresholds[revere.Critical] = builder.Thresholds.Critical
 
 	return gt, nil
+}
+
+func (gt GraphiteThreshold) AlertFrequency() uint {
+	return gt.alertFrequency
 }
 
 func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {

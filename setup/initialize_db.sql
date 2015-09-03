@@ -17,7 +17,7 @@ CREATE TABLE readings (
   FOREIGN KEY (`config_id`) REFERENCES configurations (id) ON DELETE CASCADE
 );
 
-CREATE TABLE alert_histories (
+CREATE TABLE alerts (
   id int(11) AUTO_INCREMENT PRIMARY KEY,
   config_id int(11),
   subprobe varchar(255),
