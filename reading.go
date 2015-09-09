@@ -37,6 +37,21 @@ const (
 	Unknown State = -1
 )
 
+func (s State) String() string {
+	switch s {
+	case Normal:
+		return "NORMAL"
+	case Warning:
+		return "WARNING"
+	case Error:
+		return "ERROR"
+	case Critical:
+		return "CRITICAL"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 // Details provides a standard interface for manipulating Probe-specific
 // details from a Reading.
 type Details interface {

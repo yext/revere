@@ -132,23 +132,19 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 	for _, target := range data {
 		var reading revere.Reading
 		reading.State = revere.Normal
-		state := "NORMAL"
 		if trhld, ok := gt.thresholds[revere.Warning]; ok {
 			if compare(gt.triggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Warning
-				state = "WARNING"
 			}
 		}
 		if trhld, ok := gt.thresholds[revere.Error]; ok {
 			if compare(gt.triggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Error
-				state = "ERROR"
 			}
 		}
 		if trhld, ok := gt.thresholds[revere.Critical]; ok {
 			if compare(gt.triggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Critical
-				state = "CRITICAL"
 			}
 		}
 
@@ -156,7 +152,7 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 			"Target " +
 				target.Target +
 				" has state " +
-				state +
+				reading.State.String() +
 				" for metric " +
 				gt.metric}
 		readings[target.Target] = reading
