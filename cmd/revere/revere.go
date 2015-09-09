@@ -8,9 +8,14 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
+	"io"
+	"net/http"
 	"net/smtp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,6 +31,8 @@ const (
 
 var (
 	sender *string = flag.String("emailSender", "revere@example.com", "The email from which alerts will be sent")
+
+	port *int = flag.Int("port", 8123, "The port on which revere will listen")
 )
 
 var (
@@ -38,6 +45,15 @@ type config struct {
 	Id     uint
 	Config string
 	Emails string
+}
+
+type reading struct {
+	Id       uint
+	ConfigId uint
+	Config   string
+	Subprobe string
+	State    revere.State
+	Time     time.Time
 }
 
 func main() {
@@ -65,12 +81,34 @@ func main() {
 		return
 	}
 
+	http.HandleFunc("/", readingsIndex)
+
+	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
+
+	allConfigs := loadConfigs()
+
+	ticker := time.Tick(revere.CheckFrequency * time.Minute)
+	for _ = range ticker {
+		for _, config := range allConfigs {
+			// TODO(dp): validate configurations
+			probe, err := probes.NewGraphiteThreshold(config.Config)
+			if err != nil {
+				fmt.Println("Error parsing json:", err.Error())
+				continue
+			}
+
+			runCheck(config.Id, probe, strings.Split(config.Emails, ","))
+		}
+	}
+}
+
+func loadConfigs() []config {
 	fmt.Println("Loading configs from db")
 
 	cRows, err := db.Query("SELECT * FROM configurations")
 	if err != nil {
 		fmt.Printf("Error retrieving configs: %s", err.Error())
-		return
+		return nil
 	}
 
 	var allConfigs []config
@@ -87,21 +125,54 @@ func main() {
 	cRows.Close()
 	if err := cRows.Err(); err != nil {
 		fmt.Printf("Got err with configs: %s\n", err.Error())
+		return nil
+	}
+
+	return allConfigs
+}
+
+func readingsIndex(w http.ResponseWriter, req *http.Request) {
+	rRows, err := db.Query(`
+		SELECT r.id, r.config_id, c.config, r.subprobe, r.state, r.time
+		FROM readings r
+		JOIN configurations c ON r.config_id = c.id
+		`)
+	if err != nil {
+		fmt.Printf("Error retrieving readings: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "unable to fetch readings at this time")
 		return
 	}
 
-	ticker := time.Tick(revere.CheckFrequency * time.Minute)
-	for _ = range ticker {
-		for _, config := range allConfigs {
-			// TODO(dp): validate configurations
-			probe, err := probes.NewGraphiteThreshold(config.Config)
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			runCheck(config.Id, probe, strings.Split(config.Emails, ","))
+	var readings []reading
+	for rRows.Next() {
+		var r reading
+		if err := rRows.Scan(&r.Id, &r.ConfigId, &r.Config, &r.Subprobe, &r.State, &r.Time); err != nil {
+			fmt.Printf("Error scanning rows: %s\n", err.Error())
+			continue
 		}
+
+		// Attempt to format json
+		var c interface{}
+		if err := json.Unmarshal([]byte(r.Config), &c); err == nil {
+			b, _ := json.MarshalIndent(c, "", "  ")
+			r.Config = string(b[:])
+		}
+		readings = append(readings, r)
 	}
+	rRows.Close()
+	if err := rRows.Err(); err != nil {
+		fmt.Printf("Got err with readings: %s\n", err.Error())
+		return
+	}
+
+	t, err := template.ParseFiles("web/views/readings-index.html", "web/views/header.html")
+	if err != nil {
+		fmt.Printf("Got err parsing template: %s\n", err.Error())
+		http.Error(w, "Unable to retrieve readings", 500)
+		return
+	}
+	t.Execute(w, map[string]interface{}{"Readings": readings})
 }
 
 func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {

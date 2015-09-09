@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  {{template "header.html" "readings"}}
+  <body>
+    <h1>readings</h1>
+
+    <table id="readings">
+    <thead>
+      <tr ><td>time</td><td>configuration</td><td>subprobe</td><td>state</td></tr>
+    </thead>
+    <tbody>
+      {{range $key, $value := .Readings }}
+        <tr><td>{{.Time}}</td><td><pre>{{.Config}}</pre></td><td>{{.Subprobe}}</td><td>{{.State}}</td></tr>
+      {{end}}
+    </tbody>
+    </table>
+  </body>
+</html>
