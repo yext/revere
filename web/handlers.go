@@ -60,7 +60,7 @@ func ReadingsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		t, err := template.ParseFiles("web/views/readings-index.html", "web/views/header.html")
+		t, err := template.ParseFiles("web/views/readings-index.html", "web/views/header.html", "web/views/footer.html")
 		if err != nil {
 			fmt.Printf("Got err parsing template: %s\n", err.Error())
 			http.Error(w, "Unable to retrieve readings", 500)
