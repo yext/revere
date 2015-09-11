@@ -4,11 +4,20 @@
 <div class="table-responsive">
   <table class="table">
   <thead>
-      <tr ><td>time</td><td>configuration</td><td>subprobe</td><td>state</td></tr>
+      <tr ><td>config name</td><td>subprobe</td><td>time</td><td>state</td></tr>
   </thead>
   <tbody>
-    {{range $key, $value := .Readings }}
-      <tr><td>{{.Time}}</td><td><pre>{{.Config}}</pre></td><td>{{.Subprobe}}</td><td>{{.State}}</td></tr>
+    {{range .Readings}}
+        {{if .IsCurrent}}
+          {{if eq .State 0}}
+            <tr class="success">
+          {{else}}
+            <tr class="danger">
+          {{end}}
+        {{else}}
+          <tr>
+        {{end}}
+        <td>{{.ConfigName}}</td><td>{{.Subprobe}}</td><td>{{.Time}}</td><td>{{.State}}</td></tr>
     {{end}}
   </tbody>
   </table>

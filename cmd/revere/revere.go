@@ -39,12 +39,6 @@ var (
 	lastStates map[uint]map[string]revere.State = make(map[uint]map[string]revere.State)
 )
 
-type config struct {
-	Id     uint
-	Config string
-	Emails string
-}
-
 func main() {
 	flag.Parse()
 	// TODO(dp): add more documentation
@@ -70,12 +64,33 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/", web.ReadingsIndex(db))
+	allConfigs := revere.LoadConfigs(db)
+	// Initialize lastStates for the ui
+	for configId, config := range allConfigs {
+		p, err := probes.NewGraphiteThreshold(config.Config)
+		if err != nil {
+			fmt.Println("Error parsing json:", err.Error())
+			continue
+		}
+		readings, err := p.Check()
+		if err != nil {
+			// This could be transient, so just keep going
+			fmt.Println("Error reaching graphite:", err.Error())
+			continue
+		}
+		if lastStates[configId] == nil {
+			lastStates[configId] = make(map[string]revere.State)
+		}
+		for subprobe, reading := range readings {
+			lastStates[configId][subprobe] = reading.State
+		}
+
+	}
+
+	http.HandleFunc("/", web.ReadingsIndex(db, &allConfigs, &lastStates))
 	http.HandleFunc("/static/", web.StaticHandler)
 
 	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
-
-	allConfigs := loadConfigs()
 
 	ticker := time.Tick(revere.CheckFrequency * time.Minute)
 	for _ = range ticker {
@@ -90,35 +105,6 @@ func main() {
 			runCheck(config.Id, probe, strings.Split(config.Emails, ","))
 		}
 	}
-}
-
-func loadConfigs() []config {
-	fmt.Println("Loading configs from db")
-
-	cRows, err := db.Query("SELECT * FROM configurations")
-	if err != nil {
-		fmt.Printf("Error retrieving configs: %s", err.Error())
-		return nil
-	}
-
-	var allConfigs []config
-	for cRows.Next() {
-		// TODO(dp): change this into debugger level logs
-		var c config
-		if err := cRows.Scan(&c.Id, &c.Config, &c.Emails); err != nil {
-			fmt.Printf("Error scanning rows: %s\n", err.Error())
-			continue
-		}
-		allConfigs = append(allConfigs, c)
-		fmt.Printf("Loaded config %s\n", c.Config)
-	}
-	cRows.Close()
-	if err := cRows.Err(); err != nil {
-		fmt.Printf("Got err with configs: %s\n", err.Error())
-		return nil
-	}
-
-	return allConfigs
 }
 
 func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {

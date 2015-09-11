@@ -4,6 +4,7 @@ use revere;
 
 CREATE TABLE configurations (
   id int(11) AUTO_INCREMENT PRIMARY KEY,
+  name varchar(255) NOT NULL,
   config longtext,
   emails varchar(255)
 );

@@ -2,7 +2,6 @@ package web
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -15,20 +14,29 @@ import (
 )
 
 type reading struct {
-	Id       uint
-	ConfigId uint
-	Config   string
-	Subprobe string
-	State    revere.State
-	Time     time.Time
+	Id         uint
+	ConfigName string
+	Subprobe   string
+	State      revere.State
+	Time       time.Time
+	IsCurrent  bool
 }
 
-func ReadingsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
+func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
+		var readings []reading
+		for configId, probeStates := range *currentStates {
+			for subprobe, state := range probeStates {
+				r := reading{0, (*configs)[configId].Name, subprobe, state, time.Now(), true}
+				readings = append(readings, r)
+			}
+		}
+
 		rRows, err := db.Query(`
-		SELECT r.id, r.config_id, c.config, r.subprobe, r.state, r.time
+		SELECT r.id, c.name, r.subprobe, r.state, r.time
 		FROM readings r
 		JOIN configurations c ON r.config_id = c.id
+		ORDER BY time DESC
 		`)
 		if err != nil {
 			fmt.Printf("Error retrieving readings: %s", err.Error())
@@ -36,19 +44,11 @@ func ReadingsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		var readings []reading
 		for rRows.Next() {
 			var r reading
-			if err := rRows.Scan(&r.Id, &r.ConfigId, &r.Config, &r.Subprobe, &r.State, &r.Time); err != nil {
+			if err := rRows.Scan(&r.Id, &r.ConfigName, &r.Subprobe, &r.State, &r.Time); err != nil {
 				fmt.Printf("Error scanning rows: %s\n", err.Error())
 				continue
-			}
-
-			// Attempt to format json
-			var c interface{}
-			if err := json.Unmarshal([]byte(r.Config), &c); err == nil {
-				b, _ := json.MarshalIndent(c, "", "  ")
-				r.Config = string(b[:])
 			}
 			readings = append(readings, r)
 		}
