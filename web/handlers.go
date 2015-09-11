@@ -22,6 +22,14 @@ type reading struct {
 	IsCurrent  bool
 }
 
+var (
+	templates = make(map[string]*template.Template)
+)
+
+func init() {
+	templates["readings-index.html"] = template.Must(template.ParseFiles("web/views/readings-index.html", "web/views/header.html", "web/views/footer.html"))
+}
+
 func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var readings []reading
@@ -59,13 +67,12 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 			return
 		}
 
-		t, err := template.ParseFiles("web/views/readings-index.html", "web/views/header.html", "web/views/footer.html")
+		err = templates["readings-index.html"].Execute(w, map[string]interface{}{"Readings": readings})
 		if err != nil {
-			fmt.Printf("Got err parsing template: %s\n", err.Error())
+			fmt.Println("Got err executing template:", err.Error())
 			http.Error(w, "Unable to retrieve readings", 500)
 			return
 		}
-		t.Execute(w, map[string]interface{}{"Readings": readings})
 	}
 }
 
