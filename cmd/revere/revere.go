@@ -64,9 +64,10 @@ func main() {
 		return
 	}
 
-	allConfigs := revere.LoadConfigs(db)
+	c := revere.LoadConfigs(db)
+	allConfigs := &c
 	// Initialize lastStates for the ui
-	for configId, config := range allConfigs {
+	for configId, config := range *allConfigs {
 		p, err := probes.NewGraphiteThreshold(config.Config)
 		if err != nil {
 			fmt.Println("Error parsing json:", err.Error())
@@ -87,14 +88,19 @@ func main() {
 
 	}
 
-	http.HandleFunc("/", web.ReadingsIndex(db, &allConfigs, &lastStates))
+	http.HandleFunc("/", web.ReadingsIndex(db, allConfigs, &lastStates))
+	http.HandleFunc("/configs", web.ConfigsIndex(allConfigs))
 	http.HandleFunc("/static/", web.StaticHandler)
 
 	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
 
 	ticker := time.Tick(revere.CheckFrequency * time.Minute)
 	for _ = range ticker {
-		for _, config := range allConfigs {
+		c := revere.LoadConfigs(db)
+		if c != nil {
+			*allConfigs = c
+		}
+		for _, config := range *allConfigs {
 			// TODO(dp): validate configurations
 			probe, err := probes.NewGraphiteThreshold(config.Config)
 			if err != nil {

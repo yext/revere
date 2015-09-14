@@ -28,6 +28,7 @@ var (
 
 func init() {
 	templates["readings-index.html"] = template.Must(template.ParseFiles("web/views/readings-index.html", "web/views/header.html", "web/views/footer.html"))
+	templates["configs-index.html"] = template.Must(template.ParseFiles("web/views/configs-index.html", "web/views/header.html", "web/views/footer.html"))
 }
 
 func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request) {
@@ -71,6 +72,17 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())
 			http.Error(w, "Unable to retrieve readings", 500)
+			return
+		}
+	}
+}
+
+func ConfigsIndex(allConfigs *map[uint]revere.Config) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		err := templates["configs-index.html"].Execute(w, map[string]interface{}{"Configs": *allConfigs})
+		if err != nil {
+			fmt.Println("Got err executing template:", err.Error())
+			http.Error(w, "Unable to retrieve configs", 500)
 			return
 		}
 	}

@@ -1,0 +1,16 @@
+{{template "header.html" "configs"}}
+<h1>configs</h1>
+
+<div class="table-responsive">
+  <table class="table">
+  <thead>
+      <tr><td>name</td><td>json</td><td>emails</td></tr>
+  </thead>
+  <tbody>
+    {{range .Configs}}
+        <tr><td>{{.Name}}</td><td>{{.Config}}</td><td>{{.Emails}}</td></tr>
+    {{end}}
+  </tbody>
+  </table>
+</div>
+{{template "footer.html"}}
