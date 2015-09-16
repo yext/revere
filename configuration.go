@@ -15,7 +15,7 @@ type Config struct {
 func LoadConfigs(db *sql.DB) map[uint]Config {
 	cRows, err := db.Query("SELECT id, name, config, emails FROM configurations")
 	if err != nil {
-		fmt.Printf("Error retrieving configs: %s", err.Error())
+		fmt.Printf("Error retrieving configs: %s\n", err.Error())
 		return nil
 	}
 

@@ -89,7 +89,8 @@ func main() {
 	}
 
 	http.HandleFunc("/", web.ReadingsIndex(db, allConfigs, &lastStates))
-	http.HandleFunc("/configs", web.ConfigsIndex(allConfigs))
+	http.HandleFunc("/configs", web.ConfigsIndex(db, allConfigs))
+	http.HandleFunc("/silence", web.SilenceAlert(db))
 	http.HandleFunc("/static/", web.StaticHandler)
 
 	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)

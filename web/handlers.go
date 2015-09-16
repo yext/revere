@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -14,35 +15,73 @@ import (
 )
 
 type reading struct {
-	Id         uint
-	ConfigName string
-	Subprobe   string
-	State      revere.State
-	Time       time.Time
-	IsCurrent  bool
+	Id          uint
+	ConfigId    uint
+	ConfigName  string
+	Subprobe    string
+	State       revere.State
+	Time        string
+	IsCurrent   bool
+	SilenceTime string
 }
+
+const (
+	format = "01/02/2006 3:04 PM"
+)
 
 var (
 	templates = make(map[string]*template.Template)
 )
 
 func init() {
-	templates["readings-index.html"] = template.Must(template.ParseFiles("web/views/readings-index.html", "web/views/header.html", "web/views/footer.html"))
+	templates["readings-index.html"] = template.Must(template.ParseFiles("web/views/readings-index.html", "web/views/header.html", "web/views/footer.html", "web/views/datetimepicker.html"))
 	templates["configs-index.html"] = template.Must(template.ParseFiles("web/views/configs-index.html", "web/views/header.html", "web/views/footer.html"))
 }
 
 func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
+		silencedAlerts := make(map[uint]map[string]time.Time)
+		rows, err := db.Query("SELECT sa.config_id, sa.subprobe, sa.silenceTime FROM silenced_alerts sa")
+		if err != nil {
+			fmt.Printf("Error retrieving readings: %s", err.Error())
+			http.Error(w, "Unable to retrieve readings", 500)
+			return
+		}
+		for rows.Next() {
+			var c uint
+			var sp string
+			var st time.Time
+			if err := rows.Scan(&c, &sp, &st); err != nil {
+				fmt.Printf("Error scanning rows: %s\n", err.Error())
+				continue
+			}
+			if silencedAlerts[c] == nil {
+				silencedAlerts[c] = make(map[string]time.Time)
+			}
+			silencedAlerts[c][sp] = st
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			fmt.Printf("Got err with readings: %s\n", err.Error())
+			http.Error(w, "Unable to retrieve readings", 500)
+			return
+		}
+
 		var readings []reading
 		for configId, probeStates := range *currentStates {
 			for subprobe, state := range probeStates {
-				r := reading{0, (*configs)[configId].Name, subprobe, state, time.Now(), true}
+				st := silencedAlerts[configId][subprobe]
+				var silenceTime string
+				if st.After(time.Now()) {
+					silenceTime = st.Format(format)
+				}
+				r := reading{0, configId, (*configs)[configId].Name, subprobe, state, time.Now().Format(format), true, silenceTime}
 				readings = append(readings, r)
 			}
 		}
 
-		rRows, err := db.Query(`
-		SELECT r.id, c.name, r.subprobe, r.state, r.time
+		rows, err = db.Query(`
+		SELECT r.id, r.config_id, c.name, r.subprobe, r.state, r.time
 		FROM readings r
 		JOIN configurations c ON r.config_id = c.id
 		ORDER BY time DESC
@@ -53,16 +92,22 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 			return
 		}
 
-		for rRows.Next() {
+		for rows.Next() {
 			var r reading
-			if err := rRows.Scan(&r.Id, &r.ConfigName, &r.Subprobe, &r.State, &r.Time); err != nil {
+			var t time.Time
+			if err := rows.Scan(&r.Id, &r.ConfigId, &r.ConfigName, &r.Subprobe, &r.State, &t); err != nil {
 				fmt.Printf("Error scanning rows: %s\n", err.Error())
 				continue
 			}
+			r.Time = t.Format(format)
+			st := silencedAlerts[r.ConfigId][r.Subprobe]
+			if st.After(time.Now()) {
+				r.SilenceTime = st.Format(format)
+			}
 			readings = append(readings, r)
 		}
-		rRows.Close()
-		if err := rRows.Err(); err != nil {
+		rows.Close()
+		if err := rows.Err(); err != nil {
 			fmt.Printf("Got err with readings: %s\n", err.Error())
 			http.Error(w, "Unable to retrieve readings", 500)
 			return
@@ -77,14 +122,58 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 	}
 }
 
-func ConfigsIndex(allConfigs *map[uint]revere.Config) func(w http.ResponseWriter, req *http.Request) {
+func ConfigsIndex(db *sql.DB, allConfigs *map[uint]revere.Config) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
+		c := revere.LoadConfigs(db)
+		if c != nil {
+			*allConfigs = c
+		}
 		err := templates["configs-index.html"].Execute(w, map[string]interface{}{"Configs": *allConfigs})
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())
 			http.Error(w, "Unable to retrieve configs", 500)
 			return
 		}
+	}
+}
+
+func SilenceAlert(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		values := req.PostForm
+		configId := values.Get("configId")
+		subprobe := values.Get("subprobe")
+		silenceTime, err := time.Parse(format+" -07:00", values.Get("silenceTime"))
+		if err != nil {
+			w.WriteHeader(400)
+			io.WriteString(w, "Time could not be parsed: "+values.Get("silenceTime"))
+			return
+		}
+
+		if silenceTime.Before(time.Now()) {
+			w.WriteHeader(400)
+			io.WriteString(w, "Silence time must be in the future:"+values.Get("silenceTime"))
+		}
+
+		if silenceTime.After(time.Now().Add(2 * 14 * 24 * time.Hour)) {
+			w.WriteHeader(400)
+			io.WriteString(w, "Silence time must be less than two weeks in the future: "+values.Get("silenceTime"))
+			return
+		}
+
+		_, err = db.Exec(`
+		INSERT INTO silenced_alerts
+		(config_id, subprobe, silenceTime)
+		VALUES (?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+		silenceTime=VALUES(silenceTime)
+		`, configId, subprobe, silenceTime.UTC())
+		if err != nil {
+			fmt.Printf("error saving alert: %s\n", err.Error())
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(200)
 	}
 }
 
