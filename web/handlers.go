@@ -40,32 +40,7 @@ func init() {
 
 func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		silencedAlerts := make(map[uint]map[string]time.Time)
-		rows, err := db.Query("SELECT sa.config_id, sa.subprobe, sa.silenceTime FROM silenced_alerts sa")
-		if err != nil {
-			fmt.Printf("Error retrieving readings: %s", err.Error())
-			http.Error(w, "Unable to retrieve readings", 500)
-			return
-		}
-		for rows.Next() {
-			var c uint
-			var sp string
-			var st time.Time
-			if err := rows.Scan(&c, &sp, &st); err != nil {
-				fmt.Printf("Error scanning rows: %s\n", err.Error())
-				continue
-			}
-			if silencedAlerts[c] == nil {
-				silencedAlerts[c] = make(map[string]time.Time)
-			}
-			silencedAlerts[c][sp] = st
-		}
-		rows.Close()
-		if err := rows.Err(); err != nil {
-			fmt.Printf("Got err with readings: %s\n", err.Error())
-			http.Error(w, "Unable to retrieve readings", 500)
-			return
-		}
+		silencedAlerts := revere.LoadSilencedAlerts(db)
 
 		var readings []reading
 		for configId, probeStates := range *currentStates {
@@ -80,7 +55,7 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 			}
 		}
 
-		rows, err = db.Query(`
+		rows, err := db.Query(`
 		SELECT r.id, r.config_id, c.name, r.subprobe, r.state, r.time
 		FROM readings r
 		JOIN configurations c ON r.config_id = c.id

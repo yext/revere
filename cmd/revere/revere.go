@@ -101,6 +101,7 @@ func main() {
 		if c != nil {
 			*allConfigs = c
 		}
+		silencedAlerts := revere.LoadSilencedAlerts(db)
 		for _, config := range *allConfigs {
 			// TODO(dp): validate configurations
 			probe, err := probes.NewGraphiteThreshold(config.Config)
@@ -109,12 +110,12 @@ func main() {
 				continue
 			}
 
-			runCheck(config.Id, probe, strings.Split(config.Emails, ","))
+			runCheck(silencedAlerts, config.Id, probe, strings.Split(config.Emails, ","))
 		}
 	}
 }
 
-func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
+func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *probes.GraphiteThreshold, emails []string) {
 	readings, err := p.Check()
 	if err != nil {
 		fmt.Println(err)
@@ -126,7 +127,10 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 		}
 		lastState := lastStates[configId][subprobe]
 		lastStates[configId][subprobe] = reading.State
+		shouldAlert := false
 		if lastState != reading.State {
+			shouldAlert = true
+
 			// Record alert if it has changed
 			_, err = db.Exec(`
 			INSERT INTO readings (config_id, subprobe, state, time)
@@ -135,18 +139,20 @@ func runCheck(configId uint, p *probes.GraphiteThreshold, emails []string) {
 			if err != nil {
 				fmt.Printf("Error recording alert: %s\n", err.Error())
 			}
-
-			// Since state changed, we should send an alert
-			sendAlert(configId, subprobe, reading, emails)
-			return
 		}
 
-		shouldAlert, err := shouldSendAlert(configId, subprobe, p.AlertFrequency())
-		if err != nil {
-			fmt.Printf("Error checking should send alert: %s\n", err.Error())
-			return
+		if !shouldAlert {
+			shouldAlert, err = shouldSendAlert(configId, subprobe, p.AlertFrequency())
+			shouldAlert = reading.State != revere.Normal && shouldAlert
+			if err != nil {
+				fmt.Printf("Error checking should send alert: %s\n", err.Error())
+				return
+			}
 		}
-		if reading.State != revere.Normal && shouldAlert {
+
+		t := silencedAlerts[configId][subprobe]
+
+		if shouldAlert && t.Before(time.Now()) {
 			sendAlert(configId, subprobe, reading, emails)
 		}
 	}

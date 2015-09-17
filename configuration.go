@@ -3,6 +3,7 @@ package revere
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 type Config struct {
@@ -35,4 +36,32 @@ func LoadConfigs(db *sql.DB) map[uint]Config {
 	}
 
 	return allConfigs
+}
+
+func LoadSilencedAlerts(db *sql.DB) map[uint]map[string]time.Time {
+	silencedAlerts := make(map[uint]map[string]time.Time)
+	rows, err := db.Query("SELECT sa.config_id, sa.subprobe, sa.silenceTime FROM silenced_alerts sa")
+	if err != nil {
+		fmt.Printf("Error retrieving silenced alerts: %s\n", err.Error())
+		return nil
+	}
+	for rows.Next() {
+		var c uint
+		var sp string
+		var st time.Time
+		if err := rows.Scan(&c, &sp, &st); err != nil {
+			fmt.Printf("Error scanning rows: %s\n", err.Error())
+			continue
+		}
+		if silencedAlerts[c] == nil {
+			silencedAlerts[c] = make(map[string]time.Time)
+		}
+		silencedAlerts[c][sp] = st
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		fmt.Printf("Error retrieving silenced alerts: %s\n", err.Error())
+		return nil
+	}
+	return silencedAlerts
 }
