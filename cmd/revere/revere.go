@@ -92,6 +92,9 @@ func main() {
 	http.HandleFunc("/configs", web.ConfigsIndex(db, allConfigs))
 	http.HandleFunc("/silence", web.SilenceAlert(db))
 	http.HandleFunc("/static/", web.StaticHandler)
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/favicon.ico")
+	})
 
 	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
 
