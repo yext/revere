@@ -48,7 +48,7 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 				st := silencedAlerts[configId][subprobe]
 				var silenceTime string
 				if st.After(time.Now()) {
-					silenceTime = st.Format(format)
+					silenceTime = st.Local().Format(format)
 				}
 				r := reading{0, configId, (*configs)[configId].Name, subprobe, state, time.Now().Format(format), true, silenceTime}
 				readings = append(readings, r)
@@ -136,13 +136,15 @@ func SilenceAlert(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		// Doing it this way assures that the database stores a UTC time
+		silenceTimeUTC := revere.ChangeLoc(silenceTime.UTC(), time.Local)
 		_, err = db.Exec(`
 		INSERT INTO silenced_alerts
 		(config_id, subprobe, silenceTime)
 		VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		silenceTime=VALUES(silenceTime)
-		`, configId, subprobe, silenceTime.UTC())
+		`, configId, subprobe, silenceTimeUTC)
 		if err != nil {
 			fmt.Printf("error saving alert: %s\n", err.Error())
 			w.WriteHeader(500)

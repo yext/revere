@@ -173,7 +173,8 @@ func shouldSendAlert(configId uint, subprobe string, alertFrequency uint) (bool,
 	if err != nil && err != sql.ErrNoRows {
 		return false, err
 	}
-	return time.Now().Add(-time.Duration(alertFrequency) * time.Second).After(lastAlert), nil
+	lastAlert = revere.ChangeLoc(lastAlert, time.UTC)
+	return !time.Now().UTC().Add(-time.Duration(alertFrequency) * time.Second).Before(lastAlert), nil
 }
 
 func sendAlert(configId uint, subprobe string, reading revere.Reading, emails []string) {

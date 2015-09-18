@@ -56,7 +56,7 @@ func LoadSilencedAlerts(db *sql.DB) map[uint]map[string]time.Time {
 		if silencedAlerts[c] == nil {
 			silencedAlerts[c] = make(map[string]time.Time)
 		}
-		silencedAlerts[c][sp] = st
+		silencedAlerts[c][sp] = ChangeLoc(st, time.UTC)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
@@ -64,4 +64,8 @@ func LoadSilencedAlerts(db *sql.DB) map[uint]map[string]time.Time {
 		return nil
 	}
 	return silencedAlerts
+}
+
+func ChangeLoc(t time.Time, l *time.Location) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), l)
 }
