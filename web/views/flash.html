@@ -1,0 +1,13 @@
+{{range $k, $v := .}}
+  {{if eq $k "error"}}
+  	<div class="alert alert-danger" role="alert">
+  {{else if eq $k "success"}}
+  	<div class="alert alert-success" role="alert">
+  {{end}}
+	{{range $v}}
+	  <div>
+	    {{.}}
+	  </div>
+	{{end}}
+  </div>
+{{end}}

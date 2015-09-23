@@ -66,17 +66,29 @@ func main() {
 
 	c := revere.LoadConfigs(db)
 	allConfigs := &c
+
+	http.HandleFunc("/", web.ReadingsIndex(db, allConfigs, &lastStates))
+	http.HandleFunc("/configs/", web.ConfigsIndex(db))
+	http.HandleFunc("/configs/new", web.ConfigsNew(db))
+	http.HandleFunc("/silence", web.SilenceAlert(db))
+	http.HandleFunc("/static/", web.StaticHandler)
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/favicon.ico")
+	})
+
+	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
+
 	// Initialize lastStates for the ui
 	for configId, config := range *allConfigs {
 		p, err := probes.NewGraphiteThreshold(config.Config)
 		if err != nil {
-			fmt.Println("Error parsing json:", err.Error())
+			fmt.Printf("Config %d: Error parsing json: %s\n", configId, err.Error())
 			continue
 		}
 		readings, err := p.Check()
 		if err != nil {
 			// This could be transient, so just keep going
-			fmt.Println("Error reaching graphite:", err.Error())
+			fmt.Printf("Config %d: Error reaching graphite: %s\n", configId, err.Error())
 			continue
 		}
 		if lastStates[configId] == nil {
@@ -85,18 +97,7 @@ func main() {
 		for subprobe, reading := range readings {
 			lastStates[configId][subprobe] = reading.State
 		}
-
 	}
-
-	http.HandleFunc("/", web.ReadingsIndex(db, allConfigs, &lastStates))
-	http.HandleFunc("/configs", web.ConfigsIndex(db, allConfigs))
-	http.HandleFunc("/silence", web.SilenceAlert(db))
-	http.HandleFunc("/static/", web.StaticHandler)
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "web/favicon.ico")
-	})
-
-	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
 
 	ticker := time.Tick(revere.CheckFrequency * time.Minute)
 	for _ = range ticker {
@@ -109,20 +110,22 @@ func main() {
 			// TODO(dp): validate configurations
 			probe, err := probes.NewGraphiteThreshold(config.Config)
 			if err != nil {
-				fmt.Println("Error parsing json:", err.Error())
+				fmt.Printf("Config %d: Error parsing json: %s\n", config.Id, err.Error())
 				continue
 			}
 
-			runCheck(silencedAlerts, config.Id, probe, strings.Split(config.Emails, ","))
+			err = runCheck(silencedAlerts, config.Id, probe, strings.Split(config.Emails, ","))
+			if err != nil {
+				fmt.Printf("Config %d: Error running check: %s\n", config.Id, err.Error())
+			}
 		}
 	}
 }
 
-func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *probes.GraphiteThreshold, emails []string) {
+func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *probes.GraphiteThreshold, emails []string) error {
 	readings, err := p.Check()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	for subprobe, reading := range readings {
 		if lastStates[configId] == nil {
@@ -140,7 +143,7 @@ func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *pr
 			VALUES (?, ?, ?, UTC_TIMESTAMP())
 			`, configId, subprobe, reading.State)
 			if err != nil {
-				fmt.Printf("Error recording alert: %s\n", err.Error())
+				return err
 			}
 		}
 
@@ -148,8 +151,7 @@ func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *pr
 			shouldAlert, err = shouldSendAlert(configId, subprobe, p.AlertFrequency())
 			shouldAlert = reading.State != revere.Normal && shouldAlert
 			if err != nil {
-				fmt.Printf("Error checking should send alert: %s\n", err.Error())
-				return
+				return err
 			}
 		}
 
@@ -159,6 +161,8 @@ func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *pr
 			sendAlert(configId, subprobe, reading, emails)
 		}
 	}
+
+	return nil
 }
 
 func shouldSendAlert(configId uint, subprobe string, alertFrequency uint) (bool, error) {

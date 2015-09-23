@@ -5,3 +5,29 @@
 .buttons > button {
 	margin-left: 10px;
 }
+
+.new-btn {
+	margin-top: 17px;
+	float: right;
+}
+
+.monitors-headers {
+	overflow: hidden;
+}
+
+.monitors-header {
+	display: inline-block;
+	margin-bottom: 20px;
+}
+
+.config-label {
+	width: 150px;
+}
+
+.config-input {
+	width: 250px;
+}
+
+#triggerIf {
+	width: inherit;
+}

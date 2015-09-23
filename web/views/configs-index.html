@@ -1,10 +1,13 @@
-{{template "header.html" "configs"}}
-<h1>configs</h1>
-
+{{template "header.html" "monitors"}}
+<div class="monitors-headers">
+  <h1 class="monitors-header">monitors</h1>
+  <a href="/configs/new" class="btn-lg btn-success new-btn">+ new</a>
+</div>
+{{template "flash.html" .Flash}}
 <div class="table-responsive">
   <table class="table">
   <thead>
-      <tr><td>name</td><td>json</td><td>emails</td></tr>
+      <tr><td>name</td><td>configuration</td><td>emails</td></tr>
   </thead>
   <tbody>
     {{range .Configs}}
