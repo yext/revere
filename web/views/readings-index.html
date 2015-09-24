@@ -92,7 +92,7 @@
           },
           error: function(d) {
           {{/* TODO(dp): make this a better UX */}}
-            alert('Error silencing alert\n' + d);
+            alert('Error silencing alert\n' + d.status + ": "+d.responseText);
           }
         });
       }

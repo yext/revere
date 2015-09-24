@@ -239,6 +239,7 @@ func SilenceAlert(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 		if silenceTime.Before(time.Now()) {
 			w.WriteHeader(400)
 			io.WriteString(w, "Silence time must be in the future:"+values.Get("silenceTime"))
+			return
 		}
 
 		if silenceTime.After(time.Now().Add(2 * 14 * 24 * time.Hour)) {
