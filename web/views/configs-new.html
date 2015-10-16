@@ -2,72 +2,9 @@
 <h1>new monitor</h1>
 {{template "flash.html" .Flash}}
 <form action="/configs/new" method="POST">
+  {{template "configs-form.html" .}}
   <div class="form-group">
-    <label class="config-label" for="monitorName">Monitor Name</label>
-    <input type="text" class="config-input" id="monitorName" name="monitorName" value="{{.Form.monitorName}}">
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="emails">Emails (comma separated)</label>
-    <input type="text" class="config-input" id="emails" name="emails" value="{{.Form.emails}}">
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="graphite">Graphite URL</label>
-    <input type="text" class="config-input" id="graphite" name="graphite" value="{{or .Form.graphite .Graphite}}">
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="metric">Target Metric</label>
-    <input type="text" class="config-input" id="metric" name="metric" value="{{.Form.metric}}">
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="graphite">Trigger If</label>
-    <select class="config-input" id="triggerIf" name="triggerIf" value="{{.Form.triggerIf}}">
-  	  <option>&gt;</option>
-  	  <option>&gt;=</option>
-  	  <option>&lt;</option>
-  	  <option>&lt;=</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="threshold.warning">Warning Threshold</label>
-    <input type="text" class="config-input" id="threshold.warning" name="threshold.warning" 
-    {{if .Form}}
-      value="{{index .Form "threshold.warning"}}">
-    {{else}}
-      >
-    {{end}}
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="threshold.error">Error Threshold</label>
-    <input type="text" class="config-input" id="threshold.error" name="threshold.error"
-    {{if .Form}}
-      value="{{index .Form "threshold.error"}}">
-    {{else}}
-      >
-    {{end}}
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="threshold.critical">Critical Threshold</label>
-    <input type="text" class="config-input" id="threshold.critical" name="threshold.critical"
-    {{if .Form}}
-      value="{{index .Form "threshold.critical"}}">
-    {{else}}
-      >
-    {{end}}
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="holdRequirement">Hold Requirement</label>
-    <input type="text" class="config-input" id="holdRequirement" name="holdRequirement" value="{{.Form.holdRequirement}}">
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="alertFrequency">Alert Frequency</label>
-    <input type="text" class="config-input" id="alertFrequency" name="alertFrequency" value="{{.Form.alertFrequency}}">
-  </div>
-  <div class="form-group">
-    <label class="config-label" for="checkFrequency">Check Frequency</label>
-    <input type="text" class="config-input" id="checkFrequency" name="checkFrequency" value="{{.Form.checkFrequency}}">
-  </div>
-  <div class="form-group">
-  	<input type="submit" value="create" class="btn-lg btn-success">
+    <input type="submit" value="create" class="btn-lg btn-success">
   </div>
 </form>
 {{template "footer.html"}}

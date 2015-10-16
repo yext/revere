@@ -7,11 +7,11 @@
 <div class="table-responsive">
   <table class="table">
   <thead>
-      <tr><td>name</td><td>configuration</td><td>emails</td></tr>
+    <tr><td>name</td><td>configuration</td><td>emails</td><td>edit</td></tr>
   </thead>
   <tbody>
     {{range .Configs}}
-        <tr><td>{{.Name}}</td><td>{{.Config}}</td><td>{{.Emails}}</td></tr>
+    <tr><td>{{.Name}}</td><td>{{.Config}}</td><td>{{.Emails}}</td><td><a href="/configs/edit?id={{.Id}}" class="btn-lg btn-success new-btn">Edit</a></td></tr>
     {{end}}
   </tbody>
   </table>

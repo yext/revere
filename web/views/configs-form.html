@@ -1,0 +1,120 @@
+<div class="form-group">
+  <label class="config-label" for="monitorName">Monitor Name</label>
+  <input type="text" class="config-input" id="monitorName" name="monitorName" value=
+  {{if .Form}}
+    "{{.Form.monitorName}}"
+  {{else}}
+    "{{.Name}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="emails">Emails (comma separated)</label>
+  <input type="text" class="config-input" id="emails" name="emails" value=
+  {{if .Form}}
+    "{{.Form.emails}}"
+  {{else}}
+    "{{.Emails}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="graphite">Graphite URL</label>
+  <input type="text" class="config-input" id="graphite" name="graphite" value=
+  {{if .Form}}
+    "{{.Form.graphite}}"
+  {{else if .Config}}
+    "{{.Config.Graphite}}"
+  {{else}}
+    "{{.Graphite}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="metric">Target Metric</label>
+  <input type="text" class="config-input" id="metric" name="metric"
+  {{if .Form}}
+    value="{{.Form.metric}}"
+  {{else if .Config}}
+    value="{{.Config.Metric}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="graphite">Trigger If</label>
+  <select class="config-input" id="triggerIf" name="triggerIf"
+  {{if .Form}}
+    value="{{.Form.triggerIf}}"
+  {{else if .Config}}
+    value="{{.Config.TriggerIf}}"
+  {{end}}
+  >
+    <option>&gt;</option>
+    <option>&gt;=</option>
+    <option>&lt;</option>
+    <option>&lt;=</option>
+  </select>
+</div>
+<div class="form-group">
+  <label class="config-label" for="threshold.warning">Warning Threshold</label>
+  <input type="text" class="config-input" id="threshold.warning" name="threshold.warning"
+  {{if .Form}}
+    value="{{index .Form "threshold.warning"}}"
+  {{else if .Config}}
+    value="{{lookupThreshold .Config.Thresholds "Warning"}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="threshold.error">Error Threshold</label>
+  <input type="text" class="config-input" id="threshold.error" name="threshold.error"
+  {{if .Form}}
+    value="{{index .Form "threshold.error"}}"
+  {{else if .Config}}
+    value="{{lookupThreshold .Config.Thresholds "Error"}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="threshold.critical">Critical Threshold</label>
+  <input type="text" class="config-input" id="threshold.critical" name="threshold.critical"
+  {{if .Form}}
+    value="{{index .Form "threshold.critical"}}"
+  {{else if .Config}}
+    value="{{lookupThreshold .Config.Thresholds "Critical"}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="holdRequirement">Hold Requirement</label>
+  <input type="text" class="config-input" id="holdRequirement" name="holdRequirement"
+  {{if .Form}}
+    value="{{.Form.holdRequirement}}"
+  {{else if .Config}}
+    value="{{.Config.HoldRequirement}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="alertFrequency">Alert Frequency</label>
+  <input type="text" class="config-input" id="alertFrequency" name="alertFrequency"
+  {{if .Form}}
+    value="{{.Form.alertFrequency}}"
+  {{else if .Config}}
+    value="{{.Config.AlertFrequency}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <label class="config-label" for="checkFrequency">Check Frequency</label>
+  <input type="text" class="config-input" id="checkFrequency" name="checkFrequency"
+  {{if .Form}}
+    value="{{.Form.checkFrequency}}"
+  {{else if .Config}}
+    value="{{.Config.CheckFrequency}}"
+  {{end}}
+  >
+</div>
+<div class="form-group">
+  <input type="hidden" class="config-input" id="id" name="id" value="{{.Id}}">
+</div>

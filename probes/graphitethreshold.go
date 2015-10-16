@@ -24,13 +24,13 @@ const (
 
 // A GraphiteThreshold probe compares Graphite metrics to static values.
 type GraphiteThreshold struct {
-	graphite        string
-	metric          string
-	triggerIf       string
-	thresholds      map[revere.State]float64
-	holdRequirement uint
-	alertFrequency  uint
-	checkFrequency  uint
+	Graphite        string
+	Metric          string
+	TriggerIf       string
+	Thresholds      map[revere.State]float64
+	HoldRequirement uint
+	AlertFrequency  uint
+	CheckFrequency  uint
 }
 
 type graphiteThresholdSettings struct {
@@ -73,27 +73,27 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 	}
 
 	gt := new(GraphiteThreshold)
-	gt.graphite = builder.Graphite
-	gt.metric = builder.Metric
-	gt.triggerIf = builder.TriggerIf
-	gt.holdRequirement = builder.HoldRequirement
-	if gt.holdRequirement == 0 {
-		gt.holdRequirement = 1
+	gt.Graphite = builder.Graphite
+	gt.Metric = builder.Metric
+	gt.TriggerIf = builder.TriggerIf
+	gt.HoldRequirement = builder.HoldRequirement
+	if gt.HoldRequirement == 0 {
+		gt.HoldRequirement = 1
 	}
-	gt.checkFrequency = builder.CheckFrequency
-	if gt.checkFrequency == 0 {
-		gt.checkFrequency = revere.CheckFrequency
+	gt.CheckFrequency = builder.CheckFrequency
+	if gt.CheckFrequency == 0 {
+		gt.CheckFrequency = revere.CheckFrequency
 	}
-	gt.alertFrequency = builder.AlertFrequency
-	if gt.alertFrequency == 0 {
+	gt.AlertFrequency = builder.AlertFrequency
+	if gt.AlertFrequency == 0 {
 		// alertFrequency is in seconds
-		gt.alertFrequency = gt.checkFrequency * 60
+		gt.AlertFrequency = gt.CheckFrequency * 60
 	}
 
-	gt.thresholds = make(map[revere.State]float64)
-	gt.thresholds[revere.Warning] = builder.Thresholds.Warning
-	gt.thresholds[revere.Error] = builder.Thresholds.Error
-	gt.thresholds[revere.Critical] = builder.Thresholds.Critical
+	gt.Thresholds = make(map[revere.State]float64)
+	gt.Thresholds[revere.Warning] = builder.Thresholds.Warning
+	gt.Thresholds[revere.Error] = builder.Thresholds.Error
+	gt.Thresholds[revere.Critical] = builder.Thresholds.Critical
 
 	return gt, nil
 }
@@ -256,17 +256,13 @@ func checkFloat(t, s string) (float64, error, bool) {
 	return 0.0, nil, false
 }
 
-func (gt GraphiteThreshold) AlertFrequency() uint {
-	return gt.alertFrequency
-}
-
 func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
-	time := gt.checkFrequency * gt.holdRequirement
+	time := gt.CheckFrequency * gt.HoldRequirement
 	resp, err := http.Get(
 		fmt.Sprintf(
 			graphiteUrlFormat,
-			url.QueryEscape(gt.graphite),
-			url.QueryEscape(gt.metric),
+			url.QueryEscape(gt.Graphite),
+			url.QueryEscape(gt.Metric),
 			time))
 	if err != nil {
 		return nil, err
@@ -288,18 +284,18 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 	for _, target := range data {
 		var reading revere.Reading
 		reading.State = revere.Normal
-		if trhld, ok := gt.thresholds[revere.Warning]; ok {
-			if compare(gt.triggerIf, trhld, target.Datapoints) {
+		if trhld, ok := gt.Thresholds[revere.Warning]; ok {
+			if compare(gt.TriggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Warning
 			}
 		}
-		if trhld, ok := gt.thresholds[revere.Error]; ok {
-			if compare(gt.triggerIf, trhld, target.Datapoints) {
+		if trhld, ok := gt.Thresholds[revere.Error]; ok {
+			if compare(gt.TriggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Error
 			}
 		}
-		if trhld, ok := gt.thresholds[revere.Critical]; ok {
-			if compare(gt.triggerIf, trhld, target.Datapoints) {
+		if trhld, ok := gt.Thresholds[revere.Critical]; ok {
+			if compare(gt.TriggerIf, trhld, target.Datapoints) {
 				reading.State = revere.Critical
 			}
 		}
@@ -310,7 +306,7 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 				" has state " +
 				reading.State.String() +
 				" for metric " +
-				gt.metric}
+				gt.Metric}
 		readings[target.Target] = reading
 	}
 	return readings, nil

@@ -70,6 +70,7 @@ func main() {
 	http.HandleFunc("/", web.ReadingsIndex(db, allConfigs, &lastStates))
 	http.HandleFunc("/configs/", web.ConfigsIndex(db))
 	http.HandleFunc("/configs/new", web.ConfigsNew(db))
+	http.HandleFunc("/configs/edit", web.ConfigsEdit(db))
 	http.HandleFunc("/silence", web.SilenceAlert(db))
 	http.HandleFunc("/static/", web.StaticHandler)
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +149,7 @@ func runCheck(silencedAlerts map[uint]map[string]time.Time, configId uint, p *pr
 		}
 
 		if !shouldAlert {
-			shouldAlert, err = shouldSendAlert(configId, subprobe, p.AlertFrequency())
+			shouldAlert, err = shouldSendAlert(configId, subprobe, p.AlertFrequency)
 			shouldAlert = reading.State != revere.Normal && shouldAlert
 			if err != nil {
 				return err
