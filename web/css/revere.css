@@ -11,6 +11,10 @@
 	float: right;
 }
 
+.edit-btn {
+	float: right;
+}
+
 .monitors-headers {
 	overflow: hidden;
 }
@@ -30,4 +34,14 @@
 
 #triggerIf {
 	width: inherit;
+}
+
+.config-row {
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: #ddd 1px solid;
+}
+
+.config-row > div {
+	word-wrap: break-word;
 }
