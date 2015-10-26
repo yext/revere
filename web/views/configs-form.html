@@ -42,17 +42,18 @@
 </div>
 <div class="form-group">
   <label class="config-label" for="graphite">Trigger If</label>
-  <select class="config-input" id="triggerIf" name="triggerIf"
-  {{if .Form}}
-    value="{{.Form.triggerIf}}"
-  {{else if .Config}}
-    value="{{.Config.TriggerIf}}"
-  {{end}}
-  >
-    <option>&gt;</option>
-    <option>&gt;=</option>
-    <option>&lt;</option>
-    <option>&lt;=</option>
+  <select class="config-input" id="triggerIf" name="triggerIf">
+    {{if .Form}}
+      <option {{if eq .Form.triggerIf ">" }}selected{{end}}>&gt;</option>
+      <option {{if eq .Form.triggerIf ">=" }}selected{{end}}>&gt;=</option>
+      <option {{if eq .Form.triggerIf "<" }}selected{{end}}>&lt;</option>
+      <option {{if eq .Form.triggerIf "<=" }}selected{{end}}>&lt;=</option>
+    {{else if .Config}}
+      <option {{if eq .Config.TriggerIf ">" }}selected{{end}}>&gt;</option>
+      <option {{if eq .Config.TriggerIf ">=" }}selected{{end}}>&gt;=</option>
+      <option {{if eq .Config.TriggerIf "<" }}selected{{end}}>&lt;</option>
+      <option {{if eq .Config.TriggerIf "<=" }}selected{{end}}>&lt;=</option>
+    {{end}}
   </select>
 </div>
 <div class="form-group">
