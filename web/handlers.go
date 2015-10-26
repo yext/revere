@@ -198,7 +198,6 @@ func ParseConfigs(w http.ResponseWriter, req *http.Request, template string) (st
 		// Don't save bad config
 		return "", errs[0]
 	}
-	config = strings.ToLower(config)
 	// Replace encoded characters
 	config = strings.Replace(config, "\\u003c", "<", -1)
 	config = strings.Replace(config, "\\u003e", ">", -1)
