@@ -1,26 +1,20 @@
 {{template "header.html" "readings"}}
 <h1>readings</h1>
 
-<div class="table-responsive">
-  <table class="table">
-  <thead>
-      <tr class="headers"><td>config name</td><td>subprobe</td><td>read time</td><td>state</td><td>silence time</td><td class="buttons"></td></tr>
-  </thead>
-  <tbody>
-    {{range .Readings}}
-        {{if .IsCurrent}}
-          {{if eq .State 0}}
-            <tr class="success">
-          {{else}}
-            <tr class="danger">
-          {{end}}
-        {{else}}
-          <tr>
-        {{end}}
-        <td>{{.ConfigName}}</td><td>{{.Subprobe}}</td><td>{{.Time}}</td><td>{{.State}}</td><td class="datepicker-target">{{.SilenceTime}}</td><td class="buttons"><button type="button" class="silence-btn btn btn-xs" data-configid="{{.ConfigId}}" data-subprobe="{{.Subprobe}}">Silence</button></td></tr>
+<div class="readings">
+  <div class="revere-row"><div class="col-md-2">config name</div><div class="col-md-2">subprobe</div><div class="col-md-2">read time</div><div class="col-md-1">state</div><div class="col-md-3">silence time</div><div class="buttons col-md-2"></div></div>
+  {{range .Readings}}
+    {{if .IsCurrent}}
+      {{if eq .State 0}}
+        <div class="revere-row bg-success">
+      {{else}}
+        <div class="revere-row bg-danger">
+      {{end}}
+    {{else}}
+      <div class="revere-row">
     {{end}}
-  </tbody>
-  </table>
+    <div class="col-md-2">{{.ConfigName}}</div><div class="col-md-2">{{.Subprobe}}</div><div class="col-md-2">{{.Time}}</div><div class="col-md-1">{{.State}}</div><div class="datepicker-target col-md-3">{{.SilenceTime}}</div><div class="buttons col-md-2"><button type="button" class="silence-btn btn btn-xs" data-configid="{{.ConfigId}}" data-subprobe="{{.Subprobe}}">Silence</button></div></div>
+  {{end}}
 </div>
 
 
@@ -48,7 +42,7 @@
     }
     $('.silence-btn').click(function(){
       var $this = $(this);
-      var $dptd = $this.parent().siblings('td.datepicker-target');
+      var $dpdiv = $this.parent().siblings('div.datepicker-target');
       if (!$this.hasClass('btn-danger')) {
         var $dp = $('#silence-datepicker').clone();
         $dp.removeAttr('id');
@@ -58,7 +52,7 @@
           minDate: moment(),
           maxDate: moment().add(14, 'days')
         });
-        $dptd.html($dp);
+        $dpdiv.html($dp);
         $dp.data('configid', $this.data('configid'))
         $dp.data('subprobe', $this.data('subprobe'))
 
@@ -72,12 +66,12 @@
         $cancel.fadeIn();
 
         $dp.children('.calendar-icon').hide();
-        $dp.animate({width:'350px'}, 500, function() {
+        $dp.animate({width:'show'}, 500, function() {
           $dp.css('display', 'table');
           $dp.children('.calendar-icon').show();
         });
       } else {
-        var $dp = $dptd.children('.silence-datepicker');
+        var $dp = $dpdiv.children('.silence-datepicker');
         var data = {
           configId: $dp.data('configid'),
           subprobe: $dp.data('subprobe'),
@@ -88,7 +82,7 @@
           data: data,
           success: function(d) {
             $this.siblings().click();
-            $dptd.html($dp.data('DateTimePicker').date().format('MM/DD/YYYY h:mm A'));
+            $dpdiv.html($dp.data('DateTimePicker').date().format('MM/DD/YYYY h:mm A'));
           },
           error: function(d) {
           {{/* TODO(dp): make this a better UX */}}

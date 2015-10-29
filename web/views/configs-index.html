@@ -5,9 +5,9 @@
 </div>
 {{template "flash.html" .Flash}}
 <div class="configs">
-  <div class="config-header config-row"><div class="col-md-2">name</div><div class="col-md-6">configuration</div><div class="col-md-3">emails</div><div class="col-md-1">edit</div><div style="clear: both;"></div></div>
+  <div class="revere-row"><div class="col-md-2">name</div><div class="col-md-6">configuration</div><div class="col-md-3">emails</div><div class="col-md-1">edit</div></div>
   {{range .Configs}}
-    <div class="config-row"><div class="col-md-2">{{.Name}}</div><div class="col-md-6">{{.Config}}</div><div class="col-md-3">{{.Emails}}</div><div class="col-md-1"><a href="/configs/edit?id={{.Id}}" class="btn-lg btn-success edit-btn">Edit</a></div><div style="clear: both;"></div></div>
+    <div class="revere-row"><div class="col-md-2">{{.Name}}</div><div class="col-md-6">{{.Config}}</div><div class="col-md-3">{{.Emails}}</div><div class="col-md-1"><a href="/configs/edit?id={{.Id}}" class="btn-lg btn-success edit-btn">Edit</a></div></div>
   {{end}}
 </div>
 {{template "footer.html"}}

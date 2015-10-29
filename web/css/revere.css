@@ -7,7 +7,7 @@
 }
 
 .new-btn {
-	margin-top: 17px;
+	margin-top: 10px;
 	float: right;
 }
 
@@ -21,7 +21,6 @@
 
 .monitors-header {
 	display: inline-block;
-	margin-bottom: 20px;
 }
 
 .config-label {
@@ -36,12 +35,13 @@
 	width: inherit;
 }
 
-.config-row {
-	margin-bottom: 10px;
-	padding-bottom: 10px;
+.revere-row {
+	margin: 10px auto;
+	padding: 10px 0;
 	border-bottom: #ddd 1px solid;
+	overflow: hidden;
 }
 
-.config-row > div {
+.revere-row > div {
 	word-wrap: break-word;
 }
