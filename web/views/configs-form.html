@@ -53,6 +53,11 @@
       <option {{if eq .Config.TriggerIf ">=" }}selected{{end}}>&gt;=</option>
       <option {{if eq .Config.TriggerIf "<" }}selected{{end}}>&lt;</option>
       <option {{if eq .Config.TriggerIf "<=" }}selected{{end}}>&lt;=</option>
+    {{else}}
+      <option>&gt;</option>
+      <option>&gt;=</option>
+      <option>&lt;</option>
+      <option>&lt;=</option>
     {{end}}
   </select>
 </div>
