@@ -21,6 +21,8 @@ import (
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 const (
@@ -67,17 +69,23 @@ func main() {
 	c := revere.LoadConfigs(db)
 	allConfigs := &c
 
-	http.HandleFunc("/", web.ReadingsIndex(db, allConfigs, &lastStates))
-	http.HandleFunc("/configs/", web.ConfigsIndex(db))
-	http.HandleFunc("/configs/new", web.ConfigsNew(db))
-	http.HandleFunc("/configs/edit", web.ConfigsEdit(db))
-	http.HandleFunc("/silence", web.SilenceAlert(db))
-	http.HandleFunc("/static/", web.StaticHandler)
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	router := httprouter.New()
+
+	router.HandlerFunc("GET", "/", http.RedirectHandler("/readings/", http.StatusTemporaryRedirect).ServeHTTP)
+	router.GET("/readings/", web.ReadingsIndex(db, allConfigs, &lastStates))
+	router.GET("/configs/", web.ConfigsIndex(db))
+	router.GET("/configs/:id", web.ConfigsNew(db))
+	router.POST("/configs/:id", web.ConfigsCreate(db))
+	router.GET("/configs/:id/edit", web.ConfigsEdit(db))
+	router.POST("/configs/:id/edit", web.ConfigsUpdate(db))
+	router.POST("/silence", web.SilenceAlert(db))
+	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
+	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))
+	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/favicon.ico")
 	})
 
-	go http.ListenAndServe(":"+strconv.Itoa(*port), nil)
+	go http.ListenAndServe(":"+strconv.Itoa(*port), router)
 
 	// Initialize lastStates for the ui
 	for configId, config := range *allConfigs {

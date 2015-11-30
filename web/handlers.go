@@ -8,13 +8,13 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
-	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type reading struct {
@@ -53,8 +53,8 @@ func init() {
 	}
 }
 
-func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request) {
-	return func(w http.ResponseWriter, req *http.Request) {
+func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		silencedAlerts := revere.LoadSilencedAlerts(db)
 
 		var readings []reading
@@ -112,8 +112,8 @@ func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *m
 	}
 }
 
-func ConfigsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
-	return func(w http.ResponseWriter, req *http.Request) {
+func ConfigsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		success, err := req.Cookie("flash.success")
 		flash := make(map[string][]string)
 		if err == nil {
@@ -132,28 +132,26 @@ func ConfigsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ConfigsNew(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
-	return func(w http.ResponseWriter, req *http.Request) {
-		if req.Method == "GET" {
-			g, err := req.Cookie("graphite")
-			var graphite string
-			if err == nil {
-				graphite = g.Value
-			}
-
-			err = templates.ExecuteTemplate(w, "configs-new.html", map[string]interface{}{"Graphite": graphite})
-			if err != nil {
-				fmt.Println("Got err executing template:", err.Error())
-				http.Error(w, "Unable to load new monitor page", 500)
-				return
-			}
+func ConfigsNew(db *sql.DB) func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		if ps.ByName("id") != "new" {
+			http.NotFound(w, req)
 			return
 		}
 
-		if req.Method == "POST" {
-			ConfigsCreate(db, w, req)
+		g, err := req.Cookie("graphite")
+		var graphite string
+		if err == nil {
+			graphite = g.Value
+		}
+
+		err = templates.ExecuteTemplate(w, "configs-new.html", map[string]interface{}{"Graphite": graphite})
+		if err != nil {
+			fmt.Println("Got err executing template:", err.Error())
+			http.Error(w, "Unable to load new monitor page", 500)
 			return
 		}
+		return
 	}
 }
 
@@ -205,115 +203,117 @@ func ParseConfigs(w http.ResponseWriter, req *http.Request, template string) (st
 	return config, nil
 }
 
-func ConfigsCreate(db *sql.DB, w http.ResponseWriter, req *http.Request) {
-	config, err := ParseConfigs(w, req, "configs-new.html")
-	if err != nil {
-		return
-	}
+func ConfigsCreate(db *sql.DB) func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		if ps.ByName("id") != "new" {
+			http.NotFound(w, req)
+			return
+		}
 
-	_, err = db.Exec(`
+		config, err := ParseConfigs(w, req, "configs-new.html")
+		if err != nil {
+			return
+		}
+
+		_, err = db.Exec(`
 		INSERT INTO configurations
 		(name, config, emails)
 		VALUES (?, ?, ?)
 		`, req.Form.Get("monitorName"), config, req.Form.Get("emails"))
-	if err != nil {
-		fmt.Printf("error saving new configuration: %s\n", err.Error())
-		w.WriteHeader(500)
-		return
+		if err != nil {
+			fmt.Printf("error saving new configuration: %s\n", err.Error())
+			w.WriteHeader(500)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  "flash.success",
+			Value: "Successfully created monitor: " + req.Form.Get("monitorName"),
+			Path:  "/configs"})
+		http.SetCookie(w, &http.Cookie{
+			Name:  "graphite",
+			Value: req.Form.Get("graphite"),
+			Path:  "/configs"})
+
+		http.Redirect(w, req, "/configs", http.StatusFound)
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:  "flash.success",
-		Value: "Successfully created monitor: " + req.Form.Get("monitorName"),
-		Path:  "/configs"})
-	http.SetCookie(w, &http.Cookie{
-		Name:  "graphite",
-		Value: req.Form.Get("graphite"),
-		Path:  "/configs"})
-
-	http.Redirect(w, req, "/configs", http.StatusFound)
 }
 
-func ConfigsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
-	return func(w http.ResponseWriter, req *http.Request) {
-		if req.Method == "GET" {
-			id := req.URL.Query().Get("id")
-			if id == "" {
-				fmt.Println("No id provided in edit configuration")
-				http.Error(w, "No id provided in edit configuration", 500)
-				return
-			}
-			var name, config, emails string
-			err := db.QueryRow(
-				`SELECT name, config, emails
+func ConfigsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		id := ps.ByName("id")
+		if id == "" {
+			fmt.Println("No id provided in edit configuration")
+			http.Error(w, "No id provided in edit configuration", 500)
+			return
+		}
+		var name, config, emails string
+		err := db.QueryRow(
+			`SELECT name, config, emails
 				 FROM configurations
 				 WHERE id=?
 				 `, id).Scan(&name, &config, &emails)
-			if err != nil {
-				fmt.Println("Got err getting configuration:", err.Error())
-				http.Error(w, "Unable to load monitor configuration", 500)
-				return
-			}
-
-			p, err := probes.NewGraphiteThreshold(config)
-			if err != nil {
-				fmt.Printf("Config %s: Error parsing json %s:", id, err.Error())
-				http.Error(w, "Unable to parse configuration json", 500)
-				return
-			}
-
-			err = templates.ExecuteTemplate(w, "configs-edit.html", map[string]interface{}{
-				"Id":     id,
-				"Name":   name,
-				"Emails": emails,
-				"Config": p,
-			})
-			if err != nil {
-				fmt.Println("Got err executing template:", err.Error())
-				http.Error(w, "Unable to load edit monitor page", 500)
-				return
-			}
+		if err != nil {
+			fmt.Println("Got err getting configuration:", err.Error())
+			http.Error(w, "Unable to load monitor configuration", 500)
 			return
 		}
 
-		if req.Method == "POST" {
-			ConfigsUpdate(db, w, req)
+		p, err := probes.NewGraphiteThreshold(config)
+		if err != nil {
+			fmt.Printf("Config %s: Error parsing json %s:", id, err.Error())
+			http.Error(w, "Unable to parse configuration json", 500)
 			return
 		}
+
+		err = templates.ExecuteTemplate(w, "configs-edit.html", map[string]interface{}{
+			"Id":     id,
+			"Name":   name,
+			"Emails": emails,
+			"Config": p,
+		})
+		if err != nil {
+			fmt.Println("Got err executing template:", err.Error())
+			http.Error(w, "Unable to load edit monitor page", 500)
+			return
+		}
+		return
 	}
 }
 
-func ConfigsUpdate(db *sql.DB, w http.ResponseWriter, req *http.Request) {
-	config, err := ParseConfigs(w, req, "configs-edit.html")
-	if err != nil {
-		return
-	}
+func ConfigsUpdate(db *sql.DB) func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		config, err := ParseConfigs(w, req, "configs-edit.html")
+		if err != nil {
+			return
+		}
 
-	_, err = db.Exec(`
+		_, err = db.Exec(`
 		UPDATE configurations
 		SET name = ?, config = ?, emails = ?
 		WHERE id = ?
-		`, req.Form.Get("monitorName"), config, req.Form.Get("emails"), req.Form.Get("id"))
-	if err != nil {
-		fmt.Printf("error saving new configuration: %s\n", err.Error())
-		w.WriteHeader(500)
-		return
+		`, req.Form.Get("monitorName"), config, req.Form.Get("emails"), ps.ByName("id"))
+		if err != nil {
+			fmt.Printf("error saving new configuration: %s\n", err.Error())
+			w.WriteHeader(500)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  "flash.success",
+			Value: "Successfully updated monitor: " + req.Form.Get("monitorName"),
+			Path:  "/configs"})
+		http.SetCookie(w, &http.Cookie{
+			Name:  "graphite",
+			Value: req.Form.Get("graphite"),
+			Path:  "/configs"})
+
+		http.Redirect(w, req, "/configs", http.StatusFound)
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:  "flash.success",
-		Value: "Successfully updated monitor: " + req.Form.Get("monitorName"),
-		Path:  "/configs"})
-	http.SetCookie(w, &http.Cookie{
-		Name:  "graphite",
-		Value: req.Form.Get("graphite"),
-		Path:  "/configs"})
-
-	http.Redirect(w, req, "/configs", http.StatusFound)
 }
 
-func SilenceAlert(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
-	return func(w http.ResponseWriter, req *http.Request) {
+func SilenceAlert(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		req.ParseForm()
 		values := req.PostForm
 		configId := values.Get("configId")
@@ -353,16 +353,4 @@ func SilenceAlert(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 		}
 		w.WriteHeader(200)
 	}
-}
-
-func StaticHandler(w http.ResponseWriter, r *http.Request) {
-	_, filename := path.Split(r.URL.Path)
-	ext := filepath.Ext(filename)
-	if ext != ".css" && ext != ".js" {
-		return
-	}
-
-	p := path.Join(strings.Split(r.URL.Path, "/")[2:]...)
-	p = "web/" + p
-	http.ServeFile(w, r, p)
 }

@@ -1,7 +1,7 @@
 {{template "header.html" "monitors"}}
 <h1>edit monitor</h1>
 {{template "flash.html" .Flash}}
-<form action="/configs/edit?id={{.Id}}" method="POST">
+<form action="/configs/{{.Id}}/edit" method="POST">
   {{template "configs-form.html" dict "Form" .Form "Name" .Name "Emails" .Emails "Config" .Config "Id" .Id}}
   <div class="form-group">
     <input type="submit" value="update" class="btn-lg btn-success">
