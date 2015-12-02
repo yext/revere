@@ -15,6 +15,24 @@ CREATE TABLE monitors (
   archived DATETIME DEFAULT NULL
 ) ENGINE = InnoDB;
 
+CREATE TABLE triggers (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  level TINYINT NOT NULL DEFAULT 2,
+  triggerOnExit BOOLEAN NOT NULL DEFAULT TRUE,
+  periodMs INTEGER NOT NULL DEFAULT 0,
+  targetType SMALLINT NOT NULL,
+  target TEXT NOT NULL
+) ENGINE = InnoDB;
+
+CREATE TABLE monitor_triggers (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  monitor_id INTEGER NOT NULL,
+  subprobe TEXT NOT NULL DEFAULT '',
+  trigger_id INTEGER NOT NULL,
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id),
+  FOREIGN KEY (`trigger_id`) REFERENCES triggers(id)
+) ENGINE = InnoDB;
+
 CREATE TABLE readings (
   id int(11) AUTO_INCREMENT PRIMARY KEY,
   config_id int(11),

@@ -1,0 +1,28 @@
+{{template "header.html" "monitors"}}
+<h1 class="monitor-header">
+  <span class="monitor-title {{if .Monitor.Archived}}archived{{end}}">{{.Monitor.Name}}</span>
+  <span class="monitor-version">v{{.Monitor.Version}}</span>
+</h1>
+<div class="monitor-subheading">
+  <h5>{{.Monitor.Owner}} hello</h5>
+  <h5>{{.Monitor.Changed}}</h5>
+  {{if .Monitor.Archived}}
+  <h5>Archived: {{.Monitor.Archived}}</h5>
+  {{end}}
+</div>
+<h4>Description:</h4>
+<p>{{.Monitor.Description}}</p>
+<h4>Alert Response:</h4>
+<p>{{.Monitor.Response}}</p>
+<h4>Probe ({{.Monitor.ProbeType}}):</h4>
+{{if eq .Monitor.Probe ""}}
+  <p><a href="{{.Monitor.Id}}/edit">Not yet configured</a></p>
+ {{else}}
+   <p>{{.Monitor.Probe}}</p>
+ {{end}}
+
+<h2>triggers</h2>
+<div class="revere-row"><div class="col-md-3">Subprobe</div><div class="col-md-1">Trigger On Exit</div><div class="col-md-1">Period</div><div class="col-md-3">Target Type</a></div><div class="col-md-4">Target</div></div>
+{{range .Triggers}}
+  <div class="revere-row"><div class="col-md-3">{{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</div><div class="col-md-1">{{.TriggerOnExit}}</div><div class="col-md-1">{{.PeriodMs}} ms</div><div class="col-md-3">{{.TargetType}}</a></div><div class="col-md-4">{{.Target}}</div></div>
+{{end}}

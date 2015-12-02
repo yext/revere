@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	"github.com/yext/revere"
 
@@ -47,8 +48,39 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 	}
 }
 
-// Temporary function. We'll probably need to pass in the db here, so we'll return a function
-func MonitorsView(_ *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		id, err := strconv.Atoi(p.ByName("id"))
+		if err != nil {
+			http.NotFound(w, req)
+			return
+		}
+		m, err := revere.LoadMonitor(db, uint(id))
+		if err != nil {
+			fmt.Println("Got err getting monitor:", err.Error())
+			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+			return
+		}
+		triggers, err := revere.LoadTriggers(db, uint(id))
+		if err != nil {
+			fmt.Println("Got err getting monitor:", err.Error())
+			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+			return
+		}
+		err = templates.ExecuteTemplate(w, "monitors-view.html",
+			map[string]interface{}{
+				"Monitor":  m,
+				"Triggers": triggers,
+			})
+		if err != nil {
+			fmt.Println("Got err executing template:", err.Error())
+			http.Error(w, "Unable to retrieve monitor", 500)
+			return
+		}
+	}
+}
+
+func MonitorsEdit(_ *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		http.Error(w, fmt.Sprintf("Not yet implemented for id %s", p.ByName("id")), http.StatusNotImplemented)
 	}

@@ -45,3 +45,27 @@
 .revere-row > div {
 	word-wrap: break-word;
 }
+
+.monitor-header {
+	margin-bottom: 2px;
+}
+
+.monitor-title.archived {
+	text-decoration: line-through;
+}
+
+.monitor-version {
+	color: #707070;
+	font-size: 30px;
+}
+
+.monitor-subheading {
+	color: #707070;
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+.monitor-subheading > * {
+	margin-top: 0;
+	margin-bottom: 0;
+}
