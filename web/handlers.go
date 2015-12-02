@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"net/http"
 	"net/mail"
@@ -34,23 +33,6 @@ type config struct {
 	Config string
 	Emails string
 	Status string
-}
-
-const (
-	format = "01/02/2006 3:04 PM"
-)
-
-var (
-	templates *template.Template
-)
-
-func init() {
-	funcMap := template.FuncMap{"dict": dict, "lookupThreshold": lookupThreshold}
-	var err error
-	templates, err = template.New("").Funcs(funcMap).ParseGlob("web/views/*.html")
-	if err != nil {
-		fmt.Printf("Error parsing templates: %s", err.Error())
-	}
 }
 
 func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {

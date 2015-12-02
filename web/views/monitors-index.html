@@ -1,0 +1,12 @@
+{{template "header.html" "monitors"}}
+<div class="monitors-headers">
+  <h1 class="monitors-header">monitors</h1>
+  <a href="/monitors/new/edit" class="btn-lg btn-success new-btn">+ new</a>
+</div>
+<div>
+  <div class="revere-row"><div class="col-md-12">name</div></div>
+  {{range .Monitors}}
+    <div class="revere-row"><div class="col-md-12"><a href="/monitors/{{.Id}}">{{.Name}}</a></div></div>
+  {{end}}
+</div>
+{{template "footer.html"}}

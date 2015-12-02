@@ -74,6 +74,8 @@ func main() {
 	router.HandlerFunc("GET", "/", http.RedirectHandler("/readings/", http.StatusTemporaryRedirect).ServeHTTP)
 	router.GET("/readings/", web.ReadingsIndex(db, allConfigs, &lastStates))
 	router.GET("/configs/", web.ConfigsIndex(db))
+	router.GET("/monitors", web.MonitorsIndex(db))
+	router.GET("/monitors/:id", web.MonitorsView(db))
 	router.GET("/configs/:id", web.ConfigsNew(db))
 	router.POST("/configs/:id", web.ConfigsCreate(db))
 	router.GET("/configs/:id/edit", web.ConfigsEdit(db))
