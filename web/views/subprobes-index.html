@@ -1,0 +1,16 @@
+{{template "header.html" "monitors"}}
+<div class="subprobes-headers">
+  <h1 class="subprobes-header">subprobes for {{.MonitorName}}</h1>
+</div>
+<div>
+  <div class="revere-row"><div class="col-md-6">name</div><div class="col-md-3">state</div><div class="col-md-3">duration</div></div>
+  {{range .Subprobes}}
+    <div class="revere-row {{if eq .Status.State 1}}bg-success{{end}}">
+      <div class="col-md-6"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
+      <div class="col-md-3">{{.Status.StateStr}}</div>
+      <div class="col-md-3">{{.Status.FmtEnteredState}}</div>
+    </div>
+  {{end}}
+  {{if not .Subprobes}}None yet!{{end}}
+</div>
+{{template "footer.html"}}

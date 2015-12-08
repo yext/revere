@@ -4,7 +4,7 @@
   <span class="monitor-version">v{{.Monitor.Version}}</span>
 </h1>
 <div class="monitor-subheading">
-  <h5>{{.Monitor.Owner}} hello</h5>
+  <h5>{{.Monitor.Owner}}</h5>
   <h5>{{.Monitor.Changed}}</h5>
   {{if .Monitor.Archived}}
   <h5>Archived: {{.Monitor.Archived}}</h5>
@@ -20,6 +20,7 @@
  {{else}}
    <p>{{.Monitor.Probe}}</p>
  {{end}}
+ <h3><a href="{{.Monitor.Id}}/subprobes">subprobes</a></h3>
 
 <h2>triggers</h2>
 <div class="revere-row"><div class="col-md-3">Subprobe</div><div class="col-md-1">Trigger On Exit</div><div class="col-md-1">Period</div><div class="col-md-3">Target Type</a></div><div class="col-md-4">Target</div></div>

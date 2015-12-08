@@ -33,6 +33,25 @@ CREATE TABLE monitor_triggers (
   FOREIGN KEY (`trigger_id`) REFERENCES triggers(id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE subprobes (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  monitor_id INTEGER NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  archived DATETIME DEFAULT NULL,
+  CONSTRAINT UNIQUE (monitor_id,name)
+) ENGINE = InnoDB;
+
+CREATE TABLE subprobe_statuses (
+  subprobe_id INTEGER NOT NULL,
+  recorded DATETIME NOT NULL,
+  state TINYINT NOT NULL,
+  silenced BOOLEAN NOT NULL DEFAULT FALSE,
+  enteredState DATETIME NOT NULL,
+  INDEX (state, silenced, enteredState, recorded, subprobe_id)
+) ENGINE = InnoDB;
+
+# Old tables
+
 CREATE TABLE readings (
   id int(11) AUTO_INCREMENT PRIMARY KEY,
   config_id int(11),

@@ -30,11 +30,11 @@ var TargetTypes = map[TargetType]string{
 type Level int
 
 const (
-	NORMAL Level = iota
+	UNKNOWN Level = iota
+	NORMAL
 	WARNING
 	ERROR
 	CRITICAL
-	UNKNOWN
 )
 
 var Levels = map[Level]string{

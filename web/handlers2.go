@@ -85,3 +85,48 @@ func MonitorsEdit(_ *sql.DB) func(w http.ResponseWriter, req *http.Request, p ht
 		http.Error(w, fmt.Sprintf("Not yet implemented for id %s", p.ByName("id")), http.StatusNotImplemented)
 	}
 }
+
+func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		id, err := strconv.Atoi(p.ByName("id"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Monitor not found: %s", p.ByName("id")),
+				http.StatusNotFound)
+			return
+		}
+
+		s, err := revere.LoadSubprobes(db, uint(id))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		m, err := revere.LoadMonitor(db, uint(id))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		if m == nil {
+			http.Error(w, fmt.Sprintf("Monitor not found: %d", id),
+				http.StatusNotFound)
+			return
+		}
+
+		err = templates.ExecuteTemplate(w, "subprobes-index.html",
+			map[string]interface{}{"Subprobes": s, "MonitorName": m.Name})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func SubprobesView(_ *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		http.Error(w, fmt.Sprintf("Not yet implemented for subprobeId %s", p.ByName("subprobeId")), http.StatusNotImplemented)
+	}
+}
