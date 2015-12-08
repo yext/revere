@@ -47,6 +47,7 @@ CREATE TABLE subprobe_statuses (
   state TINYINT NOT NULL,
   silenced BOOLEAN NOT NULL DEFAULT FALSE,
   enteredState DATETIME NOT NULL,
+  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(id),
   INDEX (state, silenced, enteredState, recorded, subprobe_id)
 ) ENGINE = InnoDB;
 

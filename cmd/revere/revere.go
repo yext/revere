@@ -44,27 +44,16 @@ var (
 func main() {
 	flag.Parse()
 	// TODO(dp): add more documentation
-	if flag.NArg() < 3 {
-		fmt.Println("Not enough arguments.\nrevere [db-hostname] [db-username] [db-password]")
+	if flag.NArg() < 1 {
+		fmt.Println("Not enough arguments.\nrevere [path-to-conf-file]")
 		return
 	}
-
-	var (
-		dbHost     = flag.Arg(0)
-		dbUsername = flag.Arg(1)
-		dbPassword = flag.Arg(2)
-
-		dbspec = fmt.Sprintf(
-			"%s:%s@tcp(%s:3306)/revere?loc=Local&parseTime=true",
-			dbUsername, dbPassword, dbHost)
-	)
-
-	var err error
-	db, err = sql.Open("mysql", dbspec)
+	env, err := revere.BuildEnvFromFile(flag.Arg(0))
 	if err != nil {
-		fmt.Printf("Error connecting to db: %s", err.Error())
 		return
 	}
+
+	db = env.Db()
 
 	c := revere.LoadConfigs(db)
 	allConfigs := &c
