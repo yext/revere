@@ -1,0 +1,67 @@
+{{template "_header.html" .}}
+<h1>New Monitor</h1>
+<form id="monitor-form" action="/monitors/new/edit" class="form-horizontal" method="POST">
+  {{/* Basic Monitor Info */}}
+  <div id="monitor-info">
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="name">Name</label>
+      <div class="col-sm-10">
+        <input id="name" type="text" class="form-control" name="name" value="{{.Monitor.Name}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="owner">Owner</label>
+      <div class="col-sm-10">
+        <input id="owner" type="text" class="form-control" name="owner" value="{{.Monitor.Owner}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="description">Description</label>
+      <div class="col-sm-10">
+        <textarea id="description" class="form-control" rows="4" name="description">{{.Monitor.Description}}</textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="response">Alert response</label>
+      <div class="col-sm-10">
+        <textarea id="response" class="form-control" rows="4" name="response">{{.Monitor.Response}}</textarea>
+      </div>
+    </div>
+  </div>
+  {{/* Probe */}}
+  <div id="probe">
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="probe">Probe</label>
+      <div class="col-sm-10">
+        <select class="form-control" name="probe">
+          <option value="graphite" {{if strEq .Probe "graphite"}}selected{{end}}>Graphite Threshold</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <textarea id="config" class="form-control" rows="4" name="config">{{.Config}}</textarea>
+      </div>
+    </div>
+  </div>
+  {{/* Triggers */}}
+  <h2>Triggers</h2>
+  <div id="triggers">
+    {{range .Triggers}}
+      {{template "_triggers.html" .}}
+    {{else}}
+      {{template "_triggers.html"}}
+    {{end}}
+    <div class="form-group">
+      <button id="add-trigger" class="btn btn-default">+ Add</button>
+    </div>
+  </div>
+  <div class="form-group">
+    <input type="submit" class="btn-lg btn-success" value="Save">
+  </div>
+</form>
+{{define "MoreScripts"}}
+  <script type="text/javascript" src="/static/js/helpers.js"></script>
+  <script type="text/javascript" src="/static/js/edit-monitor.js"></script>
+{{end}}
+{{template "_footer.html"}}

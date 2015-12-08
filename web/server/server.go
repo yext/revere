@@ -29,6 +29,7 @@ func main() {
 	router.GET("/monitors", web.MonitorsIndex(db))
 	router.GET("/monitors/:id", web.MonitorsView(db))
 	router.GET("/monitors/:id/edit", web.MonitorsEdit(db))
+	router.POST("/monitors/:id/edit", web.MonitorsSave(db))
 	router.GET("/monitors/:id/subprobes", web.SubprobesIndex(db))
 	router.GET("/monitors/:id/subprobes/:subprobeId", web.SubprobesView(db))
 	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))

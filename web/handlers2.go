@@ -4,6 +4,7 @@ package web
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -25,7 +26,7 @@ var (
 
 func init() {
 	tMap = make(map[string]*template.Template)
-	funcMap := template.FuncMap{"dict": dict, "isLastBc": isLastBc}
+	funcMap := template.FuncMap{"dict": dict, "isLastBc": isLastBc, "strEq": strEq}
 	templateInfo, err := ioutil.ReadDir("web/views")
 	for _, t := range templateInfo {
 		if t.IsDir() {
@@ -79,7 +80,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 		triggers, err := revere.LoadTriggers(db, uint(id))
 		if err != nil {
-			fmt.Println("Got err getting monitor:", err.Error())
+			fmt.Println("Got err getting triggers:", err.Error())
 			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
 			return
 		}
@@ -92,15 +93,85 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			})
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())
-			http.Error(w, "Unable to retrieve monitor", 500)
+			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
 			return
 		}
 	}
 }
 
-func MonitorsEdit(_ *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		http.Error(w, fmt.Sprintf("Not yet implemented for id %s", p.ByName("id")), http.StatusNotImplemented)
+		id := p.ByName("id")
+		if id == "" {
+			http.Error(w, "Monitor not found", http.StatusNotFound)
+			return
+		}
+
+		// Create new monitor
+		if p.ByName("id") == "new" {
+			err := executeTemplate(w, "edit-monitor.html", map[string]interface{}{
+				"Title": "create monitor",
+			})
+			if err != nil {
+				fmt.Println("Unable to load new monitor page:", err.Error())
+				http.Error(w, "Unable to load new monitor page", http.StatusInternalServerError)
+			}
+			return
+		}
+
+		// Edit existing monitor
+		config := make(map[string]string)
+		var configJson []byte
+
+		i, err := strconv.Atoi(id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid monitor id: %s", err.Error()),
+				http.StatusBadRequest)
+			return
+		}
+
+		monitor, err := revere.LoadMonitor(db, uint(i))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		triggers, err := revere.LoadTriggers(db, uint(i))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		configJson, err = json.Marshal(config)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		err = executeTemplate(w, "edit-monitor.html", map[string]interface{}{
+			"Title":    "edit monitor",
+			"Monitor":  monitor,
+			"Config":   string(configJson),
+			"Triggers": triggers,
+		})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load edit monitor page", err.Error()),
+				http.StatusInternalServerError)
+		}
+	}
+}
+
+func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		// Temporarily just return success
+		// TODO: Stringfy JSON in JS so that we can use a json decoder
+		fmt.Println(req.FormValue("name"))
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprintf(w, "")
 	}
 }
 

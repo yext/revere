@@ -3,16 +3,18 @@ package revere
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 type Trigger struct {
 	Id            uint
-	Subprobe      string
 	Level         string
-	TriggerOnExit bool
-	PeriodMs      int
-	TargetType    string
+	Period        int64
+	PeriodType    string
+	Subprobe      string
 	Target        string
+	TargetType    string
+	TriggerOnExit bool
 }
 
 const allTriggerFields = "t.id, t.level, t.triggerOnExit, t.periodMs, t.targetType, t.target, mt.subprobe"
@@ -68,16 +70,35 @@ func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {
 	}
 	return triggers, nil
 }
+
 func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
 	var t Trigger
 	var level State
 	var targetType TargetType
+	var periodMs int64
 	var subprobe string
-	if err := rows.Scan(&t.Id, &level, &t.TriggerOnExit, &t.PeriodMs, &targetType, &t.Target, &subprobe); err != nil {
+	if err := rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &targetType, &t.Target, &subprobe); err != nil {
 		return nil, err
 	}
 	t.Level = States[level]
 	t.TargetType = TargetTypes[targetType]
 	t.Subprobe = subprobe
+	t.Period, t.PeriodType = getPeriod(periodMs)
 	return &t, nil
+}
+
+func getPeriod(periodMs int64) (int64, string) {
+	ms := time.Duration(periodMs) * time.Millisecond
+	switch {
+	case ms%(time.Hour*24) == 0:
+		return int64(ms / (time.Hour * 24)), "day"
+	case ms%time.Hour == 0:
+		return int64(ms / time.Hour), "hour"
+	case ms%time.Minute == 0:
+		return int64(ms / time.Minute), "minute"
+	case ms%time.Second == 0:
+		return int64(ms / time.Second), "second"
+	default:
+		return 0, ""
+	}
 }

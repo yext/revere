@@ -1,0 +1,54 @@
+<div class="trigger">
+  <div class="form-group">
+    <div class="col-sm-1">
+      <button class="remove-trigger btn btn-default btn-block">x</button>
+    </div>
+    <label class="col-sm-1 control-label" for="Level">Alert on</label>
+    <div class="col-sm-4">
+      <select class="form-control" name="Level">
+        <option value="ERROR" {{if strEq .Level "ERROR"}}selected{{end}}>ERROR</option>
+        <option value="CRITICAL" {{if strEq .Level "CRITICAL"}}selected{{end}}>CRITICAL</option>
+        <option value="WARNING" {{if strEq .Level "WARNING"}}selected{{end}}>WARNING</option>
+        <option value="UNKNOWN" {{if strEq .Level "UNKNOWN"}}selected{{end}}>UNKNOWN</option>
+      </select>
+    </div>
+    <label class="col-sm-2">no more than once every</label>
+    <div class="col-sm-2">
+      <input type="text" class="form-control" name="alertTimeValue" value="{{.Period}}" placeholder="5">
+    </div>
+    <div class="col-sm-2">
+      <select class="form-control" name="alertTimeType">
+        <option value="second" {{if strEq .PeriodType "second"}}selected{{end}}>Second(s)</option>
+        <option value="minute" {{if strEq .PeriodType "minute"}}selected{{end}}>Minute(s)</option>
+        <option value="hour" {{if strEq .PeriodType "hour"}}selected{{end}}>Hour(s)</option>
+        <option value="day" {{if strEq .PeriodType "day"}}selected{{end}}>Day(s)</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="subprobe">Subprobe</label>
+    <div class="col-sm-4">
+      <input type="text" class="form-control" name="subprobe" value="{{.Subprobe}}">
+    </div>
+    <div class="col-sm-4">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="deescalation" {{if .TriggerOnExit}}checked{{end}}> Notify on de-escalation
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="targetType">Target</label>
+    <div class="col-sm-4">
+      <select class="form-control" name="targetType">
+        <option value="Email" {{if strEq .TargetType "Email"}}selected{{end}}>Email</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <textarea id="target" class="form-control" rows="4" name="target">{{.Target}}</textarea>
+    </div>
+  </div>
+</div>

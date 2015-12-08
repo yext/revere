@@ -24,3 +24,18 @@ func dict(args ...interface{}) (map[string]interface{}, error) {
 func isLastBc(a []breadcrumb, i int) bool {
 	return i == len(a)-1
 }
+
+func strEq(a, b interface{}) bool {
+	c, ok := a.(string)
+	if !ok {
+		return false
+	}
+	d, ok := b.(string)
+	if !ok {
+		return false
+	}
+	if c == d {
+		return true
+	}
+	return false
+}
