@@ -16,10 +16,18 @@ import (
 
 type Env struct {
 	db *sql.DB
+
+	// web
+	port    int
+	urlBase string
 }
 
 func (e *Env) Db() *sql.DB {
 	return e.db
+}
+
+func (e *Env) Port() int {
+	return e.port
 }
 
 type jsonConf struct {
@@ -76,6 +84,9 @@ func BuildEnvFromFile(fn string) (*Env, error) {
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
+
+	env.port = conf.Web.Port
+	env.urlBase = conf.Web.UrlBase
 
 	return &env, nil
 }

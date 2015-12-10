@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/web"
@@ -34,4 +35,8 @@ func main() {
 	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/favicon.ico")
 	})
+
+	port := strconv.Itoa(env.Port())
+	fmt.Printf("Listening on :%s\n", port)
+	http.ListenAndServe(":"+port, router)
 }
