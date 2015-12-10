@@ -16,8 +16,6 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web"
