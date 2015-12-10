@@ -27,17 +27,17 @@ var TargetTypes = map[TargetType]string{
 	Email: "Email",
 }
 
-type Level int
+type State int
 
 const (
-	UNKNOWN Level = iota
+	UNKNOWN State = iota
 	NORMAL
 	WARNING
 	ERROR
 	CRITICAL
 )
 
-var Levels = map[Level]string{
+var States = map[State]string{
 	NORMAL:   "NORMAL",
 	WARNING:  "WARNING",
 	ERROR:    "ERROR",
@@ -70,13 +70,13 @@ func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {
 }
 func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
 	var t Trigger
-	var level Level
+	var level State
 	var targetType TargetType
 	var subprobe string
 	if err := rows.Scan(&t.Id, &level, &t.TriggerOnExit, &t.PeriodMs, &targetType, &t.Target, &subprobe); err != nil {
 		return nil, err
 	}
-	t.Level = Levels[level]
+	t.Level = States[level]
 	t.TargetType = TargetTypes[targetType]
 	t.Subprobe = subprobe
 	return &t, nil

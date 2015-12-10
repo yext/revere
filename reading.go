@@ -1,8 +1,8 @@
 package revere
 
 // A Reading captures a snapshot of the state of a service being monitored.
-type Reading struct {
-	State   State
+type LegacyReading struct {
+	State   LegacyState
 	Details Details
 }
 
@@ -11,11 +11,11 @@ const (
 )
 
 // A State represents the health of a service being monitored.
-type State int
+type LegacyState int
 
 const (
 	// Things are operating as expected.
-	Normal State = iota
+	Normal LegacyState = iota
 
 	// There is something odd happening. People actively working on this
 	// service or checking up on it should know about this, but others do
@@ -34,10 +34,10 @@ const (
 
 	// There has been an error in the health checking mechanism for this
 	// service.
-	Unknown State = -1
+	Unknown LegacyState = -1
 )
 
-func (s State) String() string {
+func (s LegacyState) String() string {
 	switch s {
 	case Normal:
 		return "NORMAL"

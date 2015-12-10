@@ -51,6 +51,15 @@ CREATE TABLE subprobe_statuses (
   INDEX (state, silenced, enteredState, recorded, subprobe_id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE readings2 (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  subprobe_id INTEGER NOT NULL,
+  recorded DATETIME NOT NULL,
+  state TINYINT NOT NULL,
+  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(id),
+  INDEX (subprobe_id, recorded, id)
+) ENGINE = InnoDB;
+
 # Old tables
 
 CREATE TABLE readings (

@@ -125,8 +125,49 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 	}
 }
 
-func SubprobesView(_ *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		http.Error(w, fmt.Sprintf("Not yet implemented for subprobeId %s", p.ByName("subprobeId")), http.StatusNotImplemented)
+		id, err := strconv.Atoi(p.ByName("subprobeId"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Subprobe not found: %s", p.ByName("subprobeId")),
+				http.StatusNotFound)
+			return
+		}
+		s, err := revere.LoadSubprobe(db, uint(id))
+		if err != nil {
+			fmt.Println("Got err getting subprobe:", err.Error())
+			http.Error(w, "Unable to retrieve subprobe", http.StatusInternalServerError)
+			return
+		}
+
+		if s == nil {
+			http.Error(w, fmt.Sprintf("Subprobe not found: %d", id),
+				http.StatusNotFound)
+			return
+		}
+
+		readings, err := revere.LoadReadings(db, uint(id))
+		if err != nil {
+			fmt.Println("Got err getting subprobe:", err.Error())
+			http.Error(w, "Unable to retrieve subprobe", http.StatusInternalServerError)
+			return
+		}
+
+		if s == nil {
+			http.Error(w, fmt.Sprintf("Subprobe not found: %s", id),
+				http.StatusNotFound)
+			return
+		}
+
+		err = templates.ExecuteTemplate(w, "subprobes-view.html",
+			map[string]interface{}{
+				"Readings":     readings,
+				"SubprobeName": s.Name,
+			})
+		if err != nil {
+			fmt.Println("Got err executing template:", err.Error())
+			http.Error(w, "Unable to retrieve subprobe", 500)
+			return
+		}
 	}
 }

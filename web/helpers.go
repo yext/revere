@@ -24,7 +24,7 @@ func dict(args ...interface{}) (map[string]interface{}, error) {
 }
 
 // Lookup threshold values, can't look up with consts in templates
-func lookupThreshold(thresholds map[revere.State]float64, state string) (float64, error) {
+func lookupThreshold(thresholds map[revere.LegacyState]float64, state string) (float64, error) {
 	if state == "Warning" {
 		return thresholds[revere.Warning], nil
 	} else if state == "Error" {

@@ -21,7 +21,7 @@ type reading struct {
 	ConfigId    uint
 	ConfigName  string
 	Subprobe    string
-	State       revere.State
+	State       revere.LegacyState
 	Time        string
 	IsCurrent   bool
 	SilenceTime string
@@ -35,7 +35,7 @@ type config struct {
 	Status string
 }
 
-func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.State) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func ReadingsIndex(db *sql.DB, configs *map[uint]revere.Config, currentStates *map[uint]map[string]revere.LegacyState) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		silencedAlerts := revere.LoadSilencedAlerts(db)
 

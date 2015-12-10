@@ -17,7 +17,7 @@ type Subprobe struct {
 type SubprobeStatus struct {
 	SubprobeId      uint
 	Recorded        time.Time
-	State           Level
+	State           State
 	StateStr        string
 	Silenced        bool
 	EnteredState    time.Time
@@ -51,17 +51,38 @@ func LoadSubprobes(db *sql.DB, monitorId uint) (subprobes []*Subprobe, err error
 	}
 	return subprobes, nil
 }
+
+func LoadSubprobe(db *sql.DB, subprobeId uint) (subprobe *Subprobe, err error) {
+	row, err := db.Query(
+		fmt.Sprintf(`
+			SELECT %s FROM subprobes s LEFT JOIN subprobe_statuses ss ON s.id = ss.subprobe_id
+			WHERE s.id = %d
+			`, allSubprobeFields, subprobeId))
+
+	if row.Next() {
+		subprobe, err = loadSubprobeFromRow(row)
+		if err != nil {
+			return
+		}
+	}
+	row.Close()
+	if err = row.Err(); err != nil {
+		return
+	}
+	return subprobe, nil
+}
+
 func loadSubprobeFromRow(rows *sql.Rows) (*Subprobe, error) {
 	var s Subprobe
 
 	var SubprobeId *uint
 	var Recorded *time.Time
-	var State *int
+	var SubprobeState *int
 	var Silenced *bool
 	var EnteredState *time.Time
 
 	if err := rows.Scan(&s.Id, &s.MonitorId, &s.Name, &s.Archived,
-		&SubprobeId, &Recorded, &State, &Silenced, &EnteredState); err != nil {
+		&SubprobeId, &Recorded, &SubprobeState, &Silenced, &EnteredState); err != nil {
 		return nil, err
 	}
 
@@ -69,12 +90,12 @@ func loadSubprobeFromRow(rows *sql.Rows) (*Subprobe, error) {
 	if SubprobeId != nil {
 		ss.SubprobeId = *SubprobeId
 		ss.Recorded = ChangeLoc(*Recorded, time.UTC)
-		ss.State = Level(*State)
+		ss.State = State(*SubprobeState)
 		ss.Silenced = *Silenced
 		ss.EnteredState = ChangeLoc(*EnteredState, time.UTC)
 		ss.FmtEnteredState = GetFmtEnteredState(ss.EnteredState, time.Now().UTC())
 	}
-	ss.StateStr = Levels[ss.State]
+	ss.StateStr = States[ss.State]
 	s.Status = ss
 
 	if s.Archived != nil {

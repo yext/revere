@@ -1,0 +1,15 @@
+{{template "header.html" "monitors"}}
+<div class="subprobes-headers">
+  <h1 class="subprobes-header">history for {{.SubprobeName}}</h1>
+</div>
+<div>
+  <div class="revere-row"><div class="col-md-6">state</div><div class="col-md-6">time recorded</div></div>
+  {{range .Readings}}
+    <div class="revere-row {{if eq .State 1}}bg-success{{end}}">
+      <div class="col-md-6">{{.StateStr}}</div>
+      <div class="col-md-6">{{.Recorded}}</div>
+    </div>
+  {{end}}
+  {{if not .Readings}}None yet!{{end}}
+</div>
+{{template "footer.html"}}

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -38,5 +39,5 @@ func main() {
 
 	port := strconv.Itoa(env.Port())
 	fmt.Printf("Listening on :%s\n", port)
-	http.ListenAndServe(":"+port, router)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

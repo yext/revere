@@ -27,7 +27,7 @@ type GraphiteThreshold struct {
 	Graphite        string
 	Metric          string
 	TriggerIf       string
-	Thresholds      map[revere.State]float64
+	Thresholds      map[revere.LegacyState]float64
 	HoldRequirement uint
 	AlertFrequency  uint
 	CheckFrequency  uint
@@ -90,7 +90,7 @@ func NewGraphiteThreshold(settings string) (*GraphiteThreshold, error) {
 		gt.AlertFrequency = gt.CheckFrequency * 60
 	}
 
-	gt.Thresholds = make(map[revere.State]float64)
+	gt.Thresholds = make(map[revere.LegacyState]float64)
 	gt.Thresholds[revere.Warning] = builder.Thresholds.Warning
 	gt.Thresholds[revere.Error] = builder.Thresholds.Error
 	gt.Thresholds[revere.Critical] = builder.Thresholds.Critical
@@ -256,7 +256,7 @@ func checkFloat(t, s string) (float64, error, bool) {
 	return 0.0, nil, false
 }
 
-func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
+func (gt *GraphiteThreshold) Check() (map[string]revere.LegacyReading, error) {
 	time := gt.CheckFrequency * gt.HoldRequirement
 	resp, err := http.Get(
 		fmt.Sprintf(
@@ -280,9 +280,9 @@ func (gt *GraphiteThreshold) Check() (map[string]revere.Reading, error) {
 		return nil, err
 	}
 
-	var readings = make(map[string]revere.Reading)
+	var readings = make(map[string]revere.LegacyReading)
 	for _, target := range data {
-		var reading revere.Reading
+		var reading revere.LegacyReading
 		reading.State = revere.Normal
 		if trhld, ok := gt.Thresholds[revere.Warning]; ok {
 			if compare(gt.TriggerIf, trhld, target.Datapoints) {
