@@ -23,7 +23,7 @@ var (
 )
 
 func init() {
-	funcMap := template.FuncMap{"dict": dict, "lookupThreshold": lookupThreshold}
+	funcMap := template.FuncMap{"dict": dict, "lookupThreshold": lookupThreshold, "isLastBc": isLastBc}
 	var err error
 	templates, err = template.New("").Funcs(funcMap).ParseGlob("web/views/*.html")
 	if err != nil {
@@ -39,7 +39,13 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 				http.StatusInternalServerError)
 			return
 		}
-		err = templates.ExecuteTemplate(w, "monitors-index.html", map[string]interface{}{"Monitors": m})
+
+		err = templates.ExecuteTemplate(w, "monitors-index.html",
+			map[string]interface{}{
+				"Title":       "monitors",
+				"Monitors":    m,
+				"Breadcrumbs": monitorIndexBcs(),
+			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -67,10 +73,13 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
 			return
 		}
+
 		err = templates.ExecuteTemplate(w, "monitors-view.html",
 			map[string]interface{}{
-				"Monitor":  m,
-				"Triggers": triggers,
+				"Title":       "monitors",
+				"Monitor":     m,
+				"Triggers":    triggers,
+				"Breadcrumbs": monitorViewBcs(m),
 			})
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())
@@ -116,7 +125,12 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 		}
 
 		err = templates.ExecuteTemplate(w, "subprobes-index.html",
-			map[string]interface{}{"Subprobes": s, "MonitorName": m.Name})
+			map[string]interface{}{
+				"Title":       "monitors",
+				"Subprobes":   s,
+				"Monitor":     m,
+				"Breadcrumbs": subprobeIndexBcs(m),
+			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -146,10 +160,16 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 
+		m, err := revere.LoadMonitor(db, s.MonitorId)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
 		readings, err := revere.LoadReadings(db, uint(id))
 		if err != nil {
-			fmt.Println("Got err getting subprobe:", err.Error())
-			http.Error(w, "Unable to retrieve subprobe", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve readings: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 
@@ -161,8 +181,11 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 
 		err = templates.ExecuteTemplate(w, "subprobes-view.html",
 			map[string]interface{}{
-				"Readings":     readings,
-				"SubprobeName": s.Name,
+				"Title":       "monitors",
+				"Readings":    readings,
+				"Subprobe":    s,
+				"Monitor":     m,
+				"Breadcrumbs": subprobeViewBcs(m, s),
 			})
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())

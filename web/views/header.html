@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
 
-    <title>Revere: {{.}}</title>
+    <title>Revere: {{.Title}}</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="/static/css/bootstrap-datetimepicker.min.css">
@@ -27,10 +27,22 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li {{if eq . "monitors"}}class="active"{{end}}><a href="/monitors">monitors</a></li>
+            <li {{if eq .Title "monitors"}}class="active"{{end}}><a href="/monitors">monitors</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
+    {{if .Breadcrumbs}}
+      <ol class="breadcrumb">
+        {{$breadcrumbs := .Breadcrumbs}}
+        {{range $index, $element := .Breadcrumbs}}
+          {{if isLastBc $breadcrumbs $index}}
+            <li class="active">{{$element.Text}}</a></li>
+          {{else}}
+            <li><a href="{{$element.Link}}">{{$element.Text}}</a></li>
+          {{end}}
+        {{end}}
+      </ol>
+    {{end}}
 
     <div class="container">

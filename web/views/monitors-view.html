@@ -1,4 +1,4 @@
-{{template "header.html" "monitors"}}
+{{template "header.html" . }}
 <h1 class="monitor-header">
   <span class="monitor-title {{if .Monitor.Archived}}archived{{end}}">{{.Monitor.Name}}</span>
   <span class="monitor-version">v{{.Monitor.Version}}</span>

@@ -2,6 +2,8 @@ package web
 
 import (
 	"errors"
+	"strconv"
+	"strings"
 
 	"github.com/yext/revere"
 )
@@ -33,4 +35,25 @@ func lookupThreshold(thresholds map[revere.LegacyState]float64, state string) (f
 		return thresholds[revere.Critical], nil
 	}
 	return float64(revere.Unknown), nil
+}
+
+func isLastBc(a []breadcrumb, i int) bool {
+	return i == len(a)-1
+}
+
+func path(parts ...interface{}) string {
+	strParts := make([]string, len(parts), len(parts))
+	for i, p := range parts {
+		switch t := p.(type) {
+		default:
+			// skip if we don't understand it
+		case uint:
+			strParts[i] = strconv.Itoa(int(t))
+		case int:
+			strParts[i] = strconv.Itoa(t)
+		case string:
+			strParts[i] = t
+		}
+	}
+	return strings.Join(strParts, "/")
 }
