@@ -1,4 +1,4 @@
-{{template "header.html" .}}
+{{template "_header.html" .}}
 <div class="subprobes-headers">
   <h1 class="subprobes-header">history for {{.Subprobe.Name}}</h1>
 </div>
@@ -12,4 +12,4 @@
   {{end}}
   {{if not .Readings}}None yet!{{end}}
 </div>
-{{template "footer.html"}}
+{{template "_footer.html"}}

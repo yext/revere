@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -19,15 +20,25 @@ const (
 )
 
 var (
-	templates *template.Template
+	tMap map[string]*template.Template
 )
 
 func init() {
-	funcMap := template.FuncMap{"dict": dict, "lookupThreshold": lookupThreshold, "isLastBc": isLastBc}
-	var err error
-	templates, err = template.New("").Funcs(funcMap).ParseGlob("web/views/*.html")
-	if err != nil {
-		panic(fmt.Sprintf("Got error initializing templates: %v", err))
+	tMap = make(map[string]*template.Template)
+	funcMap := template.FuncMap{"dict": dict, "isLastBc": isLastBc}
+	templateInfo, err := ioutil.ReadDir("web/views")
+	for _, t := range templateInfo {
+		if t.IsDir() {
+			continue
+		}
+		tMap[t.Name()], err = template.New(t.Name()).Funcs(funcMap).ParseGlob("web/views/partials/*.html")
+		if err != nil {
+			panic(fmt.Sprintf("Got error initializing templates: %v", err))
+		}
+		tMap[t.Name()], err = tMap[t.Name()].ParseFiles("web/views/" + t.Name())
+		if err != nil {
+			panic(fmt.Sprintf("Got error initializing templates: %v", err))
+		}
 	}
 }
 
@@ -39,8 +50,7 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 				http.StatusInternalServerError)
 			return
 		}
-
-		err = templates.ExecuteTemplate(w, "monitors-index.html",
+		err = executeTemplate(w, "monitors-index.html",
 			map[string]interface{}{
 				"Title":       "monitors",
 				"Monitors":    m,
@@ -73,8 +83,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
 			return
 		}
-
-		err = templates.ExecuteTemplate(w, "monitors-view.html",
+		err = executeTemplate(w, "monitors-view.html",
 			map[string]interface{}{
 				"Title":       "monitors",
 				"Monitor":     m,
@@ -124,7 +133,7 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 			return
 		}
 
-		err = templates.ExecuteTemplate(w, "subprobes-index.html",
+		err = executeTemplate(w, "subprobes-index.html",
 			map[string]interface{}{
 				"Title":       "monitors",
 				"Subprobes":   s,
@@ -179,7 +188,7 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 
-		err = templates.ExecuteTemplate(w, "subprobes-view.html",
+		err = executeTemplate(w, "subprobes-view.html",
 			map[string]interface{}{
 				"Title":       "monitors",
 				"Readings":    readings,
@@ -193,4 +202,8 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 	}
+}
+
+func executeTemplate(w http.ResponseWriter, name string, data interface{}) error {
+	return tMap[name].ExecuteTemplate(w, name, data)
 }

@@ -1,4 +1,4 @@
-{{template "header.html" .}}
+{{template "_header.html" .}}
 <div class="monitors-headers">
   <h1 class="monitors-header">monitors</h1>
   <a href="/monitors/new/edit" class="btn-lg btn-success new-btn">+ new</a>
@@ -9,4 +9,4 @@
     <div class="revere-row"><div class="col-md-12"><a href="/monitors/{{.Id}}">{{.Name}}</a></div></div>
   {{end}}
 </div>
-{{template "footer.html"}}
+{{template "_footer.html"}}

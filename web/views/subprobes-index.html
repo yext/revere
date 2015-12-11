@@ -1,4 +1,4 @@
-{{template "header.html" .}}
+{{template "_header.html" .}}
 <div class="subprobes-headers">
   <h1 class="subprobes-header">subprobes for {{.Monitor.Name}}</h1>
 </div>
@@ -8,9 +8,9 @@
     <div class="revere-row {{if eq .Status.State 1}}bg-success{{end}}">
       <div class="col-md-6"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
       <div class="col-md-3">{{.Status.StateStr}}</div>
-      <div class="col-md-3">{{.Status.FmtEnteredState}}</div>
+      <div class="col-md-3"><span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span></div>
     </div>
   {{end}}
   {{if not .Subprobes}}None yet!{{end}}
 </div>
-{{template "footer.html"}}
+{{template "_footer.html"}}
