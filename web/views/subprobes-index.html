@@ -1,16 +1,22 @@
 {{template "_header.html" .}}
 <div class="subprobes-headers">
-  <h1 class="subprobes-header">subprobes for {{.Monitor.Name}}</h1>
+  <h1 class="subprobes-header">subprobes for {{.MonitorName}}</h1>
 </div>
 <div>
   <div class="revere-row"><div class="col-md-6">name</div><div class="col-md-3">state</div><div class="col-md-3">duration</div></div>
   {{range .Subprobes}}
-    <div class="revere-row {{if eq .Status.State 1}}bg-success{{end}}">
+    <div class="revere-row {{if eq .Status.State $.States.NORMAL}}bg-success{{end}}">
       <div class="col-md-6"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
       <div class="col-md-3">{{.Status.StateStr}}</div>
       <div class="col-md-3"><span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span></div>
     </div>
+  {{else}}
+    None yet!
   {{end}}
-  {{if not .Subprobes}}None yet!{{end}}
 </div>
+
+{{define "MoreScripts"}}
+<script src="/static/js/entered-state.js"></script>
+{{end}}
+
 {{template "_footer.html"}}

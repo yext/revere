@@ -73,3 +73,12 @@
 .trigger {
 	padding-bottom: 50px;
 }
+
+.bg-unknown {
+	background-color: #ffebcc;
+}
+
+.bg-critical {
+	background-color: #404040;
+	color: #ff0000;
+}

@@ -32,19 +32,34 @@ var TargetTypes = map[TargetType]string{
 type State int
 
 const (
-	UNKNOWN State = iota
-	NORMAL
+	NORMAL State = iota
 	WARNING
+	UNKNOWN
 	ERROR
 	CRITICAL
 )
 
-var States = map[State]string{
+var states = map[State]string{
 	NORMAL:   "NORMAL",
+	UNKNOWN:  "UNKNOWN",
 	WARNING:  "WARNING",
 	ERROR:    "ERROR",
 	CRITICAL: "CRITICAL",
-	UNKNOWN:  "UNKNOWN",
+}
+
+func ReverseStates() map[string]State {
+	reverse := make(map[string]State)
+	for k, v := range states {
+		reverse[v] = k
+	}
+	return reverse
+}
+
+func States(s State) string {
+	if state, ok := states[s]; ok {
+		return state
+	}
+	return states[UNKNOWN]
 }
 
 func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {
@@ -80,7 +95,7 @@ func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
 	if err := rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &targetType, &t.Target, &subprobe); err != nil {
 		return nil, err
 	}
-	t.Level = States[level]
+	t.Level = States(level)
 	t.TargetType = TargetTypes[targetType]
 	t.Subprobe = subprobe
 	t.Period, t.PeriodType = getPeriod(periodMs)

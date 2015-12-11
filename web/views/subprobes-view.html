@@ -5,11 +5,12 @@
 <div>
   <div class="revere-row"><div class="col-md-6">state</div><div class="col-md-6">time recorded</div></div>
   {{range .Readings}}
-    <div class="revere-row {{if eq .State 1}}bg-success{{end}}">
+    <div class="revere-row {{if eq .State $.States.NORMAL}}bg-success{{end}}">
       <div class="col-md-6">{{.StateStr}}</div>
       <div class="col-md-6">{{.Recorded}}</div>
     </div>
+  {{else}}
+    None yet!
   {{end}}
-  {{if not .Readings}}None yet!{{end}}
 </div>
 {{template "_footer.html"}}

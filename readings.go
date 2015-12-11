@@ -43,7 +43,7 @@ func loadReadingFromRow(rows *sql.Rows) (*Reading, error) {
 		return nil, err
 	}
 
-	r.StateStr = States[r.State]
+	r.StateStr = States(r.State)
 
 	return &r, nil
 }

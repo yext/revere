@@ -25,7 +25,7 @@ func main() {
 
 	router := httprouter.New()
 
-	router.HandlerFunc("GET", "/", http.RedirectHandler("/monitors", http.StatusTemporaryRedirect).ServeHTTP)
+	router.GET("/", web.ActiveIssues(db))
 	router.GET("/monitors", web.MonitorsIndex(db))
 	router.GET("/monitors/:id", web.MonitorsView(db))
 	router.GET("/monitors/:id/edit", web.MonitorsEdit(db))

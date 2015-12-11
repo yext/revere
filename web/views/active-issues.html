@@ -1,0 +1,37 @@
+{{template "_header.html" .}}
+<div class="active-issues-headers">
+  <h1 class="active-issues-header">active issues</h1>
+</div>
+<div>
+  <div class="revere-row">
+    <div class="col-md-3">monitor name</div>
+    <div class="col-md-3">subprobe name</div>
+    <div class="col-md-3">state</div>
+    <div class="col-md-3">duration</div>
+  </div>
+  {{range .Subprobes}}
+    <div class="revere-row
+    {{if eq .Status.State $.States.WARNING}}
+      bg-warning
+    {{else if eq .Status.State $.States.ERROR}}
+      bg-danger
+    {{else if eq .Status.State $.States.CRITICAL}}
+      bg-critical
+    {{else}}
+      bg-unknown
+    {{end}}">
+      <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
+      <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
+      <div class="col-md-3">{{.Status.StateStr}}</div>
+      <div class="col-md-3"><span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span></div>
+    </div>
+  {{else}}
+    None yet!
+  {{end}}
+</div>
+
+{{define "MoreScripts"}}
+<script src="/static/js/entered-state.js"></script>
+{{end}}
+
+{{template "_footer.html"}}

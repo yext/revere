@@ -43,6 +43,30 @@ func init() {
 	}
 }
 
+func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		s, err := revere.LoadSubprobesBySeverity(db)
+		if err != nil {
+			fmt.Printf("Unable to retrieve active issues: %s", err.Error())
+			http.Error(w, fmt.Sprintf("Unable to retrieve active issues"),
+				http.StatusInternalServerError)
+			return
+		}
+
+		err = executeTemplate(w, "active-issues.html",
+			map[string]interface{}{
+				"Title":       "active issues",
+				"Subprobes":   s,
+				"Breadcrumbs": []breadcrumb{breadcrumb{"active issues", "/"}},
+			})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		m, err := revere.LoadMonitors(db)
@@ -89,7 +113,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				"Title":       "monitors",
 				"Monitor":     m,
 				"Triggers":    triggers,
-				"Breadcrumbs": monitorViewBcs(m),
+				"Breadcrumbs": monitorViewBcs(m.Name, m.Id),
 			})
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())
@@ -184,32 +208,34 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 			return
 		}
 
-		s, err := revere.LoadSubprobes(db, uint(id))
+		s, err := revere.LoadSubprobesByName(db, uint(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		m, err := revere.LoadMonitor(db, uint(id))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		if m == nil {
-			http.Error(w, fmt.Sprintf("Monitor not found: %d", id),
-				http.StatusNotFound)
-			return
+		var monitorName string
+		var monitorId uint
+		if len(s) == 0 {
+			m, err := revere.LoadMonitor(db, uint(id))
+			if err != nil {
+				http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+				return
+			}
+			monitorName = m.Name
+			monitorId = m.Id
+		} else {
+			monitorName = s[0].MonitorName
+			monitorId = s[0].MonitorId
 		}
 
 		err = executeTemplate(w, "subprobes-index.html",
 			map[string]interface{}{
 				"Title":       "monitors",
 				"Subprobes":   s,
-				"Monitor":     m,
-				"Breadcrumbs": subprobeIndexBcs(m),
+				"MonitorName": monitorName,
+				"Breadcrumbs": subprobeIndexBcs(monitorName, monitorId),
 			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
@@ -240,13 +266,6 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 
-		m, err := revere.LoadMonitor(db, s.MonitorId)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
 		readings, err := revere.LoadReadings(db, uint(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve readings: %s", err.Error()), http.StatusInternalServerError)
@@ -264,8 +283,8 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 				"Title":       "monitors",
 				"Readings":    readings,
 				"Subprobe":    s,
-				"Monitor":     m,
-				"Breadcrumbs": subprobeViewBcs(m, s),
+				"MonitorName": s.MonitorName,
+				"Breadcrumbs": subprobeViewBcs(s),
 			})
 		if err != nil {
 			fmt.Println("Got err executing template:", err.Error())
@@ -275,6 +294,9 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 	}
 }
 
-func executeTemplate(w http.ResponseWriter, name string, data interface{}) error {
+func executeTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
+	if _, ok := data["States"]; !ok {
+		data["States"] = revere.ReverseStates()
+	}
 	return tMap[name].ExecuteTemplate(w, name, data)
 }
