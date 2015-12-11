@@ -33,7 +33,7 @@ var ProbeTypes = map[ProbeType]string{
 }
 
 func LoadMonitors(db *sql.DB) (map[uint]Monitor, error) {
-	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM monitors", allMonitorFields))
+	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM monitors ORDER BY name", allMonitorFields))
 	if err != nil {
 		return nil, err
 	}
