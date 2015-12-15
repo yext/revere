@@ -74,6 +74,14 @@
 	padding-bottom: 50px;
 }
 
+.silences-header {
+	display: inline-block;
+}
+
+.silences-headers {
+	overflow: hidden;
+}
+
 .bg-unknown {
 	background-color: #ffebcc;
 }

@@ -61,29 +61,11 @@ CREATE TABLE readings2 (
   INDEX (subprobe_id, recorded, id)
 ) ENGINE = InnoDB;
 
-# Old tables
-
-CREATE TABLE readings (
-  id int(11) AUTO_INCREMENT PRIMARY KEY,
-  config_id int(11),
-  subprobe varchar(255),
-  state int(8),
-  time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`config_id`) REFERENCES configurations (id) ON DELETE CASCADE
-) ENGINE = InnoDB;
-
-CREATE TABLE alerts (
-  id int(11) AUTO_INCREMENT PRIMARY KEY,
-  config_id int(11),
-  subprobe varchar(255),
-  time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`config_id`) REFERENCES configurations (id) ON DELETE CASCADE
-) ENGINE = InnoDB;
-
-CREATE TABLE silenced_alerts (
-  config_id int(11),
-  subprobe  varchar(255),
-  silence_time timestamp NOT NULL,
-  FOREIGN KEY (`config_id`) REFERENCES configurations (id) ON DELETE CASCADE,
-  PRIMARY KEY (`config_id`, `subprobe`)
+CREATE TABLE silences (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  monitor_id INTEGER NOT NULL,
+  subprobes TEXT NOT NULL DEFAULT '',
+  start DATETIME NOT NULL,
+  end DATETIME NOT NULL,
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id)
 ) ENGINE = InnoDB;

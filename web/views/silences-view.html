@@ -1,0 +1,11 @@
+{{template "_header.html" . }}
+<h1 class="silence-header">
+  silence for <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
+</h1>
+<h4 class="silence-subheader">subprobe: {{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</h4>
+
+<h4>silence time:</h4>
+<span>{{.Silence.Start}}</span>
+<span style="font-weight: bold;">to</span>
+<span>{{.Silence.End}}</span>
+{{template "_footer.html"}}

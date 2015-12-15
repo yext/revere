@@ -26,3 +26,11 @@ func subprobeIndexBcs(mn string, id uint) []breadcrumb {
 func subprobeViewBcs(s *revere.Subprobe) []breadcrumb {
 	return append(subprobeIndexBcs(s.MonitorName, s.MonitorId), breadcrumb{s.Name, fmt.Sprintf("/monitors/%d/subprobes/%d", s.MonitorId, s.Id)})
 }
+
+func silencesIndexBcs() []breadcrumb {
+	return []breadcrumb{breadcrumb{"silences", "/silences"}}
+}
+
+func silencesViewBcs(id uint, mn string) []breadcrumb {
+	return append(silencesIndexBcs(), breadcrumb{fmt.Sprintf("silence for %s", mn), fmt.Sprintf("/silences/%d", id)})
+}
