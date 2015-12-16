@@ -32,19 +32,19 @@ var ProbeTypes = map[ProbeType]string{
 	graphiteThreshold: "Graphite Threshold",
 }
 
-func LoadMonitors(db *sql.DB) (map[uint]Monitor, error) {
+func LoadMonitors(db *sql.DB) ([]*Monitor, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM monitors ORDER BY name", allMonitorFields))
 	if err != nil {
 		return nil, err
 	}
 
-	allMonitors := make(map[uint]Monitor)
+	allMonitors := make([]*Monitor, 0)
 	for rows.Next() {
 		m, err := loadMonitorFromRow(rows)
 		if err != nil {
 			return nil, err
 		}
-		allMonitors[m.Id] = *m
+		allMonitors = append(allMonitors, m)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
