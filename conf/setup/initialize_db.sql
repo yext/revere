@@ -38,7 +38,8 @@ CREATE TABLE subprobes (
   monitor_id INTEGER NOT NULL,
   name VARCHAR(150) NOT NULL,
   archived DATETIME DEFAULT NULL,
-  CONSTRAINT UNIQUE (monitor_id,name)
+  CONSTRAINT UNIQUE (monitor_id,name),
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE subprobe_statuses (
