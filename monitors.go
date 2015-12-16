@@ -85,13 +85,7 @@ func loadMonitorFromRow(rows *sql.Rows) (*Monitor, error) {
 	if err := rows.Scan(&m.Id, &m.Name, &m.Owner, &m.Description, &m.Response, &pt, &m.Probe, &m.Changed, &m.Version, &m.Archived); err != nil {
 		return nil, err
 	}
-
 	m.ProbeType = ProbeTypes[pt]
-	m.Changed = ChangeLoc(m.Changed, time.UTC)
-	if m.Archived != nil {
-		t := ChangeLoc(*m.Archived, time.UTC)
-		m.Archived = &t
-	}
 
 	return &m, nil
 }
@@ -160,8 +154,4 @@ func (m *Monitor) updateMonitor(tx *sql.Tx) error {
 		return err
 	}
 	return nil
-}
-
-func ChangeLoc(t time.Time, l *time.Location) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), l)
 }

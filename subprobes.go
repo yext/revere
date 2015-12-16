@@ -99,19 +99,14 @@ func loadSubprobeFromRow(rows *sql.Rows) (*Subprobe, error) {
 	var ss SubprobeStatus
 	if SubprobeId != nil {
 		ss.SubprobeId = *SubprobeId
-		ss.Recorded = ChangeLoc(*Recorded, time.UTC)
+		ss.Recorded = *Recorded
 		ss.State = State(*SubprobeState)
 		ss.Silenced = *Silenced
-		ss.EnteredState = ChangeLoc(*EnteredState, time.UTC)
+		ss.EnteredState = *EnteredState
 		ss.FmtEnteredState = GetFmtEnteredState(ss.EnteredState, time.Now().UTC())
 	}
 	ss.StateStr = States(ss.State)
 	s.Status = ss
-
-	if s.Archived != nil {
-		t := ChangeLoc(*s.Archived, time.UTC)
-		s.Archived = &t
-	}
 
 	return &s, nil
 }
