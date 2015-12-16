@@ -90,6 +90,8 @@ func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
 func getPeriod(periodMs int64) (int64, string) {
 	ms := time.Duration(periodMs) * time.Millisecond
 	switch {
+	case ms == 0:
+		return 0, ""
 	case ms%(time.Hour*24) == 0:
 		return int64(ms / (time.Hour * 24)), "day"
 	case ms%time.Hour == 0:
