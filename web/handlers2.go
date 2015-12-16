@@ -45,8 +45,7 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		s, err := revere.LoadSubprobesBySeverity(db)
 		if err != nil {
-			fmt.Printf("Unable to retrieve active issues: %s", err.Error())
-			http.Error(w, fmt.Sprintf("Unable to retrieve active issues"),
+			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}

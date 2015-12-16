@@ -36,21 +36,29 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 
 func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		if p.ByName("id") == "new" {
+			http.Redirect(w, req, "/monitors/new/edit", http.StatusMovedPermanently)
+			return
+		}
+
 		id, err := strconv.Atoi(p.ByName("id"))
 		if err != nil {
-			http.NotFound(w, req)
+			http.Error(w, fmt.Sprintf("Monitor not found: %s", id), http.StatusNotFound)
 			return
 		}
 		m, err := revere.LoadMonitor(db, uint(id))
 		if err != nil {
-			fmt.Println("Got err getting monitor:", err.Error())
-			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		if m == nil {
+			http.Error(w, fmt.Sprintf("Monitor not found: %d", id),
+				http.StatusNotFound)
 			return
 		}
 		triggers, err := revere.LoadTriggers(db, uint(id))
 		if err != nil {
-			fmt.Println("Got err getting triggers:", err.Error())
-			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 		err = executeTemplate(w, "monitors-view.html",
@@ -61,8 +69,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				"Breadcrumbs": monitorViewBcs(m.Name, m.Id),
 			})
 		if err != nil {
-			fmt.Println("Got err executing template:", err.Error())
-			http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -72,7 +79,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		if id == "" {
-			http.Error(w, "Monitor not found", http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Monitor not found: %s", id), http.StatusNotFound)
 			return
 		}
 
@@ -82,8 +89,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				"Title": "create monitor",
 			})
 			if err != nil {
-				fmt.Println("Unable to load new monitor page:", err.Error())
-				http.Error(w, "Unable to load new monitor page", http.StatusInternalServerError)
+				http.Error(w, fmt.Sprintf("Unable load new monitor page: %s", err.Error()), http.StatusInternalServerError)
 			}
 			return
 		}
@@ -94,8 +100,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 		i, err := strconv.Atoi(id)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid monitor id: %s", err.Error()),
-				http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Monitor not found: %s", id), http.StatusNotFound)
 			return
 		}
 
@@ -103,6 +108,12 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
+			return
+		}
+
+		if monitor == nil {
+			http.Error(w, fmt.Sprintf("Monitor not found: %d", i),
+				http.StatusNotFound)
 			return
 		}
 
@@ -127,7 +138,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			"Triggers": triggers,
 		})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load edit monitor page", err.Error()),
+			http.Error(w, fmt.Sprintf("Unable to load edit monitor page: %s", err.Error()),
 				http.StatusInternalServerError)
 		}
 	}
@@ -165,7 +176,8 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 		if len(s) == 0 {
 			m, err := revere.LoadMonitor(db, uint(id))
 			if err != nil {
-				http.Error(w, "Unable to retrieve monitor", http.StatusInternalServerError)
+				http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+					http.StatusInternalServerError)
 				return
 			}
 			monitorName = m.Name
@@ -192,21 +204,35 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 
 func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		mId, err := strconv.Atoi(p.ByName("id"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Monitor not found: %s", p.ByName("id")),
+				http.StatusNotFound)
+			return
+		}
+
 		id, err := strconv.Atoi(p.ByName("subprobeId"))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Subprobe not found: %s", p.ByName("subprobeId")),
 				http.StatusNotFound)
 			return
 		}
+
 		s, err := revere.LoadSubprobe(db, uint(id))
 		if err != nil {
-			fmt.Println("Got err getting subprobe:", err.Error())
-			http.Error(w, "Unable to retrieve subprobe", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
 
 		if s == nil {
 			http.Error(w, fmt.Sprintf("Subprobe not found: %d", id),
+				http.StatusNotFound)
+			return
+		}
+
+		if s.MonitorId != uint(mId) {
+			http.Error(w, fmt.Sprintf("Subprobe %d does not exist for monitor %d", id, mId),
 				http.StatusNotFound)
 			return
 		}
@@ -232,8 +258,8 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 				"Breadcrumbs": subprobeViewBcs(s),
 			})
 		if err != nil {
-			fmt.Println("Got err executing template:", err.Error())
-			http.Error(w, "Unable to retrieve subprobe", 500)
+			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
 	}

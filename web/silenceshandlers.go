@@ -57,7 +57,6 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				"Breadcrumbs": silencesViewBcs(s.Id, s.MonitorName),
 			})
 		if err != nil {
-			fmt.Println("Got err executing template:", err.Error())
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
