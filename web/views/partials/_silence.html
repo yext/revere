@@ -1,0 +1,10 @@
+<div class="revere-row">
+  <div class="col-md-2"><a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
+  <div class="col-md-3">{{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</div>
+  <div class="col-md-3">{{.Start}}</div>
+  <div class="col-md-3">{{.End}}</div>
+  <div class="col-md-1">
+  	<a href="silences/{{.Id}}">view</a>
+  	<a href="silences/{{.Id}}/edit">edit</a>
+  </div>
+</div>

@@ -19,10 +19,15 @@ func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 				http.StatusInternalServerError)
 			return
 		}
+
+		past, curr, future := revere.SplitSilences(s)
+
 		err = executeTemplate(w, "silences-index.html",
 			map[string]interface{}{
 				"Title":       "silences",
-				"Silences":    s,
+				"Past":        past,
+				"Curr":        curr,
+				"Future":      future,
 				"Breadcrumbs": silencesIndexBcs(),
 			})
 		if err != nil {
@@ -50,6 +55,7 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				http.StatusNotFound)
 			return
 		}
+
 		err = executeTemplate(w, "silences-view.html",
 			map[string]interface{}{
 				"Title":       "silences",

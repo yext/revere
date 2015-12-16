@@ -4,23 +4,20 @@
   <a href="/silences/new/edit" class="btn btn-success new-btn">+ new</a>
 </div>
 <div>
-  <div class="revere-row">
-  	<div class="col-md-2">monitor name</div>
-  	<div class="col-md-3">subprobes</div>
-  	<div class="col-md-3">start</div>
-  	<div class="col-md-3">end</div>
-  </div>
-  {{range .Silences}}
-    <div class="revere-row">
-      <div class="col-md-2"><a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
-      <div class="col-md-3">{{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</div>
-      <div class="col-md-3">{{.Start}}</div>
-      <div class="col-md-3">{{.End}}</div>
-      <div class="col-md-1">
-      	<a href="silences/{{.Id}}">view</a>
-      	<a href="silences/{{.Id}}/edit">edit</a>
-      </div>
-    </div>
+  <h3>Current</h3>
+  {{template "_silence-header.html"}}
+  {{range .Curr}}
+    {{template "_silence.html" .}}
+  {{end}}
+  <h3>Future</h3>
+  {{template "_silence-header.html"}}
+  {{range .Future}}
+    {{template "_silence.html" .}}
+  {{end}}
+  <h3>Past</h3>
+  {{template "_silence-header.html"}}
+  {{range .Past}}
+    {{template "_silence.html" .}}
   {{end}}
 </div>
 {{template "_footer.html"}}
