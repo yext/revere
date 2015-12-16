@@ -38,12 +38,21 @@ $(document).ready(function() {
         getProbeData(),
         {"triggers": getTriggerData()});
 
-    $.post(url, data, function(data) {
-      console.log(data);
-    }, "json")
-      .fail(function() {
-        console.log("Fail");
-      });
+    $.ajax({
+      url: url,
+      type: "POST",
+      data: JSON.stringify(data),
+      contentType: "application/json; charset=UTF-8",
+    }).success(function(response) {
+      if (response.redirect) {
+        window.location.replace(response.redirect);
+      } else {
+        window.location.replace("/monitors/" + data['id']);
+      }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+      // Handle failure, show flash error messages
+      console.log(jqXHR, textStatus, errorThrown);
+    });
   });
 });
 

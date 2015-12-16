@@ -25,10 +25,10 @@ CREATE TABLE triggers (
 ) ENGINE = InnoDB;
 
 CREATE TABLE monitor_triggers (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
   monitor_id INTEGER NOT NULL,
   subprobe TEXT NOT NULL DEFAULT '',
   trigger_id INTEGER NOT NULL,
+  PRIMARY KEY (`monitor_id`, `trigger_id`),
   FOREIGN KEY (`monitor_id`) REFERENCES monitors(id),
   FOREIGN KEY (`trigger_id`) REFERENCES triggers(id)
 ) ENGINE = InnoDB;

@@ -133,8 +133,8 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 		// Create new monitor
 		if p.ByName("id") == "new" {
-			err := executeTemplate(w, "edit-monitor.html", map[string]interface{}{
-				"Title": "create monitor",
+			err := executeTemplate(w, "monitors-edit.html", map[string]interface{}{
+				"Title": "monitors",
 			})
 			if err != nil {
 				fmt.Println("Unable to load new monitor page:", err.Error())
@@ -144,9 +144,6 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		// Edit existing monitor
-		config := make(map[string]string)
-		var configJson []byte
-
 		i, err := strconv.Atoi(id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid monitor id: %s", err.Error()),
@@ -168,17 +165,9 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		configJson, err = json.Marshal(config)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		err = executeTemplate(w, "edit-monitor.html", map[string]interface{}{
-			"Title":    "edit monitor",
+		err = executeTemplate(w, "monitors-edit.html", map[string]interface{}{
+			"Title":    "monitors",
 			"Monitor":  monitor,
-			"Config":   string(configJson),
 			"Triggers": triggers,
 		})
 		if err != nil {
@@ -190,12 +179,29 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		// Temporarily just return success
-		// TODO: Stringfy JSON in JS so that we can use a json decoder
-		fmt.Println(req.FormValue("name"))
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "")
+		var m *revere.Monitor
+		err := json.NewDecoder(req.Body).Decode(&m)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		err = m.SaveMonitor(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/monitors/%d", m.Id)})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(redirect)
 	}
 }
 

@@ -7,17 +7,21 @@ import (
 )
 
 type Trigger struct {
-	Id            uint
-	Level         string
-	Period        int64
-	PeriodType    string
-	Subprobe      string
-	Target        string
-	TargetType    string
-	TriggerOnExit bool
+	Id            uint   `json:"id,omitempty"`
+	Level         string `json:"level"`
+	Period        int64  `json:"period"`
+	PeriodType    string `json:"periodType"`
+	Subprobe      string `json:"subprobe"`
+	Target        string `json:"target"`
+	TargetType    string `json:"targetType"`
+	TriggerOnExit bool   `json:"triggerOnExit"`
 }
 
-const allTriggerFields = "t.id, t.level, t.triggerOnExit, t.periodMs, t.targetType, t.target, mt.subprobe"
+const (
+	allTriggerLoadFields    = "t.id, t.level, t.triggerOnExit, t.periodMs, t.targetType, t.target, mt.subprobe"
+	allTriggerSaveFields    = "id, level, triggerOnExit, periodMs, targetType, target"
+	allMonitorTriggerFields = "id, monitor_id, subprobe, trigger_id"
+)
 
 type TargetType int
 
@@ -27,6 +31,14 @@ const (
 
 var TargetTypes = map[TargetType]string{
 	Email: "Email",
+}
+
+func ReverseTargetTypes() map[string]TargetType {
+	reverse := make(map[string]TargetType)
+	for k, v := range TargetTypes {
+		reverse[v] = k
+	}
+	return reverse
 }
 
 type State int
@@ -67,7 +79,7 @@ func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {
 		fmt.Sprintf(`
 			SELECT %s FROM triggers t JOIN monitor_triggers mt ON t.id = mt.trigger_id
 				WHERE mt.monitor_id = %d
-			`, allTriggerFields, monitorId))
+			`, allTriggerLoadFields, monitorId))
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +114,73 @@ func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
 	return &t, nil
 }
 
+func (t *Trigger) saveTrigger(tx *sql.Tx, monitor *Monitor) (err error) {
+	// Create/Update Trigger
+	if t.Id == 0 {
+		err = t.createTrigger(tx, monitor)
+	} else {
+		err = t.updateTrigger(tx, monitor)
+	}
+
+	return err
+}
+
+func (t *Trigger) createTrigger(tx *sql.Tx, monitor *Monitor) error {
+	var stmt *sql.Stmt
+	stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO triggers (%s) VALUES (?, ?, ?, ?, ?, ?)", allTriggerSaveFields))
+	if err != nil {
+		return err
+	}
+
+	reverse := ReverseStates()
+	res, err := stmt.Exec(nil, reverse[t.Level], t.TriggerOnExit, t.getPeriodMs(), t.getTargetType(), t.Target)
+	if err != nil {
+		return err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	err = stmt.Close()
+	if err != nil {
+		return err
+	}
+
+	// Create/Update monitor_triggers
+	stmt, err = tx.Prepare(fmt.Sprintf("INSERT INTO monitor_triggers(%s) VALUES (?, ?, ?, ?)", allMonitorTriggerFields))
+	if err != nil {
+		return err
+	}
+
+	res, err = stmt.Exec(nil, monitor.Id, t.Subprobe, id)
+	if err != nil {
+		return err
+	}
+	err = stmt.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *Trigger) updateTrigger(tx *sql.Tx, monitor *Monitor) (err error) {
+	var stmt *sql.Stmt
+	stmt, err = tx.Prepare(`UPDATE triggers t, monitor_triggers mt
+		SET t.level=?, t.triggerOnExit=?, t.periodMS=?, t.targetType=?, t.target=?, mt.subprobe=?
+		WHERE t.id=? AND mt.trigger_id=? AND mt.monitor_id=?`)
+	if err != nil {
+		return
+	}
+
+	reverse := ReverseStates()
+	_, err = stmt.Exec(reverse[t.Level], t.TriggerOnExit, t.getPeriodMs(), t.getTargetType(), t.Target, t.Subprobe, t.Id, t.Id, monitor.Id)
+	if err != nil {
+		err = stmt.Close()
+	}
+	return
+}
+
 func getPeriod(periodMs int64) (int64, string) {
 	ms := time.Duration(periodMs) * time.Millisecond
 	switch {
@@ -118,4 +197,23 @@ func getPeriod(periodMs int64) (int64, string) {
 	default:
 		return 0, ""
 	}
+}
+
+func (t *Trigger) getPeriodMs() int64 {
+	switch t.PeriodType {
+	case "day":
+		return (t.Period * int64(time.Hour) * 24) / int64(time.Millisecond)
+	case "hour":
+		return (t.Period * int64(time.Hour)) / int64(time.Millisecond)
+	case "minute":
+		return (t.Period * int64(time.Minute)) / int64(time.Millisecond)
+	case "second":
+		return (t.Period * int64(time.Second)) / int64(time.Millisecond)
+	default:
+		return 0
+	}
+}
+
+func (t *Trigger) getTargetType() TargetType {
+	return ReverseTargetTypes()[t.TargetType]
 }
