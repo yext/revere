@@ -38,11 +38,14 @@ func main() {
 	router.GET("/silences", web.SilencesIndex(db))
 	router.GET("/silences/:id", web.SilencesView(db))
 	router.GET("/silences/:id/edit", web.SilencesEdit(db))
+	router.POST("/silences/:id/edit", web.SilencesSave(db))
 	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
 	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))
 	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/favicon.ico")
 	})
+
+	web.LoadTemplates()
 
 	port := strconv.Itoa(env.Port())
 	fmt.Printf("Listening on :%s\n", port)

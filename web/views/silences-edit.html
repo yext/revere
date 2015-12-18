@@ -1,0 +1,72 @@
+{{template "_header.html" .}}
+
+<h1>{{if .Silence}}Edit Silence{{else}}New Silence{{end}}</h1>
+<form id="js-silence-form" class="form-horizontal">
+  <div class="js-invalid-input alert alert-danger hidden"></div>
+  <div class="js-server-error alert alert-warning hidden"></div>
+  <div class="js-valid-input alert alert-success hidden"></div>
+  <div class="silences-headers">
+    <h2 class="silences-header">
+      Silence for 
+      {{if .Silence}}
+        <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
+        <input id="monitor" name="monitor" class="form-control" value="{{.Silence.MonitorId}}" type="hidden" data-json-type="Number">
+      {{else}}
+        <div class="silence-form">
+          <select id="monitor" name="monitor" class="form-control" data-json-type="Number">
+            {{range .Monitors}}
+              <option value="{{.Id}}">{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+      {{end}}
+    </h2>
+  </div>
+  <h4 class="silence-subheader">subprobes: 
+    {{if not .Silence}}
+      <div class="silence-form">
+        <input type="text" name="subprobes" class="form-control" placeholder="Subprobes">
+      </div>
+    {{else if .Subprobe}}
+      {{.Subprobe}}
+      <input id="subprobes" name="subprobes" class="form-control" value="{{.Subprobes}}" type="hidden">
+    {{else}}
+      &lt;all&gt;
+      <input id="subprobes" name="subprobes" class="form-control" value="{{.Subprobes}}" type="hidden">
+    {{end}}
+  </h4>
+  <div id="silence-bounds">
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="start">start</label>
+      <div class="col-sm-4 input-group date js-datetimepicker-start" data-time="{{.Silence.Start}}">
+        <input id="start" type="text" class="form-control" name="start">
+        <span class="input-group-addon">
+          <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+      </div>
+      <label class="col-sm-2 control-label" for="end">end</label>
+      <div class="col-sm-4 input-group date js-datetimepicker-end" data-time="{{.Silence.End}}">
+        <input id="end" type="text" class="form-control" name="end">
+        <span class="input-group-addon">
+          <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+  <input type="submit" class="btn js-submit-btn" {{if and .Silence (not .Silence.Editable)}}disabled{{end}}>
+</form>
+
+{{define "MoreScripts"}}
+<script type="text/javascript" src="/static/js/helpers.js"></script>
+<script type="text/javascript" src="/static/js/silences.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    {{if .Silence}}
+      silenceDtp.init({{.TimeFormat}}, {{.Silence.Id}});
+    {{else}}
+      silenceDtp.init({{.TimeFormat}}, 'new');
+    {{end}}
+  });
+</script>
+{{end}}
+{{template "_footer.html" .}}

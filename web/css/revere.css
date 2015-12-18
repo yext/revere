@@ -74,12 +74,22 @@
 	padding-bottom: 50px;
 }
 
-.silences-header {
+.silences-headers > * {
 	display: inline-block;
 }
 
 .silences-headers {
 	overflow: hidden;
+}
+
+.silence-edit {
+	float: right;
+	margin-right: 50px;
+}
+
+.silence-form {
+	display: inline-block;
+	width: 200px;
 }
 
 .bg-unknown {

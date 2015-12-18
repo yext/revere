@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const JsFormat = "YYYY-MM-DD HH:mm Z"
+
 func GetPeriodAndType(periodMs int64) (int64, string) {
 	ms := time.Duration(periodMs) * time.Millisecond
 	switch {

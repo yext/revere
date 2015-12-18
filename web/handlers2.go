@@ -4,6 +4,7 @@ package web
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -20,12 +21,16 @@ const (
 )
 
 var (
-	tMap map[string]*template.Template
+	tMap    map[string]*template.Template = make(map[string]*template.Template)
+	funcMap template.FuncMap              = make(template.FuncMap)
 )
 
 func init() {
-	tMap = make(map[string]*template.Template)
-	funcMap := template.FuncMap{"isLastBc": isLastBc, "strEq": util.StrEq}
+	funcMap["isLastBc"] = isLastBc
+	funcMap["strEq"] = util.StrEq
+}
+
+func LoadTemplates() {
 	templateInfo, err := ioutil.ReadDir("web/views")
 	for _, t := range templateInfo {
 		if t.IsDir() {
@@ -63,6 +68,17 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			return
 		}
 	}
+}
+
+func writeJsonResponse(w http.ResponseWriter, action string, data map[string]interface{}) {
+	response, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to %s: %s", action, err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
 }
 
 func executeTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
