@@ -1,5 +1,8 @@
 {{template "_header.html" .}}
 <h1>{{if .Monitor}}Edit{{else}}New{{end}} Monitor</h1>
+<div id="errors">
+  <div class="error alert alert-danger hidden"></div>
+</div>
 <form id="monitor-form" action="/monitors/new/edit" class="form-horizontal" method="POST">
   {{/* Basic Monitor Info */}}
   <div id="monitor-info">

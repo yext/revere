@@ -2,7 +2,9 @@ package revere
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"regexp"
 	"time"
 )
 
@@ -72,6 +74,37 @@ func init() {
 	for k, v := range states {
 		ReverseStates[v] = k
 	}
+}
+
+func (t *Trigger) Validate() (errs []string) {
+	if _, ok := ReverseStates[t.Level]; !ok {
+		errs = append(errs, fmt.Sprintf("Invalid state for trigger: %s", t.Level))
+	}
+
+	if t.getPeriodMs() == 0 {
+		errs = append(errs, fmt.Sprintf("Invalid period for trigger: %d %s", t.Period, t.PeriodType))
+	}
+
+	if t.Subprobe == "" {
+		errs = append(errs, fmt.Sprintf("Subprobe is required"))
+	}
+
+	// Ensure subprobe is a valid regex
+	if _, err := regexp.Compile(t.Subprobe); err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid subprobe: %s", err.Error()))
+	}
+
+	// TODO(psingh): Add proper validation once we implement the ui for targets
+	var targetJson interface{}
+	if err := json.Unmarshal([]byte(t.Target), &targetJson); err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid json for target"))
+	}
+
+	if _, ok := reverseTargetTypes[t.TargetType]; !ok {
+		errs = append(errs, fmt.Sprintf("Invalid target type for trigger: %s", t.TargetType))
+	}
+
+	return
 }
 
 func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {

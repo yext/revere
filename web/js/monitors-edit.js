@@ -32,25 +32,34 @@ $(document).ready(function() {
     e.preventDefault();
     var $form = $(this);
 
-    var url = $form.attr("action"),
+    var url = $form.attr('action'),
       data = $.extend(
         getMonitorData(),
         getProbeData(),
-        {"triggers": getTriggerData()});
+        {'triggers': getTriggerData()});
 
     $.ajax({
       url: url,
-      type: "POST",
+      type: 'POST',
       data: JSON.stringify(data),
-      contentType: "application/json; charset=UTF-8",
+      contentType: 'application/json; charset=UTF-8',
     }).success(function(response) {
+      if (response.errors) {
+        var $error = $('.error').first();
+        $error.text('');
+        $('#errors').html($error);
+        $.each(response.errors, function() {
+          $error.append(this + '<br/>').removeClass('hidden');
+        });
+        return;
+      }
       if (response.redirect) {
         window.location.replace(response.redirect);
       } else {
-        window.location.replace("/monitors/" + data['id']);
+        window.location.replace('/monitors/' + data['id']);
       }
     }).fail(function(jqXHR, textStatus, errorThrown) {
-      // Handle failure, show flash error messages
+      // 500
       console.log(jqXHR, textStatus, errorThrown);
     });
   });

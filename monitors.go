@@ -2,6 +2,7 @@ package revere
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -40,6 +41,27 @@ func init() {
 	for k, v := range ProbeTypes {
 		reverseProbeTypes[v] = k
 	}
+}
+
+func (m *Monitor) Validate() (errs []string) {
+	if m.Name == "" {
+		errs = append(errs, fmt.Sprintf("Monitor name is required"))
+	}
+
+	if _, ok := reverseProbeTypes[m.ProbeType]; !ok {
+		errs = append(errs, fmt.Sprintf("Invalid probe type for monitor: %s", m.ProbeType))
+	}
+
+	// TODO(psingh): Add proper validation once we implement the ui for probes
+	var probeJson interface{}
+	if err := json.Unmarshal([]byte(m.Probe), &probeJson); err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid json for probe"))
+	}
+
+	for _, t := range m.Triggers {
+		errs = append(errs, t.Validate()...)
+	}
+	return
 }
 
 func LoadMonitors(db *sql.DB) ([]*Monitor, error) {
