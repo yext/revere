@@ -33,13 +33,7 @@ var TargetTypes = map[TargetType]string{
 	Email: "Email",
 }
 
-func ReverseTargetTypes() map[string]TargetType {
-	reverse := make(map[string]TargetType)
-	for k, v := range TargetTypes {
-		reverse[v] = k
-	}
-	return reverse
-}
+var reverseTargetTypes map[string]TargetType
 
 type State int
 
@@ -59,19 +53,25 @@ var states = map[State]string{
 	CRITICAL: "CRITICAL",
 }
 
-func ReverseStates() map[string]State {
-	reverse := make(map[string]State)
-	for k, v := range states {
-		reverse[v] = k
-	}
-	return reverse
-}
+var ReverseStates map[string]State
 
 func States(s State) string {
 	if state, ok := states[s]; ok {
 		return state
 	}
 	return states[UNKNOWN]
+}
+
+func init() {
+	reverseTargetTypes = make(map[string]TargetType)
+	for k, v := range TargetTypes {
+		reverseTargetTypes[v] = k
+	}
+
+	ReverseStates = make(map[string]State)
+	for k, v := range states {
+		ReverseStates[v] = k
+	}
 }
 
 func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {
@@ -132,8 +132,7 @@ func (t *Trigger) createTrigger(tx *sql.Tx, monitor *Monitor) error {
 		return err
 	}
 
-	reverse := ReverseStates()
-	res, err := stmt.Exec(nil, reverse[t.Level], t.TriggerOnExit, t.getPeriodMs(), t.getTargetType(), t.Target)
+	res, err := stmt.Exec(nil, ReverseStates[t.Level], t.TriggerOnExit, t.getPeriodMs(), reverseTargetTypes[t.TargetType], t.Target)
 	if err != nil {
 		return err
 	}
@@ -173,8 +172,7 @@ func (t *Trigger) updateTrigger(tx *sql.Tx, monitor *Monitor) (err error) {
 		return
 	}
 
-	reverse := ReverseStates()
-	_, err = stmt.Exec(reverse[t.Level], t.TriggerOnExit, t.getPeriodMs(), t.getTargetType(), t.Target, t.Subprobe, t.Id, t.Id, monitor.Id)
+	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, t.getPeriodMs(), reverseTargetTypes[t.TargetType], t.Target, t.Subprobe, t.Id, t.Id, monitor.Id)
 	if err != nil {
 		err = stmt.Close()
 	}
@@ -212,8 +210,4 @@ func (t *Trigger) getPeriodMs() int64 {
 	default:
 		return 0
 	}
-}
-
-func (t *Trigger) getTargetType() TargetType {
-	return ReverseTargetTypes()[t.TargetType]
 }

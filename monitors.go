@@ -33,12 +33,13 @@ var ProbeTypes = map[ProbeType]string{
 	graphiteThreshold: "Graphite Threshold",
 }
 
-func ReverseProbeTypes() map[string]ProbeType {
-	reverse := make(map[string]ProbeType)
+var reverseProbeTypes map[string]ProbeType
+
+func init() {
+	reverseProbeTypes = make(map[string]ProbeType)
 	for k, v := range ProbeTypes {
-		reverse[v] = k
+		reverseProbeTypes[v] = k
 	}
-	return reverse
 }
 
 func LoadMonitors(db *sql.DB) ([]*Monitor, error) {
@@ -137,7 +138,7 @@ func (m *Monitor) createMonitor(tx *sql.Tx) (uint, error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(nil, m.Name, m.Owner, m.Description, m.Response, m.getProbeType(), m.Probe, time.Now().UTC(), 1, m.Archived)
+	res, err := stmt.Exec(nil, m.Name, m.Owner, m.Description, m.Response, reverseProbeTypes[m.ProbeType], m.Probe, time.Now().UTC(), 1, m.Archived)
 	if err != nil {
 		return 0, err
 	}
@@ -154,15 +155,11 @@ func (m *Monitor) updateMonitor(tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(m.Name, m.Owner, m.Description, m.Response, m.getProbeType(), m.Probe, time.Now().UTC(), m.Archived, m.Id)
+	_, err = stmt.Exec(m.Name, m.Owner, m.Description, m.Response, reverseProbeTypes[m.ProbeType], m.Probe, time.Now().UTC(), m.Archived, m.Id)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func (m *Monitor) getProbeType() ProbeType {
-	return ReverseProbeTypes()[m.ProbeType]
 }
 
 func ChangeLoc(t time.Time, l *time.Location) time.Time {

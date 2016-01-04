@@ -302,7 +302,7 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 
 func executeTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
 	if _, ok := data["States"]; !ok {
-		data["States"] = revere.ReverseStates()
+		data["States"] = revere.ReverseStates
 	}
 	return tMap[name].ExecuteTemplate(w, name, data)
 }
