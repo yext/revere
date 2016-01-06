@@ -34,3 +34,7 @@ func silencesIndexBcs() []breadcrumb {
 func silencesViewBcs(id uint, mn string) []breadcrumb {
 	return append(silencesIndexBcs(), breadcrumb{fmt.Sprintf("silence for %s", mn), fmt.Sprintf("/silences/%d", id)})
 }
+
+func isLastBc(a []breadcrumb, i int) bool {
+	return i == len(a)-1
+}

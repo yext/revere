@@ -90,3 +90,7 @@
 	background-color: #404040;
 	color: #ff0000;
 }
+
+.sentence-label, .control-label.sentence-label {
+	text-align: left;
+}

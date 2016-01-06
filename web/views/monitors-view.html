@@ -15,7 +15,7 @@
 <h4>Alert Response:</h4>
 <p>{{.Monitor.Response}}</p>
 <h4>Probe ({{.Monitor.ProbeType}}):</h4>
-{{if eq .Monitor.Probe ""}}
+{{if eq .Monitor.ProbeJson ""}}
   <p><a href="{{.Monitor.Id}}/edit">Not yet configured</a></p>
  {{else}}
    <p>{{.Monitor.Probe}}</p>

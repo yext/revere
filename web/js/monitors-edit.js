@@ -28,6 +28,24 @@ $(document).ready(function() {
     }
   });
 
+  var $probeType = $('#probe-type');
+  $probeType.change(function() {
+    var $error = $('.error').first().empty();
+    $error.addClass('hidden');
+    $.ajax({
+      url: '/monitors/new/probe/' + encodeURIComponent($probeType.val()),
+      contentType: 'application/json; charset=UTF-8',
+    }).success(function(response) {
+      if (response.template) {
+        $('#probe').html(response.template);
+      }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+      // 500
+      $('#errors').html($error);
+      $error.append(jqXHR.responseText).removeClass('hidden');
+    });
+  });
+
   $('#monitor-form').submit(function(e) {
     e.preventDefault();
     var $form = $(this);
@@ -35,18 +53,17 @@ $(document).ready(function() {
     var url = $form.attr('action'),
       data = $.extend(
         getMonitorData(),
-        getProbeData(),
+        {'probe': JSON.stringify(getProbeData())},
         {'triggers': getTriggerData()});
 
     $.ajax({
       url: url,
-      type: 'POST',
+      method: 'POST',
       data: JSON.stringify(data),
       contentType: 'application/json; charset=UTF-8',
     }).success(function(response) {
       if (response.errors) {
-        var $error = $('.error').first();
-        $error.text('');
+        var $error = $('.error').first().empty();
         $('#errors').html($error);
         $.each(response.errors, function() {
           $error.append(this + '<br/>').removeClass('hidden');
@@ -60,7 +77,9 @@ $(document).ready(function() {
       }
     }).fail(function(jqXHR, textStatus, errorThrown) {
       // 500
-      console.log(jqXHR, textStatus, errorThrown);
+      var $error = $('.error').first().empty();
+      $('#errors').html($error);
+      $error.append(jqXHR.responseText).removeClass('hidden');
     });
   });
 });

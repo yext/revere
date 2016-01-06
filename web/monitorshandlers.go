@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/probes"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -87,11 +88,17 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
+		data := map[string]interface{}{
+			"Title":  "monitors",
+			"Probes": probes.GetAllProbes(),
+		}
+
 		// Create new monitor
 		if p.ByName("id") == "new" {
-			err := executeTemplate(w, "monitors-edit.html", map[string]interface{}{
-				"Title": "monitors",
-			})
+			data["Monitor"] = map[string]interface{}{
+				"ProbeTemplate": probes.LoadDefaultProbeTemplate(),
+			}
+			err := executeTemplate(w, "monitors-edit.html", data)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to load new monitor page: %s", err.Error()),
 					http.StatusInternalServerError)
@@ -117,18 +124,8 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		triggers, err := revere.LoadTriggers(db, uint(i))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		err = executeTemplate(w, "monitors-edit.html", map[string]interface{}{
-			"Title":    "monitors",
-			"Monitor":  monitor,
-			"Triggers": triggers,
-		})
+		data["Monitor"] = monitor
+		err = executeTemplate(w, "monitors-edit.html", data)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load edit monitor page: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -174,6 +171,47 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(redirect)
+	}
+}
+
+func LoadProbeTemplate() func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		pt, err := strconv.Atoi(p.ByName("probeType"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Probe type not found: %d", pt), http.StatusNotFound)
+			return
+		}
+
+		// Render empty probe template
+		probeType, err := probes.GetProbeType(probes.ProbeTypeId(pt))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Probe type not found: %d", pt), http.StatusNotFound)
+			return
+		}
+
+		probe, err := probeType.Load(`{}`)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		tmpl, err := probe.Render()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		template, err := json.Marshal(map[string]interface{}{"template": tmpl})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(template)
 	}
 }
 

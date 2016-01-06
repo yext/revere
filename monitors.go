@@ -2,61 +2,45 @@ package revere
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"html/template"
 	"time"
+
+	"github.com/yext/revere/probes"
 )
 
 type Monitor struct {
-	Id          uint       `json:"id,omitempty"`
-	Name        string     `json:"name"`
-	Owner       string     `json:"owner"`
-	Description string     `json:"description"`
-	Response    string     `json:"response"`
-	ProbeType   string     `json:"probeType"`
-	Probe       string     `json:"probe"`
-	Changed     time.Time  `json:"-"`
-	Version     int        `json:"-"`
-	Archived    *time.Time `json:"-"` // nullable
-	Triggers    []*Trigger `json:"triggers"`
+	Id            uint               `json:"id,omitempty"`
+	Name          string             `json:"name"`
+	Owner         string             `json:"owner"`
+	Description   string             `json:"description"`
+	Response      string             `json:"response"`
+	Probe         probes.Probe       `json:"-"`
+	ProbeType     probes.ProbeTypeId `json:"probeType"`
+	ProbeJson     string             `json:"probe"`
+	ProbeTemplate template.HTML      `json:"-"`
+	Changed       time.Time          `json:"-"`
+	Version       int                `json:"-"`
+	Archived      *time.Time         `json:"-"` // nullable
+	Triggers      []*Trigger         `json:"triggers"`
 }
 
 const allMonitorFields = "id, name, owner, description, response, probeType, probe, changed, version, archived"
-
-// Probe types
-type ProbeType int
-
-const (
-	graphiteThreshold ProbeType = iota
-)
-
-var ProbeTypes = map[ProbeType]string{
-	graphiteThreshold: "Graphite Threshold",
-}
-
-var reverseProbeTypes map[string]ProbeType
-
-func init() {
-	reverseProbeTypes = make(map[string]ProbeType)
-	for k, v := range ProbeTypes {
-		reverseProbeTypes[v] = k
-	}
-}
 
 func (m *Monitor) Validate() (errs []string) {
 	if m.Name == "" {
 		errs = append(errs, fmt.Sprintf("Monitor name is required"))
 	}
 
-	if _, ok := reverseProbeTypes[m.ProbeType]; !ok {
-		errs = append(errs, fmt.Sprintf("Invalid probe type for monitor: %s", m.ProbeType))
+	probeType, err := probes.GetProbeType(m.ProbeType)
+	if err != nil {
+		errs = append(errs, err.Error())
 	}
-
-	// TODO(psingh): Add proper validation once we implement the ui for probes
-	var probeJson interface{}
-	if err := json.Unmarshal([]byte(m.Probe), &probeJson); err != nil {
-		errs = append(errs, fmt.Sprintf("Invalid json for probe"))
+	probe, err := probeType.Load(m.ProbeJson)
+	if err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid probe for monitor: %s", m.ProbeJson))
 	}
+	errs = append(errs, probe.Validate()...)
 
 	for _, t := range m.Triggers {
 		errs = append(errs, t.Validate()...)
@@ -98,16 +82,37 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
+	// Load Triggers
+	m.Triggers, err = LoadTriggers(db, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load Probe
+	probeType, err := probes.GetProbeType(m.ProbeType)
+	if err != nil {
+		return nil, err
+	}
+
+	m.Probe, err = probeType.Load(m.ProbeJson)
+	if err != nil {
+		return nil, err
+	}
+
+	m.ProbeTemplate, err = m.Probe.Render()
+	if err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }
 
 func loadMonitorFromRow(rows *sql.Rows) (*Monitor, error) {
 	var m Monitor
-	var pt ProbeType
-	if err := rows.Scan(&m.Id, &m.Name, &m.Owner, &m.Description, &m.Response, &pt, &m.Probe, &m.Changed, &m.Version, &m.Archived); err != nil {
+	if err := rows.Scan(&m.Id, &m.Name, &m.Owner, &m.Description, &m.Response, &m.ProbeType, &m.ProbeJson, &m.Changed, &m.Version, &m.Archived); err != nil {
 		return nil, err
 	}
-	m.ProbeType = ProbeTypes[pt]
 
 	return &m, nil
 }
@@ -154,7 +159,11 @@ func (m *Monitor) createMonitor(tx *sql.Tx) (uint, error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(nil, m.Name, m.Owner, m.Description, m.Response, reverseProbeTypes[m.ProbeType], m.Probe, time.Now().UTC(), 1, m.Archived)
+	probeType, err := probes.GetProbeType(m.ProbeType)
+	if err != nil {
+		return 0, err
+	}
+	res, err := stmt.Exec(nil, m.Name, m.Owner, m.Description, m.Response, probeType.Id(), m.ProbeJson, time.Now(), 1, m.Archived)
 	if err != nil {
 		return 0, err
 	}
@@ -171,7 +180,11 @@ func (m *Monitor) updateMonitor(tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(m.Name, m.Owner, m.Description, m.Response, reverseProbeTypes[m.ProbeType], m.Probe, time.Now().UTC(), m.Archived, m.Id)
+	probeType, err := probes.GetProbeType(m.ProbeType)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(m.Name, m.Owner, m.Description, m.Response, probeType.Id(), m.ProbeJson, time.Now(), m.Archived, m.Id)
 	if err != nil {
 		return err
 	}

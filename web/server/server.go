@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web"
 
 	"github.com/julienschmidt/httprouter"
@@ -22,6 +23,7 @@ func main() {
 	}
 
 	db := env.Db()
+	probes.SetGraphiteUrls(env.GraphiteUrls())
 
 	router := httprouter.New()
 
@@ -32,6 +34,7 @@ func main() {
 	router.POST("/monitors/:id/edit", web.MonitorsSave(db))
 	router.GET("/monitors/:id/subprobes", web.SubprobesIndex(db))
 	router.GET("/monitors/:id/subprobes/:subprobeId", web.SubprobesView(db))
+	router.GET("/monitors/:id/probe/:probeType", web.LoadProbeTemplate())
 	router.GET("/silences", web.SilencesIndex(db))
 	router.GET("/silences/:id", web.SilencesView(db))
 	router.GET("/silences/:id/edit", web.SilencesEdit(db))

@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"time"
+
+	"github.com/yext/revere/util"
 )
 
 type Trigger struct {
@@ -81,7 +82,7 @@ func (t *Trigger) Validate() (errs []string) {
 		errs = append(errs, fmt.Sprintf("Invalid state for trigger: %s", t.Level))
 	}
 
-	if t.getPeriodMs() == 0 {
+	if util.GetMs(t.Period, t.PeriodType) == 0 {
 		errs = append(errs, fmt.Sprintf("Invalid period for trigger: %d %s", t.Period, t.PeriodType))
 	}
 
@@ -143,7 +144,7 @@ func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
 	t.Level = States(level)
 	t.TargetType = TargetTypes[targetType]
 	t.Subprobe = subprobe
-	t.Period, t.PeriodType = getPeriod(periodMs)
+	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
 	return &t, nil
 }
 
@@ -165,7 +166,7 @@ func (t *Trigger) createTrigger(tx *sql.Tx, monitor *Monitor) error {
 		return err
 	}
 
-	res, err := stmt.Exec(nil, ReverseStates[t.Level], t.TriggerOnExit, t.getPeriodMs(), reverseTargetTypes[t.TargetType], t.Target)
+	res, err := stmt.Exec(nil, ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), reverseTargetTypes[t.TargetType], t.Target)
 	if err != nil {
 		return err
 	}
@@ -205,42 +206,9 @@ func (t *Trigger) updateTrigger(tx *sql.Tx, monitor *Monitor) (err error) {
 		return
 	}
 
-	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, t.getPeriodMs(), reverseTargetTypes[t.TargetType], t.Target, t.Subprobe, t.Id, t.Id, monitor.Id)
+	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), reverseTargetTypes[t.TargetType], t.Target, t.Subprobe, t.Id, t.Id, monitor.Id)
 	if err != nil {
 		err = stmt.Close()
 	}
 	return
-}
-
-func getPeriod(periodMs int64) (int64, string) {
-	ms := time.Duration(periodMs) * time.Millisecond
-	switch {
-	case ms == 0:
-		return 0, ""
-	case ms%(time.Hour*24) == 0:
-		return int64(ms / (time.Hour * 24)), "day"
-	case ms%time.Hour == 0:
-		return int64(ms / time.Hour), "hour"
-	case ms%time.Minute == 0:
-		return int64(ms / time.Minute), "minute"
-	case ms%time.Second == 0:
-		return int64(ms / time.Second), "second"
-	default:
-		return 0, ""
-	}
-}
-
-func (t *Trigger) getPeriodMs() int64 {
-	switch t.PeriodType {
-	case "day":
-		return (t.Period * int64(time.Hour) * 24) / int64(time.Millisecond)
-	case "hour":
-		return (t.Period * int64(time.Hour)) / int64(time.Millisecond)
-	case "minute":
-		return (t.Period * int64(time.Minute)) / int64(time.Millisecond)
-	case "second":
-		return (t.Period * int64(time.Second)) / int64(time.Millisecond)
-	default:
-		return 0
-	}
 }

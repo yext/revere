@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/util"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -24,7 +25,7 @@ var (
 
 func init() {
 	tMap = make(map[string]*template.Template)
-	funcMap := template.FuncMap{"dict": dict, "isLastBc": isLastBc, "strEq": strEq}
+	funcMap := template.FuncMap{"isLastBc": isLastBc, "strEq": util.StrEq}
 	templateInfo, err := ioutil.ReadDir("web/views")
 	for _, t := range templateInfo {
 		if t.IsDir() {

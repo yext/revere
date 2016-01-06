@@ -20,6 +20,9 @@ type Env struct {
 	// web
 	port    int
 	urlBase string
+
+	// Graphite data sources
+	graphiteUrls []string
 }
 
 func (e *Env) Db() *sql.DB {
@@ -30,9 +33,14 @@ func (e *Env) Port() int {
 	return e.port
 }
 
+func (e *Env) GraphiteUrls() []string {
+	return e.graphiteUrls
+}
+
 type jsonConf struct {
-	Db  *jsonDbConf
-	Web *jsonWebConf
+	Db       *jsonDbConf
+	Web      *jsonWebConf
+	Graphite *jsonGraphiteConf
 }
 
 type jsonDbConf struct {
@@ -49,6 +57,11 @@ type jsonDbConf struct {
 type jsonWebConf struct {
 	Port    int
 	UrlBase string
+}
+
+// TODO(psingh): Remove once we put data sources in the db
+type jsonGraphiteConf struct {
+	Urls []string
 }
 
 var DEFAULT_CONF_FILE = "conf/defaults.conf"
@@ -87,6 +100,7 @@ func BuildEnvFromFile(fn string) (*Env, error) {
 
 	env.port = conf.Web.Port
 	env.urlBase = conf.Web.UrlBase
+	env.graphiteUrls = conf.Graphite.Urls
 
 	return &env, nil
 }
