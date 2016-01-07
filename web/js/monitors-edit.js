@@ -1,3 +1,18 @@
+var targets = function() {
+  var t = {};
+  var fns = {};
+
+  t.addSerializeFn = function(targetType, fn) {
+    fns[targetType] = fn;
+  };
+
+  t.getSerializeFn = function(targetType) {
+    return fns[targetType];
+  };
+
+  return t;
+}();
+
 $(document).ready(function() {
   var $triggers = $('.trigger');
   // Don't allow the removal of triggers if there is only one
@@ -33,14 +48,32 @@ $(document).ready(function() {
     var $error = $('.error').first().empty();
     $error.addClass('hidden');
     $.ajax({
-      url: '/monitors/new/probe/' + encodeURIComponent($probeType.val()),
-      contentType: 'application/json; charset=UTF-8',
+      url: '/monitors/new/probe/edit/' + encodeURIComponent($probeType.val()),
+      contentType: 'application/json; charset=UTF-8'
     }).success(function(response) {
       if (response.template) {
         $('#probe').html(response.template);
       }
     }).fail(function(jqXHR, textStatus, errorThrown) {
-      // 500
+      $('#errors').html($error);
+      $error.append(jqXHR.responseText).removeClass('hidden');
+    });
+  });
+
+  $('.targetType').change(function() {
+    var $error = $('.error').first().empty();
+    $error.addClass('hidden');
+    $that = $(this);
+    $.ajax({
+      url: '/monitors/new/target/edit/' + encodeURIComponent($that.val()),
+      contentType: 'application/json; charset=UTF-8'
+    }).success(function(response) {
+      if (response.template) {
+        $that.parents('.form-group')
+          .next('.target')
+          .html(response.template);
+      }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
       $('#errors').html($error);
       $error.append(jqXHR.responseText).removeClass('hidden');
     });
@@ -60,7 +93,7 @@ $(document).ready(function() {
       url: url,
       method: 'POST',
       data: JSON.stringify(data),
-      contentType: 'application/json; charset=UTF-8',
+      contentType: 'application/json; charset=UTF-8'
     }).success(function(response) {
       if (response.errors) {
         var $error = $('.error').first().empty();
@@ -76,7 +109,6 @@ $(document).ready(function() {
         window.location.replace('/monitors/' + data['id']);
       }
     }).fail(function(jqXHR, textStatus, errorThrown) {
-      // 500
       var $error = $('.error').first().empty();
       $('#errors').html($error);
       $error.append(jqXHR.responseText).removeClass('hidden');
@@ -93,10 +125,19 @@ var getProbeData = function() {
 }
 
 var getTriggerData = function() {
-  var data = []
+  var data = [];
   $.each($('.trigger'), function() {
-    var triggerInputs = $(this).find(':input').serializeObject();
-    data.push(triggerInputs);
+    var triggerOptions = $(this).find('.trigger-options :input').serializeObject(),
+      targetFn = targets.getSerializeFn(triggerOptions['targetType']),
+      target;
+    if (targetFn !== undefined) {
+      target = targetFn($(this).find('.target'));
+    }
+
+    if (target === undefined) {
+      target = $(this).find('.target :input').serializeObject();
+    }
+    data.push($.extend(triggerOptions, {'target':target}));
   });
   return data;
 }

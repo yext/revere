@@ -81,7 +81,7 @@ func (g GraphiteThresholdProbe) Validate() (errs []string) {
 }
 
 func (g GraphiteThresholdProbe) Render() (template.HTML, error) {
-	if t, ok := tMap[graphiteProbeTemplate]; !ok {
+	if t, ok := probeTemplates[graphiteProbeTemplate]; !ok {
 		return template.HTML(""), fmt.Errorf("Unable to find graphite probe template: %s", graphiteProbeTemplate)
 	} else {
 		b := bytes.Buffer{}

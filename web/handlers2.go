@@ -11,13 +11,11 @@ import (
 	"net/http"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/probes"
+	"github.com/yext/revere/targets"
 	"github.com/yext/revere/util"
 
 	"github.com/julienschmidt/httprouter"
-)
-
-const (
-	format = "01/02/2006 3:04 PM"
 )
 
 var (
@@ -28,6 +26,9 @@ var (
 func init() {
 	funcMap["isLastBc"] = isLastBc
 	funcMap["strEq"] = util.StrEq
+	funcMap["targets"] = targets.AllTargets
+	funcMap["targetScripts"] = targetScripts
+	funcMap["probes"] = probes.AllProbes
 }
 
 func LoadTemplates() {

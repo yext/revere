@@ -2,22 +2,25 @@ package revere
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"html/template"
 	"regexp"
 
+	"github.com/yext/revere/targets"
 	"github.com/yext/revere/util"
 )
 
 type Trigger struct {
-	Id            uint   `json:"id,omitempty"`
-	Level         string `json:"level"`
-	Period        int64  `json:"period"`
-	PeriodType    string `json:"periodType"`
-	Subprobe      string `json:"subprobe"`
-	Target        string `json:"target"`
-	TargetType    string `json:"targetType"`
-	TriggerOnExit bool   `json:"triggerOnExit"`
+	Id             uint                 `json:"id,omitempty"`
+	Level          string               `json:"level"`
+	Period         int64                `json:"period"`
+	PeriodType     string               `json:"periodType"`
+	Subprobe       string               `json:"subprobe"`
+	Target         targets.Target       `json:"-"`
+	TargetJson     string               `json:"target"`
+	TargetType     targets.TargetTypeId `json:"targetType"`
+	TargetTemplate template.HTML        `json:"-"`
+	TriggerOnExit  bool                 `json:"triggerOnExit"`
 }
 
 const (
@@ -25,18 +28,6 @@ const (
 	allTriggerSaveFields    = "id, level, triggerOnExit, periodMs, targetType, target"
 	allMonitorTriggerFields = "id, monitor_id, subprobe, trigger_id"
 )
-
-type TargetType int
-
-const (
-	Email TargetType = iota
-)
-
-var TargetTypes = map[TargetType]string{
-	Email: "Email",
-}
-
-var reverseTargetTypes map[string]TargetType
 
 type State int
 
@@ -66,11 +57,6 @@ func States(s State) string {
 }
 
 func init() {
-	reverseTargetTypes = make(map[string]TargetType)
-	for k, v := range TargetTypes {
-		reverseTargetTypes[v] = k
-	}
-
 	ReverseStates = make(map[string]State)
 	for k, v := range states {
 		ReverseStates[v] = k
@@ -95,15 +81,16 @@ func (t *Trigger) Validate() (errs []string) {
 		errs = append(errs, fmt.Sprintf("Invalid subprobe: %s", err.Error()))
 	}
 
-	// TODO(psingh): Add proper validation once we implement the ui for targets
-	var targetJson interface{}
-	if err := json.Unmarshal([]byte(t.Target), &targetJson); err != nil {
-		errs = append(errs, fmt.Sprintf("Invalid json for target"))
-	}
-
-	if _, ok := reverseTargetTypes[t.TargetType]; !ok {
+	targetType, err := targets.TargetTypeById(t.TargetType)
+	if err != nil {
 		errs = append(errs, fmt.Sprintf("Invalid target type for trigger: %s", t.TargetType))
 	}
+
+	target, err := targetType.Load(t.TargetJson)
+	if err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid target for trigger: %s", t.TargetJson))
+	}
+	errs = append(errs, target.Validate()...)
 
 	return
 }
@@ -133,18 +120,34 @@ func LoadTriggers(db *sql.DB, monitorId uint) (triggers []*Trigger, err error) {
 }
 
 func loadTriggerFromRow(rows *sql.Rows) (*Trigger, error) {
-	var t Trigger
-	var level State
-	var targetType TargetType
-	var periodMs int64
-	var subprobe string
-	if err := rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &targetType, &t.Target, &subprobe); err != nil {
+	var (
+		t          Trigger
+		err        error
+		level      State
+		targetType targets.TargetType
+		periodMs   int64
+	)
+	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson, &t.Subprobe); err != nil {
 		return nil, err
 	}
 	t.Level = States(level)
-	t.TargetType = TargetTypes[targetType]
-	t.Subprobe = subprobe
 	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
+
+	targetType, err = targets.TargetTypeById(t.TargetType)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Target, err = targetType.Load(t.TargetJson)
+	if err != nil {
+		return nil, err
+	}
+
+	t.TargetTemplate, err = t.Target.Render()
+	if err != nil {
+		return nil, err
+	}
+
 	return &t, nil
 }
 
@@ -166,7 +169,12 @@ func (t *Trigger) createTrigger(tx *sql.Tx, monitor *Monitor) error {
 		return err
 	}
 
-	res, err := stmt.Exec(nil, ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), reverseTargetTypes[t.TargetType], t.Target)
+	targetType, err := targets.TargetTypeById(t.TargetType)
+	if err != nil {
+		return err
+	}
+
+	res, err := stmt.Exec(nil, ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), targetType.Id(), t.TargetJson)
 	if err != nil {
 		return err
 	}
@@ -189,12 +197,7 @@ func (t *Trigger) createTrigger(tx *sql.Tx, monitor *Monitor) error {
 	if err != nil {
 		return err
 	}
-	err = stmt.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return stmt.Close()
 }
 
 func (t *Trigger) updateTrigger(tx *sql.Tx, monitor *Monitor) (err error) {
@@ -206,9 +209,14 @@ func (t *Trigger) updateTrigger(tx *sql.Tx, monitor *Monitor) (err error) {
 		return
 	}
 
-	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), reverseTargetTypes[t.TargetType], t.Target, t.Subprobe, t.Id, t.Id, monitor.Id)
+	targetType, err := targets.TargetTypeById(t.TargetType)
 	if err != nil {
-		err = stmt.Close()
+		return
 	}
-	return
+
+	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), targetType.Id(), t.TargetJson, t.Subprobe, t.Id, t.Id, monitor.Id)
+	if err != nil {
+		return
+	}
+	return stmt.Close()
 }

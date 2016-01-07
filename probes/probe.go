@@ -3,7 +3,6 @@ package probes
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
 
 	"github.com/yext/revere/util"
 )
@@ -27,7 +26,7 @@ var (
 	probeTypes map[ProbeTypeId]ProbeType = make(map[ProbeTypeId]ProbeType)
 
 	// All probe templates
-	tMap map[string]*template.Template = make(map[string]*template.Template)
+	probeTemplates map[string]*template.Template
 
 	defaultProbeType     ProbeType = GraphiteThreshold{}
 	defaultProbeTemplate template.HTML
@@ -35,17 +34,7 @@ var (
 
 func init() {
 	// Fetch all probe templates
-	funcMap := template.FuncMap{"strEq": util.StrEq}
-	templateInfo, err := ioutil.ReadDir(probeTemplateDir)
-	for _, t := range templateInfo {
-		if t.IsDir() {
-			continue
-		}
-		tMap[t.Name()], err = template.New(t.Name()).Funcs(funcMap).ParseFiles(probeTemplateDir + t.Name())
-		if err != nil {
-			panic(fmt.Sprintf("Got error initializing probe templates: %v", err))
-		}
-	}
+	probeTemplates = util.InitTemplates(probeTemplateDir, template.FuncMap{"strEq": util.StrEq})
 
 	// Render the default probe template
 	t, err := defaultProbeType.Load(`{}`)
@@ -60,7 +49,7 @@ func init() {
 	defaultProbeTemplate = template
 }
 
-func GetProbeType(probeType ProbeTypeId) (ProbeType, error) {
+func ProbeTypeById(probeType ProbeTypeId) (ProbeType, error) {
 	if pt, ok := probeTypes[probeType]; !ok {
 		return pt, fmt.Errorf("Invalid probe type with id: %d", probeType)
 	} else {
@@ -76,13 +65,13 @@ func addProbeType(probeType ProbeType) {
 	}
 }
 
-func GetAllProbes() (pts []ProbeType) {
+func AllProbes() (pts []ProbeType) {
 	for _, v := range probeTypes {
 		pts = append(pts, v)
 	}
 	return pts
 }
 
-func LoadDefaultProbeTemplate() template.HTML {
+func DefaultProbeTemplate() template.HTML {
 	return defaultProbeTemplate
 }

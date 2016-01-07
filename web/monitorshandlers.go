@@ -9,6 +9,7 @@ import (
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
+	"github.com/yext/revere/targets"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -89,14 +90,18 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		data := map[string]interface{}{
-			"Title":  "monitors",
-			"Probes": probes.GetAllProbes(),
+			"Title": "monitors",
 		}
 
 		// Create new monitor
 		if p.ByName("id") == "new" {
 			data["Monitor"] = map[string]interface{}{
-				"ProbeTemplate": probes.LoadDefaultProbeTemplate(),
+				"ProbeTemplate": probes.DefaultProbeTemplate(),
+				"Triggers": []interface{}{
+					map[string]interface{}{
+						"TargetTemplate": targets.DefaultTargetTemplate(),
+					},
+				},
 			}
 			err := executeTemplate(w, "monitors-edit.html", data)
 			if err != nil {
@@ -174,45 +179,83 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	}
 }
 
-func LoadProbeTemplate() func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		pt, err := strconv.Atoi(p.ByName("probeType"))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Probe type not found: %d", pt), http.StatusNotFound)
-			return
-		}
-
-		// Render empty probe template
-		probeType, err := probes.GetProbeType(probes.ProbeTypeId(pt))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Probe type not found: %d", pt), http.StatusNotFound)
-			return
-		}
-
-		probe, err := probeType.Load(`{}`)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		tmpl, err := probe.Render()
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		template, err := json.Marshal(map[string]interface{}{"template": tmpl})
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(template)
+func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	pt, err := strconv.Atoi(p.ByName("probeType"))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Probe type not found: %s", p.ByName("probeType")), http.StatusNotFound)
+		return
 	}
+
+	// Render empty probe template
+	probeType, err := probes.ProbeTypeById(probes.ProbeTypeId(pt))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Probe type not found: %d", pt), http.StatusNotFound)
+		return
+	}
+
+	probe, err := probeType.Load(`{}`)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := probe.Render()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+
+	template, err := json.Marshal(map[string]interface{}{"template": tmpl})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(template)
+}
+
+func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	tt, err := strconv.Atoi(p.ByName("targetType"))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Target type not found: %s", p.ByName("targetType")), http.StatusNotFound)
+		return
+	}
+
+	// TODO(psingh): Make into fn and remove comment
+	// Render empty target template
+	targetType, err := targets.TargetTypeById(targets.TargetTypeId(tt))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Target type not found: %s", tt), http.StatusNotFound)
+		return
+	}
+
+	target, err := targetType.Load(`{}`)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := target.Render()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+
+	template, err := json.Marshal(map[string]interface{}{"template": tmpl})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
+			http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(template)
 }
 
 func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {

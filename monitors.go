@@ -32,7 +32,7 @@ func (m *Monitor) Validate() (errs []string) {
 		errs = append(errs, fmt.Sprintf("Monitor name is required"))
 	}
 
-	probeType, err := probes.GetProbeType(m.ProbeType)
+	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		errs = append(errs, err.Error())
 	}
@@ -90,7 +90,7 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 	}
 
 	// Load Probe
-	probeType, err := probes.GetProbeType(m.ProbeType)
+	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (m *Monitor) createMonitor(tx *sql.Tx) (uint, error) {
 	}
 	defer stmt.Close()
 
-	probeType, err := probes.GetProbeType(m.ProbeType)
+	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		return 0, err
 	}
@@ -180,7 +180,7 @@ func (m *Monitor) updateMonitor(tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 
-	probeType, err := probes.GetProbeType(m.ProbeType)
+	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		return err
 	}
