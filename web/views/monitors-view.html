@@ -14,13 +14,14 @@
 <p>{{.Monitor.Description}}</p>
 <h4>Alert Response:</h4>
 <p>{{.Monitor.Response}}</p>
-<h4>Probe ({{.Monitor.ProbeType}}):</h4>
-{{if eq .Monitor.ProbeJson ""}}
+{{if not .Monitor.Probe}}
+  <h4>Probe:</h4>
   <p><a href="{{.Monitor.Id}}/edit">Not yet configured</a></p>
- {{else}}
-   <p>{{.Monitor.Probe}}</p>
- {{end}}
- <h3><a href="{{.Monitor.Id}}/subprobes">subprobes</a></h3>
+{{else}}
+  <h4>Probe ({{.Monitor.Probe.ProbeType.Name}}):</h4>
+  <p>{{.Monitor.Probe}}</p>
+{{end}}
+<h3><a href="{{.Monitor.Id}}/subprobes">subprobes</a></h3>
 
 <h2>triggers</h2>
 <div class="revere-row"><div class="col-md-3">Subprobe</div><div class="col-md-1">Trigger On Exit</div><div class="col-md-1">Period</div><div class="col-md-3">Target Type</a></div><div class="col-md-4">Target</div></div>

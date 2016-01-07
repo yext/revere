@@ -16,6 +16,7 @@ type ProbeType interface {
 }
 
 type Probe interface {
+	ProbeType() ProbeType
 	Validate() []string
 	Render() (template.HTML, error)
 }

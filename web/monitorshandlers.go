@@ -10,6 +10,7 @@ import (
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/targets"
+	"github.com/yext/revere/web/vm"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -66,10 +67,18 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				http.StatusInternalServerError)
 			return
 		}
+
+		vm, err := vm.NewMonitor(m)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
 		err = executeTemplate(w, "monitors-view.html",
 			map[string]interface{}{
 				"Title":       "monitors",
-				"Monitor":     m,
+				"Monitor":     vm,
 				"Triggers":    triggers,
 				"Breadcrumbs": monitorViewBcs(m.Name, m.Id),
 			})
@@ -135,7 +144,14 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		data["Monitor"] = monitor
+		vm, err := vm.NewMonitor(monitor)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		data["Monitor"] = vm
 		err = executeTemplate(w, "monitors-edit.html", data)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load edit monitor page: %s", err.Error()),

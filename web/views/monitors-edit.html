@@ -36,7 +36,7 @@
       <div class="col-sm-10">
         <select id="probe-type" class="form-control" data-json-type="Number" name="probeType">
           {{range probes}}
-            <option value="{{.Id}}" {{if strEq $.Monitor.ProbeType .Name}}selected{{end}}>{{.Name}}</option>
+            <option value="{{.Id}}" {{if strEq $.Monitor.Probe.ProbeType.Id .Id}}selected{{end}}>{{.Name}}</option>
           {{end}}
         </select>
       </div>

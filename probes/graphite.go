@@ -61,6 +61,10 @@ func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
 	return g, nil
 }
 
+func (g GraphiteThresholdProbe) ProbeType() ProbeType {
+	return GraphiteThreshold{}
+}
+
 func (g GraphiteThresholdProbe) Validate() (errs []string) {
 	if g.Url == "" {
 		errs = append(errs, "Graphite data source is required")

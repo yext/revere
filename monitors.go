@@ -3,26 +3,23 @@ package revere
 import (
 	"database/sql"
 	"fmt"
-	"html/template"
 	"time"
 
 	"github.com/yext/revere/probes"
 )
 
 type Monitor struct {
-	Id            uint               `json:"id,omitempty"`
-	Name          string             `json:"name"`
-	Owner         string             `json:"owner"`
-	Description   string             `json:"description"`
-	Response      string             `json:"response"`
-	Probe         probes.Probe       `json:"-"`
-	ProbeType     probes.ProbeTypeId `json:"probeType"`
-	ProbeJson     string             `json:"probe"`
-	ProbeTemplate template.HTML      `json:"-"`
-	Changed       time.Time          `json:"-"`
-	Version       int                `json:"-"`
-	Archived      *time.Time         `json:"-"` // nullable
-	Triggers      []*Trigger         `json:"triggers"`
+	Id          uint               `json:"id,omitempty"`
+	Name        string             `json:"name"`
+	Owner       string             `json:"owner"`
+	Description string             `json:"description"`
+	Response    string             `json:"response"`
+	ProbeType   probes.ProbeTypeId `json:"probeType"`
+	ProbeJson   string             `json:"probe"`
+	Changed     time.Time          `json:"-"`
+	Version     int                `json:"-"`
+	Archived    *time.Time         `json:"-"` // nullable
+	Triggers    []*Trigger         `json:"triggers"`
 }
 
 const allMonitorFields = "id, name, owner, description, response, probeType, probe, changed, version, archived"
@@ -85,22 +82,6 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 
 	// Load Triggers
 	m.Triggers, err = LoadTriggers(db, id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Load Probe
-	probeType, err := probes.ProbeTypeById(m.ProbeType)
-	if err != nil {
-		return nil, err
-	}
-
-	m.Probe, err = probeType.Load(m.ProbeJson)
-	if err != nil {
-		return nil, err
-	}
-
-	m.ProbeTemplate, err = m.Probe.Render()
 	if err != nil {
 		return nil, err
 	}
