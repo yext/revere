@@ -70,8 +70,10 @@
       monitorsEdit.init();
     });
   </script>
+  {{range probeScripts}}
+    <script type="text/javascript" src="{{.}}"></script>
+  {{end}}
   {{range targetScripts}}
     <script type="text/javascript" src="{{.}}"></script>
   {{end}}
-{{end}}
 {{template "_footer.html"}}

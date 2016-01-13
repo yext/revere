@@ -4,12 +4,14 @@ $.fn.serializeObject = function() {
 
   // Only keep form inputs that serializeArray would
   var that = this;
-  $.each(that, function(i) {
-    if (!$(this).is('[name]') || $(this).prop('disabled') ||
-        ($(this).is(':checkbox') && !$(this).is(':checked'))) {
+  for(var i = 0; i < that.length; i++) {
+    if (!$(that[i]).is('[name]') || $(that[i]).is(':disabled') ||
+        ($(that[i]).is(':checkbox') && !$(that[i]).is(':checked')) ||
+        ($(that[i]).is(':radio') && !$(that[i]).is(':checked'))) {
       that.splice(i, 1);
+      i--;
     }
-  });
+  }
   $.each(a, function(i) {
     var value = this.value || '';
     if (that[i].dataset && that[i].dataset.jsonType) {

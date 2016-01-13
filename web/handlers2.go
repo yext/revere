@@ -30,6 +30,7 @@ func init() {
 	funcMap["targets"] = targets.AllTargets
 	funcMap["targetScripts"] = targetScripts
 	funcMap["probes"] = probes.AllProbes
+	funcMap["probeScripts"] = probeScripts
 }
 
 func LoadTemplates() {
