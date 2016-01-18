@@ -1,0 +1,21 @@
+{{template "_header.html" .}}
+<div class="settings-index-headers">
+  <h1 class="settings-index-header">Settings</h1>
+</div>
+<hr/>
+<div id="errors">
+  <div class="error alert alert-danger hidden"></div>
+</div>
+{{range .Settings}}
+    {{.}}
+{{end}}
+{{define "MoreScripts"}}
+  <script type="text/javascript" src="/static/js/revere.js"></script>
+  <script type="text/javascript" src="/static/js/settings.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+        outgoingEmails.init();
+    });
+  </script>
+{{end}}
+{{template "_footer.html"}}

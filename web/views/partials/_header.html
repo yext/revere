@@ -31,6 +31,11 @@
             <li {{if eq .Title "Monitors"}}class="active"{{end}}><a href="/monitors">Monitors</a></li>
             <li {{if eq .Title "Silences"}}class="active"{{end}}><a href="/silences">Silences</a></li>
           </ul>
+          <ul class="nav navbar-nav navbar-right">
+              <li {{if eq .Title "Settings"}}class="active"{{end}}>
+                <a href="/settings"><span class="glyphicon glyphicon-cog"/></a>
+              </li>
+          </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
