@@ -116,9 +116,9 @@ func (s *Silence) Validate(db *sql.DB) (errs []string, err error) {
 	}
 
 	if oldS.IsNew() {
-		errs = append(errs, oldS.validateNewParams(s, now)...)
+		errs = append(errs, s.validateNewParams(now)...)
 	} else {
-		errs = append(errs, oldS.validateUpdateParams(s)...)
+		errs = append(errs, s.validateUpdateParams(oldS)...)
 	}
 
 	if s.End.Before(s.Start) {
