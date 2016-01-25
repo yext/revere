@@ -1,9 +1,9 @@
-<div class="trigger">
-  <div class="trigger-options">
+<div class="js-trigger">
+  <div class="js-trigger-options">
     <input type="hidden" class="form-control" name="id" data-json-type="Number" value={{.Id}}>
     <div class="form-group">
       <div class="col-sm-1">
-        <button class="remove-trigger btn btn-default btn-block">x</button>
+        <button class="js-remove-trigger btn btn-default btn-block">x</button>
       </div>
       <label class="col-sm-1 control-label" for="level">Alert on</label>
       <div class="col-sm-4">
@@ -43,7 +43,7 @@
     <div class="form-group">
       <label class="col-sm-2 control-label" for="targetType">Target</label>
       <div class="col-sm-4">
-        <select class="form-control targetType" data-json-type="Number" name="targetType">
+        <select class="form-control js-targetType" data-json-type="Number" name="targetType">
           {{range targets}}
             <option value="{{.Id}}" {{if strEq $.TargetType "{{.Id}}"}}selected{{end}}>{{.Name}}</option>
           {{end}}
@@ -51,7 +51,7 @@
       </div>
     </div>
   </div>
-  <div class="target">
+  <div class="js-target">
     {{.TargetTemplate}}
   </div>
 </div>
