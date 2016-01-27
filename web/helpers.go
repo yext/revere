@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 )
 
 const (
@@ -16,7 +17,7 @@ func getScripts(dir string, servingPath string) (scripts []string, err error) {
 		return nil, err
 	}
 	for _, s := range scriptInfo {
-		if s.IsDir() {
+		if s.IsDir() || !strings.HasSuffix(s.Name(), ".js") {
 			continue
 		}
 		scripts = append(scripts, fmt.Sprintf("%s%s", servingPath, s.Name()))

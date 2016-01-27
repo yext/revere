@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
@@ -34,7 +35,7 @@ func init() {
 func LoadTemplates() {
 	templateInfo, err := ioutil.ReadDir("web/views")
 	for _, t := range templateInfo {
-		if t.IsDir() {
+		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
 			continue
 		}
 		tMap[t.Name()], err = template.New(t.Name()).Funcs(funcMap).ParseGlob("web/views/partials/*.html")

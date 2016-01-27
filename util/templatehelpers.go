@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"strings"
 )
 
 func InitTemplates(dir string, funcs template.FuncMap) (tMap map[string]*template.Template) {
@@ -13,7 +14,7 @@ func InitTemplates(dir string, funcs template.FuncMap) (tMap map[string]*templat
 		panic(fmt.Sprintf("Got error initializing templates: %v", err))
 	}
 	for _, t := range templateInfo {
-		if t.IsDir() {
+		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
 			continue
 		}
 		tMap[t.Name()], err = template.New(t.Name()).Funcs(funcs).ParseFiles(dir + t.Name())
