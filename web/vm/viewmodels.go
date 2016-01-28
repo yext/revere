@@ -5,6 +5,6 @@ import (
 )
 
 type Renderer interface {
-	RenderView() template.HTML
-	RenderEdit() template.HTML
+	RenderView() (template.HTML, error)
+	RenderEdit() (template.HTML, error)
 }

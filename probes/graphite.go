@@ -89,7 +89,10 @@ func (g GraphiteThresholdProbe) Render() (template.HTML, error) {
 		return template.HTML(""), fmt.Errorf("Unable to find graphite probe template: %s", graphiteProbeTemplate)
 	} else {
 		b := bytes.Buffer{}
-		t.Execute(&b, g)
+		err := t.Execute(&b, g)
+		if err != nil {
+			return "", err
+		}
 		return template.HTML(b.String()), nil
 	}
 }

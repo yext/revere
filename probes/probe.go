@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/yext/revere/util"
+	"github.com/yext/revere/web/tmpl"
 )
 
 type ProbeTypeId int
@@ -29,12 +29,12 @@ var (
 	// All probe templates
 	probeTemplates map[string]*template.Template
 
-	defaultProbeType ProbeType = GraphiteThreshold{}
+	defaultProbe Probe = GraphiteThresholdProbe{}
 )
 
 func init() {
 	// Fetch all probe templates
-	probeTemplates = util.InitTemplates(probeTemplateDir, template.FuncMap{"strEq": util.StrEq})
+	probeTemplates = tmpl.InitTemplates(probeTemplateDir, template.FuncMap{"strEq": tmpl.StrEq})
 }
 
 func ProbeTypeById(probeType ProbeTypeId) (ProbeType, error) {
@@ -60,9 +60,13 @@ func AllProbes() (pts []ProbeType) {
 	return pts
 }
 
+func DefaultProbe() Probe {
+	return defaultProbe
+}
+
 func DefaultProbeTemplate() (template.HTML, error) {
 	// Render the default probe template
-	t, err := defaultProbeType.Load(`{}`)
+	t, err := defaultProbe.ProbeType().Load(`{}`)
 	if err != nil {
 		return "", err
 	}

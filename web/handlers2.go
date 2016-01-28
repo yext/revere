@@ -14,23 +14,37 @@ import (
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/targets"
-	"github.com/yext/revere/util"
+	"github.com/yext/revere/web/tmpl"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 var (
-	tMap    map[string]*template.Template = make(map[string]*template.Template)
-	funcMap template.FuncMap              = make(template.FuncMap)
+	templates    map[string]*template.Template = make(map[string]*template.Template)
+	functions    template.FuncMap              = make(template.FuncMap)
+	baseName     string                        = "base.html"
+	baseDir      string                        = "web/views/"
+	partials     string                        = "web/views/partials/*.html"
+	baseTemplate *tmpl.Template
 )
 
 func init() {
-	funcMap["isLastBc"] = isLastBc
-	funcMap["strEq"] = util.StrEq
-	funcMap["targets"] = targets.AllTargets
-	funcMap["targetScripts"] = targetScripts
-	funcMap["probes"] = probes.AllProbes
-	funcMap["probeScripts"] = probeScripts
+	tmpl.AddDefaultFunc("isLastBc", isLastBc)
+	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
+	tmpl.AddDefaultFunc("targets", targets.AllTargets)
+	tmpl.AddDefaultFunc("targetScripts", targetScripts)
+	tmpl.AddDefaultFunc("probes", probes.AllProbes)
+	tmpl.AddDefaultFunc("probeScripts", probeScripts)
+	tmpl.SetPartialsLocation(partials)
+
+	functions["isLastBc"] = isLastBc
+	functions["strEq"] = tmpl.StrEq
+	functions["targets"] = targets.AllTargets
+	functions["targetScripts"] = targetScripts
+	functions["probes"] = probes.AllProbes
+	functions["probeScripts"] = probeScripts
+
+	baseTemplate = tmpl.NewTemplate(baseDir, baseName)
 }
 
 func LoadTemplates() {
@@ -39,11 +53,11 @@ func LoadTemplates() {
 		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
 			continue
 		}
-		tMap[t.Name()], err = template.New(t.Name()).Funcs(funcMap).ParseGlob("web/views/partials/*.html")
+		templates[t.Name()], err = template.New(t.Name()).Funcs(functions).ParseGlob("web/views/partials/*.html")
 		if err != nil {
 			panic(fmt.Sprintf("Got error initializing templates: %v", err))
 		}
-		tMap[t.Name()], err = tMap[t.Name()].ParseFiles("web/views/" + t.Name())
+		templates[t.Name()], err = templates[t.Name()].ParseFiles("web/views/" + t.Name())
 		if err != nil {
 			panic(fmt.Sprintf("Got error initializing templates: %v", err))
 		}
@@ -84,9 +98,17 @@ func writeJsonResponse(w http.ResponseWriter, action string, data map[string]int
 	w.Write(response)
 }
 
+func render(w http.ResponseWriter, data map[string]interface{}) error {
+	if _, ok := data["States"]; !ok {
+		data["States"] = revere.ReverseStates
+	}
+
+	return baseTemplate.Execute(w, data)
+}
+
 func executeTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
 	if _, ok := data["States"]; !ok {
 		data["States"] = revere.ReverseStates
 	}
-	return tMap[name].ExecuteTemplate(w, name, data)
+	return templates[name].ExecuteTemplate(w, name, data)
 }

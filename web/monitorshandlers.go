@@ -39,48 +39,32 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 
 func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		if p.ByName("id") == "new" {
+		id := p.ByName("id")
+
+		if id == "new" {
 			http.Redirect(w, req, "/monitors/new/edit", http.StatusMovedPermanently)
 			return
 		}
 
-		id, err := strconv.Atoi(p.ByName("id"))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Monitor not found: %s", p.ByName("id")), http.StatusNotFound)
-			return
-		}
-		m, err := revere.LoadMonitor(db, uint(id))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-		if m == nil {
-			http.Error(w, fmt.Sprintf("Monitor not found: %d", id),
-				http.StatusNotFound)
-			return
-		}
-
-		triggers, err := revere.LoadTriggers(db, uint(id))
+		viewmodel, err := loadViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		vm, err := vm.NewMonitor(m)
+		mvm, err := viewmodel.RenderView()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		err = executeTemplate(w, "monitors-view.html",
+		err = render(w,
 			map[string]interface{}{
 				"Title":       "Monitors",
-				"Monitor":     vm,
-				"Triggers":    triggers,
-				"Breadcrumbs": monitorViewBcs(m.Name, m.Id),
+				"Content":     mvm,
+				"Breadcrumbs": monitorViewBcs(viewmodel.Name, viewmodel.Id),
 			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
@@ -102,57 +86,22 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			"Title": "Monitors",
 		}
 
-		// Create new monitor
-		if p.ByName("id") == "new" {
-			probeTemplate, err := probes.DefaultProbeTemplate()
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Unable to load new monitor page: %s", err.Error()),
-					http.StatusInternalServerError)
-				return
-			}
-			data["Monitor"] = map[string]interface{}{
-				"ProbeTemplate": probeTemplate,
-				"Triggers": []interface{}{
-					map[string]interface{}{
-						"TargetTemplate": targets.DefaultTargetTemplate(),
-					},
-				},
-			}
-			err = executeTemplate(w, "monitors-edit.html", data)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Unable to load new monitor page: %s", err.Error()),
-					http.StatusInternalServerError)
-			}
-			return
-		}
-
-		// Edit existing monitor
-		i, err := strconv.Atoi(id)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Monitor not found: %s", p.ByName("id")), http.StatusNotFound)
-			return
-		}
-
-		monitor, err := revere.LoadMonitor(db, uint(i))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-		if monitor == nil {
-			http.Error(w, fmt.Sprintf("Monitor not found: %d", i), http.StatusNotFound)
-			return
-		}
-
-		vm, err := vm.NewMonitor(monitor)
+		viewmodel, err := loadViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		data["Monitor"] = vm
-		err = executeTemplate(w, "monitors-edit.html", data)
+		mvm, err := viewmodel.RenderEdit()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		data["Content"] = mvm
+		err = render(w, data)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load edit monitor page: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -199,6 +148,35 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(redirect)
 	}
+}
+
+func loadViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
+	if unparsedId == "new" {
+		viewmodel, err := vm.BlankMonitor()
+		if err != nil {
+			return nil, err
+		}
+		return viewmodel, nil
+	}
+
+	id, err := strconv.Atoi(unparsedId)
+	if err != nil {
+		return nil, err
+	}
+
+	monitor, err := revere.LoadMonitor(db, uint(id))
+	if err != nil {
+		return nil, err
+	}
+	if monitor == nil {
+		return nil, err
+	}
+
+	viewmodel, err := vm.NewMonitor(monitor)
+	if err != nil {
+		return nil, err
+	}
+	return viewmodel, err
 }
 
 func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Params) {

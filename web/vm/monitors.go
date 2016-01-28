@@ -1,11 +1,14 @@
 package vm
 
 import (
+	"bytes"
 	"html/template"
 	"time"
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
+	"github.com/yext/revere/targets"
+	"github.com/yext/revere/web/tmpl"
 )
 
 type Monitor struct {
@@ -21,6 +24,12 @@ type Monitor struct {
 	Archived      *time.Time
 	Triggers      []*revere.Trigger
 }
+
+var (
+	view string = "monitors-view.html"
+	edit string = "monitors-edit.html"
+	dir  string = "web/views/"
+)
 
 func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	vm := new(Monitor)
@@ -52,4 +61,42 @@ func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	}
 
 	return vm, nil
+}
+
+func BlankMonitor() (*Monitor, error) {
+	vm := new(Monitor)
+
+	vm.Triggers = []*revere.Trigger{
+		&revere.Trigger{
+			TargetTemplate: targets.DefaultTargetTemplate(),
+		},
+	}
+
+	var err error
+	vm.ProbeTemplate, err = probes.DefaultProbeTemplate()
+	if err != nil {
+		return nil, err
+	}
+
+	vm.Probe = probes.DefaultProbe()
+
+	return vm, nil
+}
+
+func (vm *Monitor) render(tmplFile string) (template.HTML, error) {
+	t := tmpl.NewTemplate(dir, tmplFile)
+	b := bytes.Buffer{}
+	err := t.Execute(&b, vm)
+	if err != nil {
+		return "", err
+	}
+	return template.HTML(b.String()), nil
+}
+
+func (vm *Monitor) RenderView() (template.HTML, error) {
+	return vm.render(view)
+}
+
+func (vm *Monitor) RenderEdit() (template.HTML, error) {
+	return vm.render(edit)
 }

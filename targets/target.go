@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/yext/revere/util"
+	"github.com/yext/revere/web/tmpl"
 )
 
 type Target interface {
@@ -32,7 +32,7 @@ var (
 )
 
 func init() {
-	targetTemplates = util.InitTemplates(targetTemplateDir, template.FuncMap{"strEq": util.StrEq})
+	targetTemplates = tmpl.InitTemplates(targetTemplateDir, template.FuncMap{"strEq": tmpl.StrEq})
 
 	t, err := defaultTargetType.Load(`{}`)
 	if err != nil {
