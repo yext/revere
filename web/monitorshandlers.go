@@ -95,15 +95,21 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 		// Create new monitor
 		if p.ByName("id") == "new" {
+			probeTemplate, err := probes.DefaultProbeTemplate()
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to load new monitor page: %s", err.Error()),
+					http.StatusInternalServerError)
+				return
+			}
 			data["Monitor"] = map[string]interface{}{
-				"ProbeTemplate": probes.DefaultProbeTemplate(),
+				"ProbeTemplate": probeTemplate,
 				"Triggers": []interface{}{
 					map[string]interface{}{
 						"TargetTemplate": targets.DefaultTargetTemplate(),
 					},
 				},
 			}
-			err := executeTemplate(w, "monitors-edit.html", data)
+			err = executeTemplate(w, "monitors-edit.html", data)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to load new monitor page: %s", err.Error()),
 					http.StatusInternalServerError)

@@ -28,25 +28,12 @@ var (
 	// All probe templates
 	probeTemplates map[string]*template.Template
 
-	defaultProbeType     ProbeType = GraphiteThreshold{}
-	defaultProbeTemplate template.HTML
+	defaultProbeType ProbeType = GraphiteThreshold{}
 )
 
 func init() {
 	// Fetch all probe templates
 	probeTemplates = util.InitTemplates(probeTemplateDir, template.FuncMap{"strEq": util.StrEq})
-
-	// Render the default probe template
-	t, err := defaultProbeType.Load(`{}`)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load default probe template: %v", err))
-	}
-
-	template, err := t.Render()
-	if err != nil {
-		panic(fmt.Sprintf("Failed to render default probe template: %v", err))
-	}
-	defaultProbeTemplate = template
 }
 
 func ProbeTypeById(probeType ProbeTypeId) (ProbeType, error) {
@@ -72,6 +59,16 @@ func AllProbes() (pts []ProbeType) {
 	return pts
 }
 
-func DefaultProbeTemplate() template.HTML {
-	return defaultProbeTemplate
+func DefaultProbeTemplate() (template.HTML, error) {
+	// Render the default probe template
+	t, err := defaultProbeType.Load(`{}`)
+	if err != nil {
+		return "", err
+	}
+
+	template, err := t.Render()
+	if err != nil {
+		return "", err
+	}
+	return template, nil
 }
