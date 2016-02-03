@@ -25,7 +25,7 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 		}
 		err = executeTemplate(w, "monitors-index.html",
 			map[string]interface{}{
-				"Title":       "monitors",
+				"Title":       "Monitors",
 				"Monitors":    m,
 				"Breadcrumbs": monitorIndexBcs(),
 			})
@@ -77,7 +77,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 		err = executeTemplate(w, "monitors-view.html",
 			map[string]interface{}{
-				"Title":       "monitors",
+				"Title":       "Monitors",
 				"Monitor":     vm,
 				"Triggers":    triggers,
 				"Breadcrumbs": monitorViewBcs(m.Name, m.Id),
@@ -99,7 +99,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		data := map[string]interface{}{
-			"Title": "monitors",
+			"Title": "Monitors",
 		}
 
 		// Create new monitor
@@ -314,7 +314,7 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 
 		err = executeTemplate(w, "subprobes-index.html",
 			map[string]interface{}{
-				"Title":       "monitors",
+				"Title":       "Monitors",
 				"Subprobes":   s,
 				"MonitorName": monitorName,
 				"Breadcrumbs": subprobeIndexBcs(monitorName, monitorId),
@@ -376,7 +376,7 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 
 		err = executeTemplate(w, "subprobes-view.html",
 			map[string]interface{}{
-				"Title":       "monitors",
+				"Title":       "Monitors",
 				"Readings":    readings,
 				"Subprobe":    s,
 				"MonitorName": s.MonitorName,

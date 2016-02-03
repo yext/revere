@@ -12,7 +12,7 @@ type breadcrumb struct {
 }
 
 func monitorIndexBcs() []breadcrumb {
-	return []breadcrumb{breadcrumb{"monitors", "/monitors"}}
+	return []breadcrumb{breadcrumb{"Monitors", "/monitors"}}
 }
 
 func monitorViewBcs(mn string, id uint) []breadcrumb {
@@ -20,7 +20,7 @@ func monitorViewBcs(mn string, id uint) []breadcrumb {
 }
 
 func subprobeIndexBcs(mn string, id uint) []breadcrumb {
-	return append(monitorViewBcs(mn, id), breadcrumb{"subprobe", fmt.Sprintf("/monitors/%d/subprobes", id)})
+	return append(monitorViewBcs(mn, id), breadcrumb{"Subprobe", fmt.Sprintf("/monitors/%d/subprobes", id)})
 }
 
 func subprobeViewBcs(s *revere.Subprobe) []breadcrumb {
@@ -28,11 +28,11 @@ func subprobeViewBcs(s *revere.Subprobe) []breadcrumb {
 }
 
 func silencesIndexBcs() []breadcrumb {
-	return []breadcrumb{breadcrumb{"silences", "/silences"}}
+	return []breadcrumb{breadcrumb{"Silences", "/silences"}}
 }
 
 func silencesViewBcs(id uint, mn string) []breadcrumb {
-	return append(silencesIndexBcs(), breadcrumb{fmt.Sprintf("silence for %s", mn), fmt.Sprintf("/silences/%d", id)})
+	return append(silencesIndexBcs(), breadcrumb{fmt.Sprintf("Silence for %s", mn), fmt.Sprintf("/silences/%d", id)})
 }
 
 func isLastBc(a []breadcrumb, i int) bool {

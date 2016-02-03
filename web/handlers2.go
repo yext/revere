@@ -61,7 +61,7 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 
 		err = executeTemplate(w, "active-issues.html",
 			map[string]interface{}{
-				"Title":       "active issues",
+				"Title":       "Active Issues",
 				"Subprobes":   s,
 				"Breadcrumbs": []breadcrumb{breadcrumb{"active issues", "/"}},
 			})

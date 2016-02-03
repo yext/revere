@@ -165,7 +165,7 @@ func getSilenceId(idStr string) (uint, error) {
 
 func silenceDataWith(d map[string]interface{}) map[string]interface{} {
 	data := map[string]interface{}{
-		"Title": "silences",
+		"Title":      "Silences",
 	}
 	for k, v := range d {
 		data[k] = v

@@ -3,9 +3,9 @@
   <h1 class="silences-header">
     silence for <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
   </h1>
-  <h4 class="silence-edit"><a href="/silences/{{.Silence.Id}}/edit">edit</a></h4>
+  <h4 class="silence-edit"><a href="/silences/{{.Silence.Id}}/edit">Edit</a></h4>
 </div>
-<h4 class="silence-subheader">subprobe: {{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</h4>
+<h4 class="silence-subheader">Subprobe: {{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</h4>
 
 <h4>silence time:</h4>
 <span>{{.Silence.Start}}</span>

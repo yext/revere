@@ -23,7 +23,7 @@
 {{end}}
 <h3><a href="{{.Monitor.Id}}/subprobes">subprobes</a></h3>
 
-<h2>triggers</h2>
+<h2>Triggers</h2>
 <div class="revere-row"><div class="col-md-3">Subprobe</div><div class="col-md-1">Trigger On Exit</div><div class="col-md-1">Period</div><div class="col-md-3">Target Type</a></div><div class="col-md-4">Target</div></div>
 {{range .Triggers}}
   <div class="revere-row"><div class="col-md-3">{{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</div><div class="col-md-1">{{.TriggerOnExit}}</div><div class="col-md-1">{{.Period}} {{.PeriodType}}</div><div class="col-md-3">{{.TargetType}}</a></div><div class="col-md-4">{{.Target}}</div></div>

@@ -22,7 +22,7 @@
       {{end}}
     </h2>
   </div>
-  <h4 class="silence-subheader">subprobes: 
+  <h4 class="silence-subheader">Subprobes: 
     {{if not .Silence}}
       <div class="silence-form">
         <input type="text" name="subprobes" class="form-control" placeholder="Subprobes">
@@ -37,14 +37,14 @@
   </h4>
   <div id="silence-bounds">
     <div class="form-group">
-      <label class="col-sm-2 control-label" for="start">start</label>
+      <label class="col-sm-2 control-label" for="start">Start</label>
       <div class="col-sm-4 input-group date js-datetimepicker-start" data-time="{{.Silence.Start}}">
         <input id="start" type="text" class="form-control" name="start">
         <span class="input-group-addon">
           <span class="glyphicon glyphicon-calendar"></span>
         </span>
       </div>
-      <label class="col-sm-2 control-label" for="end">end</label>
+      <label class="col-sm-2 control-label" for="end">End</label>
       <div class="col-sm-4 input-group date js-datetimepicker-end" data-time="{{.Silence.End}}">
         <input id="end" type="text" class="form-control" name="end">
         <span class="input-group-addon">

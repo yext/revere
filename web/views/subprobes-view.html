@@ -1,9 +1,9 @@
 {{template "_header.html" .}}
 <div class="subprobes-headers">
-  <h1 class="subprobes-header">history for {{.Subprobe.Name}}</h1>
+  <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
 </div>
 <div>
-  <div class="revere-row"><div class="col-md-6">state</div><div class="col-md-6">time recorded</div></div>
+  <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
   {{range .Readings}}
     <div class="revere-row {{if eq .State $.States.NORMAL}}bg-success{{end}}">
       <div class="col-md-6">{{.StateStr}}</div>
