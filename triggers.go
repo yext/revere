@@ -83,7 +83,7 @@ func (t *Trigger) Validate() (errs []string) {
 
 	targetType, err := targets.TargetTypeById(t.TargetType)
 	if err != nil {
-		errs = append(errs, fmt.Sprintf("Invalid target type for trigger: %s", t.TargetType))
+		errs = append(errs, fmt.Sprintf("Invalid target type for trigger: %d", t.TargetType))
 	}
 
 	target, err := targetType.Load(t.TargetJson)
