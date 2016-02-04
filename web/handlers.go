@@ -21,16 +21,15 @@ import (
 )
 
 var (
-	templates    map[string]*template.Template = make(map[string]*template.Template)
-	functions    template.FuncMap              = make(template.FuncMap)
-	baseName     string                        = "base.html"
-	baseDir      string                        = "web/views/"
-	partials     string                        = "web/views/partials/*.html"
-	baseTemplate *tmpl.Template
+	templates map[string]*template.Template = make(map[string]*template.Template)
+	functions template.FuncMap              = make(template.FuncMap)
+	baseName  string                        = "base.html"
+	baseDir   string                        = "web/views/"
+	partials  string                        = "web/views/partials/*.html"
 )
 
 func init() {
-	tmpl.AddDefaultFunc("isLastBc", isLastBc)
+	tmpl.AddDefaultFunc("isLastBc", vm.IsLastBc)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("targetScripts", vm.TargetScripts)
@@ -38,14 +37,12 @@ func init() {
 	tmpl.AddDefaultFunc("probeScripts", vm.ProbeScripts)
 	tmpl.SetPartialsLocation(partials)
 
-	functions["isLastBc"] = isLastBc
+	functions["isLastBc"] = vm.IsLastBc
 	functions["strEq"] = tmpl.StrEq
 	functions["targets"] = targets.AllTargets
 	functions["targetScripts"] = vm.TargetScripts
 	functions["probes"] = probes.AllProbes
 	functions["probeScripts"] = vm.ProbeScripts
-
-	baseTemplate = tmpl.NewTemplate(baseName)
 }
 
 func LoadTemplates() {
@@ -78,7 +75,7 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			map[string]interface{}{
 				"Title":       "Active Issues",
 				"Subprobes":   s,
-				"Breadcrumbs": []breadcrumb{breadcrumb{"active issues", "/"}},
+				"Breadcrumbs": []vm.Breadcrumb{vm.Breadcrumb{"active issues", "/"}},
 			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
@@ -86,6 +83,10 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			return
 		}
 	}
+}
+
+func baseTemplate() *tmpl.Template {
+	return tmpl.NewTemplate(baseName)
 }
 
 func writeJsonResponse(w http.ResponseWriter, action string, data map[string]interface{}) {
@@ -99,12 +100,47 @@ func writeJsonResponse(w http.ResponseWriter, action string, data map[string]int
 	w.Write(response)
 }
 
-func render(w http.ResponseWriter, data map[string]interface{}) error {
+func render(w http.ResponseWriter, r vm.Renderable, title string) error {
+	result := renderPropogate(r)
+
+	if len(result.Templates) == 0 {
+		panic("Got error rendering views - no templates found")
+	}
+
+	for i, script := range result.Scripts {
+		result.Scripts[i] = vm.GetScript(script)
+	}
+
+	t := tmpl.NewTemplate(result.Templates[0])
+	t.AddTmpls(result.Templates[1:])
+	data := result.Data
+	data["Template"] = result.Templates[0]
+	data["Title"] = title
+	data["MoreScripts"] = result.Scripts
+	data["Breadcrumbs"] = result.Breadcrumbs
+
+	// Temporary to let footer / header tell between new / old templates
+	data["New"] = "new"
+
+	return t.Execute(w, data)
+}
+
+func renderPropogate(r vm.Renderable) *vm.RenderResult {
+	result := vm.NewRenderResult(r)
+
+	for name, subrenderable := range r.SubRenderables() {
+		result.AddSubRender(name, renderPropogate(subrenderable))
+	}
+
+	return result
+}
+
+func oldrender(w http.ResponseWriter, data map[string]interface{}) error {
 	if _, ok := data["States"]; !ok {
 		data["States"] = revere.ReverseStates
 	}
 
-	return baseTemplate.Execute(w, data)
+	return baseTemplate().Execute(w, data)
 }
 
 func executeTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {

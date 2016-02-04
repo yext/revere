@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/web/vm"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -28,7 +29,7 @@ func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 				"Past":        past,
 				"Curr":        curr,
 				"Future":      future,
-				"Breadcrumbs": silencesIndexBcs(),
+				"Breadcrumbs": vm.SilencesIndexBcs(),
 			}))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silences: %s", err.Error()),
@@ -59,7 +60,7 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		err = executeTemplate(w, "silences-view.html",
 			silenceDataWith(map[string]interface{}{
 				"Silence":     s,
-				"Breadcrumbs": silencesViewBcs(s.Id, s.MonitorName),
+				"Breadcrumbs": vm.SilencesViewBcs(s.Id, s.MonitorName),
 			}))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()), http.StatusInternalServerError)
@@ -86,7 +87,7 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 			err = executeTemplate(w, "silences-edit.html", silenceDataWith(map[string]interface{}{
 				"Monitors":    m,
-				"Breadcrumbs": silencesIndexBcs(),
+				"Breadcrumbs": vm.SilencesIndexBcs(),
 			}))
 
 			if err != nil {
@@ -111,7 +112,7 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		err = executeTemplate(w, "silences-edit.html",
 			silenceDataWith(map[string]interface{}{
 				"Silence":     s,
-				"Breadcrumbs": silencesViewBcs(s.Id, s.MonitorName),
+				"Breadcrumbs": vm.SilencesViewBcs(s.Id, s.MonitorName),
 			}))
 	}
 }

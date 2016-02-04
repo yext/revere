@@ -27,7 +27,7 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 			map[string]interface{}{
 				"Title":       "Monitors",
 				"Monitors":    m,
-				"Breadcrumbs": monitorIndexBcs(),
+				"Breadcrumbs": vm.MonitorIndexBcs(),
 			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
@@ -53,20 +53,9 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		mvm, scripts, err := viewmodel.RenderView()
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
+		renderable := vm.NewMonitorView(viewmodel)
+		err = render(w, renderable, "Monitors")
 
-		err = render(w,
-			map[string]interface{}{
-				"Title":       "Monitors",
-				"Content":     mvm,
-				"MoreScripts": scripts,
-				"Breadcrumbs": monitorViewBcs(viewmodel.Name, viewmodel.Id),
-			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -83,10 +72,6 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		data := map[string]interface{}{
-			"Title": "Monitors",
-		}
-
 		viewmodel, err := loadViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
@@ -94,19 +79,13 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		mvm, scripts, err := viewmodel.RenderEdit()
+		renderable := vm.NewMonitorEdit(viewmodel)
+		err = render(w, renderable, "Monitors")
+
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
-		}
-
-		data["Content"] = mvm
-		data["MoreScripts"] = scripts
-		err = render(w, data)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load edit monitor page: %s", err.Error()),
-				http.StatusInternalServerError)
 		}
 	}
 }
@@ -178,7 +157,8 @@ func loadViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	return viewmodel, err
+
+	return viewmodel, nil
 }
 
 func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
@@ -297,7 +277,7 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 				"Title":       "Monitors",
 				"Subprobes":   s,
 				"MonitorName": monitorName,
-				"Breadcrumbs": subprobeIndexBcs(monitorName, monitorId),
+				"Breadcrumbs": vm.SubprobeIndexBcs(monitorName, monitorId),
 			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
@@ -360,7 +340,7 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 				"Readings":    readings,
 				"Subprobe":    s,
 				"MonitorName": s.MonitorName,
-				"Breadcrumbs": subprobeViewBcs(s),
+				"Breadcrumbs": vm.SubprobeViewBcs(s),
 			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),

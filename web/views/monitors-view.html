@@ -1,29 +1,33 @@
-<h1 class="monitor-header">
-  <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>
-  <span class="monitor-version">v{{.Version}}</span>
-</h1>
-<div class="monitor-subheading">
-  <h5>{{.Owner}}</h5>
-  <h5>{{.Changed}}</h5>
-  {{if .Archived}}
-  <h5>Archived: {{.Archived}}</h5>
+{{template "_header.html" .}}
+{{with .Data}}
+  <h1 class="monitor-header">
+    <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>
+    <span class="monitor-version">v{{.Version}}</span>
+  </h1>
+  <div class="monitor-subheading">
+    <h5>{{.Owner}}</h5>
+    <h5>{{.Changed}}</h5>
+    {{if .Archived}}
+    <h5>Archived: {{.Archived}}</h5>
+    {{end}}
+  </div>
+  <h4>Description:</h4>
+  <p>{{.Description}}</p>
+  <h4>Alert Response:</h4>
+  <p>{{.Response}}</p>
+  {{if not .Probe}}
+    <h4>Probe:</h4>
+    <p><a href="{{.Id}}/edit">Not yet configured</a></p>
+  {{else}}
+    <h4>Probe ({{.Probe.ProbeType.Name}}):</h4>
+    <p>{{.Probe}}</p>
   {{end}}
-</div>
-<h4>Description:</h4>
-<p>{{.Description}}</p>
-<h4>Alert Response:</h4>
-<p>{{.Response}}</p>
-{{if not .Probe}}
-  <h4>Probe:</h4>
-  <p><a href="{{.Id}}/edit">Not yet configured</a></p>
-{{else}}
-  <h4>Probe ({{.Probe.ProbeType.Name}}):</h4>
-  <p>{{.Probe}}</p>
+  <h3><a href="{{.Id}}/subprobes">subprobes</a></h3>
+  
+  <h2>Triggers</h2>
+  <div class="revere-row"><div class="col-md-3">Subprobe</div><div class="col-md-1">Trigger On Exit</div><div class="col-md-1">Period</div><div class="col-md-3">Target Type</a></div><div class="col-md-4">Target</div></div>
+  {{range .Triggers}}
+    <div class="revere-row"><div class="col-md-3">{{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</div><div class="col-md-1">{{.TriggerOnExit}}</div><div class="col-md-1">{{.Period}} {{.PeriodType}}</div><div class="col-md-3">{{.TargetType}}</a></div><div class="col-md-4">{{.Target}}</div></div>
+  {{end}}
 {{end}}
-<h3><a href="{{.Id}}/subprobes">subprobes</a></h3>
-
-<h2>Triggers</h2>
-<div class="revere-row"><div class="col-md-3">Subprobe</div><div class="col-md-1">Trigger On Exit</div><div class="col-md-1">Period</div><div class="col-md-3">Target Type</a></div><div class="col-md-4">Target</div></div>
-{{range .Triggers}}
-  <div class="revere-row"><div class="col-md-3">{{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</div><div class="col-md-1">{{.TriggerOnExit}}</div><div class="col-md-1">{{.Period}} {{.PeriodType}}</div><div class="col-md-3">{{.TargetType}}</a></div><div class="col-md-4">{{.Target}}</div></div>
-{{end}}
+{{template "_footer.html" .}}

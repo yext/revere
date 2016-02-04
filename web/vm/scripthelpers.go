@@ -36,6 +36,10 @@ func getScripts(dir string, servingPath string) (scripts []string, err error) {
 	return scripts, nil
 }
 
+func GetScript(filepath string) string {
+	return path.Join(baseServingPath, filepath)
+}
+
 func ProbeScripts() (scripts []string, err error) {
 	return getScripts(probesDir, probesServingPath)
 }
