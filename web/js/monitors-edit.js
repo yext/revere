@@ -1,3 +1,7 @@
+$(document).ready(function() {
+  monitorsEdit.init();
+});
+
 var targets = function() {
   var t = {};
   var fns = {};

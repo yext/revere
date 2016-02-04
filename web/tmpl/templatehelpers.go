@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"path"
 	"os"
 	"strings"
 )
@@ -18,6 +19,10 @@ var (
 	functions map[string]interface{} = make(map[string]interface{})
 )
 
+const (
+	templatesDir string = "web/views/"
+)
+
 func (t Template) Name() string {
 	return t.htmlTemplate.Name()
 }
@@ -28,6 +33,10 @@ func (t Template) Execute(w io.Writer, data interface{}) error {
 
 func (t Template) GetTmpl() *template.Template {
 	return t.htmlTemplate
+}
+
+func (t Template) AddFunc(name string, function interface{}) {
+	t.htmlTemplate.Funcs(map[string]interface{}{name: function})
 }
 
 func AddDefaultFunc(name string, function interface{}) {
@@ -63,8 +72,16 @@ func InitTemplates(dir string, funcs template.FuncMap) (templates map[string]*te
 	return
 }
 
-func NewTemplate(dir string, name string) *Template {
-	t := template.Must(template.New(name).Funcs(functions).ParseFiles(dir + name))
+func NewTemplateDir(dir string, name string) *Template {
+	return newTemplate(path.Join(templatesDir, dir, name))
+}
+
+func NewTemplate(name string) *Template {
+	return newTemplate(path.Join(templatesDir, name))
+}
+
+func newTemplate(filepath string) *Template {
+	t := template.Must(template.New(path.Base(filepath)).Funcs(functions).ParseFiles(filepath))
 	t = template.Must(t.ParseGlob(partials))
 
 	return &Template{t}

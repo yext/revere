@@ -26,9 +26,16 @@ type Monitor struct {
 }
 
 var (
-	view string = "monitors-view.html"
-	edit string = "monitors-edit.html"
-	dir  string = "web/views/"
+	templateView string = "monitors-view.html"
+	templateEdit string = "monitors-edit.html"
+
+	scriptsView []string = []string{}
+	scriptsEdit []string = []string{
+		"revere.js",
+		"monitors-edit.js",
+		"probes/graphite-preview.js",
+		"targets/email.js",
+	}
 )
 
 func NewMonitor(m *revere.Monitor) (*Monitor, error) {
@@ -83,20 +90,22 @@ func BlankMonitor() (*Monitor, error) {
 	return vm, nil
 }
 
-func (vm *Monitor) render(tmplFile string) (template.HTML, error) {
-	t := tmpl.NewTemplate(dir, tmplFile)
+func (vm *Monitor) render(templateFile string, scriptFiles []string) (content template.HTML, scripts template.HTML, err error) {
+	t := tmpl.NewTemplate(templateFile)
 	b := bytes.Buffer{}
-	err := t.Execute(&b, vm)
+	err = t.Execute(&b, vm)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return template.HTML(b.String()), nil
+	content = template.HTML(b.String())
+	scripts = newScripts(scriptFiles)
+	return content, scripts, nil
 }
 
-func (vm *Monitor) RenderView() (template.HTML, error) {
-	return vm.render(view)
+func (vm *Monitor) RenderView() (content template.HTML, scripts template.HTML, err error) {
+	return vm.render(templateView, scriptsView)
 }
 
-func (vm *Monitor) RenderEdit() (template.HTML, error) {
-	return vm.render(edit)
+func (vm *Monitor) RenderEdit() (content template.HTML, scripts template.HTML, err error) {
+	return vm.render(templateEdit, scriptsEdit)
 }

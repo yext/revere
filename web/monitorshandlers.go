@@ -53,7 +53,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		mvm, err := viewmodel.RenderView()
+		mvm, scripts, err := viewmodel.RenderView()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -64,6 +64,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			map[string]interface{}{
 				"Title":       "Monitors",
 				"Content":     mvm,
+				"MoreScripts": scripts,
 				"Breadcrumbs": monitorViewBcs(viewmodel.Name, viewmodel.Id),
 			})
 		if err != nil {
@@ -93,7 +94,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		mvm, err := viewmodel.RenderEdit()
+		mvm, scripts, err := viewmodel.RenderEdit()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -101,6 +102,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		data["Content"] = mvm
+		data["MoreScripts"] = scripts
 		err = render(w, data)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load edit monitor page: %s", err.Error()),

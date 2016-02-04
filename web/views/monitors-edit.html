@@ -61,18 +61,3 @@
     <input type="submit" class="btn-lg btn-success" value="Save">
   </div>
 </form>
-{{define "MoreScripts"}}
-  <script type="text/javascript" src="/static/js/revere.js"></script>
-  <script type="text/javascript" src="/static/js/monitors-edit.js"></script>
-  <script type="text/javascript">
-    $(document).ready(function() {
-      monitorsEdit.init();
-    });
-  </script>
-  {{range probeScripts}}
-    <script type="text/javascript" src="{{.}}"></script>
-  {{end}}
-  {{range targetScripts}}
-    <script type="text/javascript" src="{{.}}"></script>
-  {{end}}
-{{end}}

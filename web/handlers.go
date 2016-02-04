@@ -15,6 +15,7 @@ import (
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/tmpl"
+	"github.com/yext/revere/web/vm"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -32,19 +33,19 @@ func init() {
 	tmpl.AddDefaultFunc("isLastBc", isLastBc)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
-	tmpl.AddDefaultFunc("targetScripts", targetScripts)
+	tmpl.AddDefaultFunc("targetScripts", vm.TargetScripts)
 	tmpl.AddDefaultFunc("probes", probes.AllProbes)
-	tmpl.AddDefaultFunc("probeScripts", probeScripts)
+	tmpl.AddDefaultFunc("probeScripts", vm.ProbeScripts)
 	tmpl.SetPartialsLocation(partials)
 
 	functions["isLastBc"] = isLastBc
 	functions["strEq"] = tmpl.StrEq
 	functions["targets"] = targets.AllTargets
-	functions["targetScripts"] = targetScripts
+	functions["targetScripts"] = vm.TargetScripts
 	functions["probes"] = probes.AllProbes
-	functions["probeScripts"] = probeScripts
+	functions["probeScripts"] = vm.ProbeScripts
 
-	baseTemplate = tmpl.NewTemplate(baseDir, baseName)
+	baseTemplate = tmpl.NewTemplate(baseName)
 }
 
 func LoadTemplates() {
