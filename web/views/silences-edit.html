@@ -62,9 +62,9 @@
 <script type="text/javascript">
   $(document).ready(function() {
     {{if .Silence}}
-      silenceDtp.init({{.TimeFormat}}, {{.Silence.Id}});
+      silenceDtp.init({{.Silence.Id}});
     {{else}}
-      silenceDtp.init({{.TimeFormat}}, 'new');
+      silenceDtp.init('new');
     {{end}}
   });
 </script>

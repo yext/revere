@@ -5,8 +5,8 @@ var silenceDtp = function() {
     sideBySide: true
   };
 
-  sdtp.init = function(format, id) {
-    defaultDtpSettings['format'] = format
+  sdtp.init = function(id) {
+    defaultDtpSettings['format'] = revere.dateTimeFormat;
     initDtps();
     initForm(id);
   };

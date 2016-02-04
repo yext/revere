@@ -10,18 +10,16 @@ var graphitePreview = function() {
     initEventHandlers();
   };
 
-  var dateTimeFormat = 'YYYY-MM-DD HH:mm';
-
   var initDtps = function() {
     var $fromDtp = $('#js-datetimepicker-from'),
       $untilDtp = $('#js-datetimepicker-until');
 
     $fromDtp.datetimepicker({
-      format: dateTimeFormat,
+      format: revere.dateTimeFormat,
       defaultDate: moment().subtract(1, 'days')
     });
     $untilDtp.datetimepicker({
-      format: dateTimeFormat,
+      format: revere.dateTimeFormat,
       useCurrent: false,
       defaultDate: moment()
     });

@@ -1,3 +1,11 @@
+var revere = function() {
+  r = {};
+  r.dateTimeFormat = function() {
+    return 'YYYY-MM-DD HH:mm';
+  };
+  return r;
+}();
+
 $.fn.serializeObject = function() {
   var o = {};
   var a = this.serializeArray();

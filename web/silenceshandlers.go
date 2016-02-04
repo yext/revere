@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/yext/revere"
-	"github.com/yext/revere/util"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -166,8 +165,7 @@ func getSilenceId(idStr string) (uint, error) {
 
 func silenceDataWith(d map[string]interface{}) map[string]interface{} {
 	data := map[string]interface{}{
-		"Title":      "silences",
-		"TimeFormat": util.JsFormat,
+		"Title": "silences",
 	}
 	for k, v := range d {
 		data[k] = v
