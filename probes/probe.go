@@ -21,13 +21,11 @@ type Probe interface {
 	Render() (template.HTML, error)
 }
 
-const probeTemplateDir = "web/views/probes/"
-
 var (
 	probeTypes map[ProbeTypeId]ProbeType = make(map[ProbeTypeId]ProbeType)
 
-	// All probe templates
-	probeTemplates map[string]*template.Template
+	probeTemplateDir = "web/views/probes/"
+	probeTemplates   map[string]*template.Template
 
 	defaultProbe Probe = GraphiteThresholdProbe{}
 )

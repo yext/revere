@@ -1,10 +1,10 @@
-package test
+package revere_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/yext/revere"
+	. "github.com/yext/revere"
 )
 
 var startTime = time.Date(2015, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -23,7 +23,7 @@ var testDurations = map[time.Duration]string{
 
 func TestDurationStrings(t *testing.T) {
 	for d, e := range testDurations {
-		a := revere.GetFmtEnteredState(startTime, startTime.Add(d))
+		a := GetFmtEnteredState(startTime, startTime.Add(d))
 		if e != a {
 			t.Errorf("Duration: %v Expected: %s, Actual: %s", d, e, a)
 		}
