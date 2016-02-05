@@ -6,7 +6,7 @@ var silenceDtp = function() {
   };
 
   sdtp.init = function(id) {
-    defaultDtpSettings['format'] = revere.dateTimeFormat;
+    defaultDtpSettings['format'] = revere.dateTimeFormat();
     initDtps();
     initForm(id);
   };
