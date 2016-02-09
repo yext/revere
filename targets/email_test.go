@@ -6,17 +6,14 @@ import (
 	"testing"
 
 	. "github.com/yext/revere/targets"
+	"github.com/yext/revere/test"
 )
 
 var (
 	emailTargetType = Email{}
 	emailId         = 0
 	emailName       = "Email"
-	validEmailJson  = `{
-		"emails": [
-			{"emailTo":"test@ex.com", "replyTo":"test2@ex.com"}
-		]
-	}`
+	validEmailJson  = test.DefaultTargetJson
 
 	invalidEmailAddresses = []string{"", "test", "test.com", "test@ex", "@ex", "@ex.com"}
 	validEmailAddresses   = []string{"test@ex.com", "a@a.a", "a+a@a.a"}

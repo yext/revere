@@ -7,32 +7,14 @@ import (
 	"testing"
 
 	. "github.com/yext/revere/probes"
+	"github.com/yext/revere/test"
 )
 
 var (
 	gtId        = 0
 	gtName      = "Graphite Threshold"
 	gtProbeType = GraphiteThreshold{}
-	validGtJson = `{
-		"url": "foo.bar",
-		"expression": "test",
-		"warningThreshold": 1000,
-		"errorThreshold": 1200,
-		"criticalThreshold": 1500,
-		"auditFunction": "max",
-		"checkPeriod": 5,
-		"checkPeriodType": "hour",
-		"triggerIf": ">",
-		"auditPeriod": 10,
-		"auditPeriodType": "minute"
-	}`
-
-	periodTypes = []string{
-		"second",
-		"minute",
-		"hour",
-		"day",
-	}
+	validGtJson = test.DefaultProbeJson
 )
 
 func TestMain(m *testing.M) {
@@ -142,7 +124,7 @@ func TestValidGraphiteThresholdPeriodType(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	for _, pt := range periodTypes {
+	for _, pt := range test.PeriodTypes {
 		gtProbe.CheckPeriodType = pt
 		errs := gtProbe.Validate()
 		if errs != nil {
@@ -168,7 +150,7 @@ func TestInvalidGraphiteThresholdPeriodType(t *testing.T) {
 	if errs == nil {
 		t.Error("Expected error for invalid check period type")
 	}
-	gtProbe.CheckPeriodType = periodTypes[0]
+	gtProbe.CheckPeriodType = test.PeriodTypes[0]
 
 	gtProbe.AuditPeriodType = ""
 	errs = gtProbe.Validate()
