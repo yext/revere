@@ -31,7 +31,6 @@ var (
 )
 
 func init() {
-	// Fetch all probe templates
 	probeTemplates = tmpl.InitTemplates(probeTemplateDir, template.FuncMap{"strEq": tmpl.StrEq})
 }
 

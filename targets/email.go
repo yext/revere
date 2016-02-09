@@ -42,10 +42,10 @@ func (e Email) Load(target string) (Target, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &et, nil
+	return et, nil
 }
 
-func (et *EmailTarget) Validate() (errs []string) {
+func (et EmailTarget) Validate() (errs []string) {
 	for _, e := range et.EmailAddresses {
 		if !emailRegex.MatchString(e.EmailTo) {
 			errs = append(errs, "An invalid email to was provided.")
@@ -61,7 +61,7 @@ func (et *EmailTarget) Validate() (errs []string) {
 	return
 }
 
-func (et *EmailTarget) Render() (template.HTML, error) {
+func (et EmailTarget) Render() (template.HTML, error) {
 	if t, ok := targetTemplates[emailTargetTemplate]; !ok {
 		return template.HTML(""), fmt.Errorf("Unable to find email target template: %s", emailTargetTemplate)
 	} else {

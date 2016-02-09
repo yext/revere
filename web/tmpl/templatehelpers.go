@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -38,6 +39,16 @@ func SetPartialsLocation(location string) {
 }
 
 func InitTemplates(dir string, funcs template.FuncMap) (templates map[string]*template.Template) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Sprintf("Cannot get the rooted path name of the current directory"))
+	}
+
+	// When running packages for testing
+	if !strings.HasSuffix(pwd, "revere") {
+		dir = fmt.Sprintf("../%s", dir)
+	}
+
 	templates = make(map[string]*template.Template)
 	templateInfo, err := ioutil.ReadDir(dir)
 	if err != nil {
