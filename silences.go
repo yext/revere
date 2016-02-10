@@ -104,15 +104,14 @@ func (s *Silence) create(db *sql.DB) (uint, error) {
 	return uint(id), err
 }
 
-func (s *Silence) Validate(db *sql.DB) (errs []string, err error) {
-	oldS, err := LoadSilence(db, s.Id)
+func (s *Silence) ValidateAgainstOld(oldS *Silence) (errs []string) {
 	if oldS == nil {
 		oldS = new(Silence)
 	}
 
 	now := time.Now()
 	if !oldS.IsNew() && oldS.IsPast(now) {
-		return []string{"Silences from the past cannot be edited."}, nil
+		return []string{"Silences from the past cannot be edited."}
 	}
 
 	if oldS.IsNew() {
@@ -134,7 +133,7 @@ func (s *Silence) Validate(db *sql.DB) (errs []string, err error) {
 		errs = append(errs, "Start cannot be set for currently running silences.")
 	}
 
-	return errs, nil
+	return errs
 }
 
 func (newS *Silence) validateNewParams(now time.Time) (errs []string) {

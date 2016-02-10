@@ -134,11 +134,13 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 		s.Id = id
 
-		errs, err := s.Validate(db)
+		oldS, err := revere.LoadSilence(db, s.Id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
+
+		errs := s.ValidateAgainstOld(oldS)
 		if len(errs) > 0 {
 			writeJsonResponse(w, "save silence", map[string]interface{}{"errors": errs})
 			return
@@ -165,7 +167,7 @@ func getSilenceId(idStr string) (uint, error) {
 
 func silenceDataWith(d map[string]interface{}) map[string]interface{} {
 	data := map[string]interface{}{
-		"Title":      "Silences",
+		"Title": "Silences",
 	}
 	for k, v := range d {
 		data[k] = v
