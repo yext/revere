@@ -69,3 +69,26 @@ CREATE TABLE silences (
   end DATETIME NOT NULL,
   FOREIGN KEY (`monitor_id`) REFERENCES monitors(id)
 ) ENGINE = InnoDB;
+
+CREATE TABLE labels (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(30) NOT NULL,
+  description TEXT NOT NULL DEFAULT ''
+) ENGINE = InnoDB;
+
+CREATE TABLE labels_monitors (
+  label_id INTEGER NOT NULL,
+  monitor_id INTEGER NOT NULL,
+  subprobes TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY (`monitor_id`, `label_id`),
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id),
+  FOREIGN KEY (`label_id`) REFERENCES labels(id)
+) ENGINE = InnoDB;
+
+CREATE TABLE label_triggers (
+  label_id INTEGER NOT NULL,
+  trigger_id INTEGER NOT NULL,
+  PRIMARY KEY (`trigger_id`, `label_id`),
+  FOREIGN KEY (`trigger_id`) REFERENCES triggers(id),
+  FOREIGN KEY (`label_id`) REFERENCES labels(id)
+) ENGINE = InnoDB;
