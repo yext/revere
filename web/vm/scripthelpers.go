@@ -15,9 +15,6 @@ const (
 	baseDir         = "web/js"
 	baseServingPath = "static/js"
 
-	probesDir         = "web/js/probes"
-	probesServingPath = "static/js/probes"
-
 	targetsDir         = "web/js/targets"
 	targetsServingPath = "static/js/targets"
 )
@@ -40,10 +37,6 @@ func GetScript(filepath string) string {
 	return path.Join(baseServingPath, filepath)
 }
 
-func ProbeScripts() (scripts []string, err error) {
-	return getScripts(probesDir, probesServingPath)
-}
-
 func TargetScripts() (scripts []string, err error) {
 	return getScripts(targetsDir, targetsServingPath)
 }
@@ -60,6 +53,13 @@ func addScripts(addl []string, current template.HTML) template.HTML {
 	}
 	buffer.WriteString(string(current))
 	return template.HTML(buffer.String())
+}
+
+func appendDir(dir string, scripts []string) []string {
+	for i, script := range scripts {
+		scripts[i] = path.Join(dir, script)
+	}
+	return scripts
 }
 
 func newScript(script string) template.HTML {

@@ -9,8 +9,8 @@ func NewMonitorView(m *Monitor) *MonitorView {
 	mv := MonitorView{}
 	mv.viewmodel = m
 	mv.subs = map[string]Renderable{
-	//"Probe":    NewProbeView(m.Probe),
-	//"Triggers": NewTriggersView(m.Triggers),
+		"Probe": NewProbeView(m.Probe),
+		//"Triggers": NewTriggersView(m.Triggers),
 	}
 	return &mv
 }
@@ -33,4 +33,8 @@ func (mv *MonitorView) Breadcrumbs() []Breadcrumb {
 
 func (mv *MonitorView) SubRenderables() map[string]Renderable {
 	return mv.subs
+}
+
+func (mv *MonitorView) RenderNow() bool {
+	return false
 }

@@ -104,3 +104,7 @@
 .sentence-label, .control-label.sentence-label {
 	text-align: left;
 }
+
+.probe-label {
+	font-weight: bold;
+}

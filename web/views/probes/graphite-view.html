@@ -1,0 +1,53 @@
+{{with .Data}}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-2 probe-label">Graphite Expression</div>
+      <div class="col-sm-10">{{.Expression}}</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 probe-label">Graphite Url</div>
+      <div class="col-sm-10">{{.Url}}</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 probe-label">Check Every</div>
+      <div class="col-sm-10">{{.CheckPeriod}} {{.CheckPeriodType}}(s)</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 probe-label">Calculates</div>
+      <div class="col-sm-10">{{.AuditFunction}}</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 probe-label">Over Past</div>
+      <div class="col-sm-10">{{.AuditPeriod}} {{.AuditPeriodType}}</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 probe-label">Triggers if</div>
+      <div class="col-sm-10">Graphite Values {{.TriggerIf}} Thresholds</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 probe-label">Thresholds</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="row">
+          <div class="col-sm-2">
+            <div class="col-sm-11 col-offset-1 probe-label">Warning</div>
+          </div>
+          <div class="col-sm-10">{{.Warning}}</div>
+        </div>
+        <div class="row">
+          <div class="col-sm-2">
+            <div class="col-sm-11 col-offset-1 probe-label">Error</div>
+          </div>
+          <div class="col-sm-10">{{.Error}}</div>
+        </div>
+        <div class="row">
+          <div class="col-sm-2">
+            <div class="col-sm-11 col-offset-1 probe-label">Critical</div>
+          </div>
+          <div class="col-sm-10">{{.Critical}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{{end}}

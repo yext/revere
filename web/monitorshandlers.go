@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 
 	"github.com/yext/revere"
-	"github.com/yext/revere/probes"
 	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/vm"
 
@@ -169,27 +169,23 @@ func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Pa
 	}
 
 	// Render empty probe template
-	probeType, err := probes.ProbeTypeById(probes.ProbeTypeId(pt))
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Probe type not found: %d", pt), http.StatusNotFound)
-		return
-	}
-
-	probe, err := probeType.Load(`{}`)
+	probe, err := vm.BlankProbe(pt)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 			http.StatusInternalServerError)
 		return
 	}
 
-	tmpl, err := probe.Render()
+	pe := vm.NewProbeEdit(probe)
+
+	tmpl, err := renderPartial(pe)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 			http.StatusInternalServerError)
 		return
 	}
 
-	template, err := json.Marshal(map[string]interface{}{"template": tmpl})
+	template, err := json.Marshal(map[string]template.HTML{"template": tmpl})
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 			http.StatusInternalServerError)

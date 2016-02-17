@@ -3,10 +3,12 @@ package web
 // TODO(dp): rename this file once we finish migration
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -34,7 +36,6 @@ func init() {
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("targetScripts", vm.TargetScripts)
 	tmpl.AddDefaultFunc("probes", probes.AllProbes)
-	tmpl.AddDefaultFunc("probeScripts", vm.ProbeScripts)
 	tmpl.SetPartialsLocation(partials)
 
 	functions["isLastBc"] = vm.IsLastBc
@@ -42,7 +43,6 @@ func init() {
 	functions["targets"] = targets.AllTargets
 	functions["targetScripts"] = vm.TargetScripts
 	functions["probes"] = probes.AllProbes
-	functions["probeScripts"] = vm.ProbeScripts
 }
 
 func LoadTemplates() {
@@ -100,11 +100,14 @@ func writeJsonResponse(w http.ResponseWriter, action string, data map[string]int
 	w.Write(response)
 }
 
-func render(w http.ResponseWriter, r vm.Renderable, title string) error {
-	result := renderPropogate(r)
+func render(w io.Writer, r vm.Renderable, title string) error {
+	result, err := renderPropogate(r)
+	if err != nil {
+		return err
+	}
 
 	if len(result.Templates) == 0 {
-		panic("Got error rendering views - no templates found")
+		return fmt.Errorf("Got error rendering views - no templates found")
 	}
 
 	for i, script := range result.Scripts {
@@ -125,14 +128,38 @@ func render(w http.ResponseWriter, r vm.Renderable, title string) error {
 	return t.Execute(w, data)
 }
 
-func renderPropogate(r vm.Renderable) *vm.RenderResult {
+func renderPropogate(r vm.Renderable) (*vm.RenderResult, error) {
 	result := vm.NewRenderResult(r)
 
 	for name, subrenderable := range r.SubRenderables() {
-		result.AddSubRender(name, renderPropogate(subrenderable))
+		renderResult, err := renderPropogate(subrenderable)
+		if err != nil {
+			return nil, err
+		}
+
+		result.AddSubRender(name, renderResult)
+
+		if subrenderable.RenderNow() {
+			renderedHtml, err := renderPartial(subrenderable)
+			if err != nil {
+				return nil, err
+			}
+
+			result.AddRendered(name, renderedHtml)
+		}
 	}
 
-	return result
+	return result, nil
+}
+
+func renderPartial(r vm.Renderable) (template.HTML, error) {
+	b := bytes.Buffer{}
+	err := render(&b, r, "")
+	if err != nil {
+		return "", err
+	}
+
+	return template.HTML(b.String()), nil
 }
 
 func oldrender(w http.ResponseWriter, data map[string]interface{}) error {

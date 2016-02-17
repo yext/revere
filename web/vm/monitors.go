@@ -15,7 +15,7 @@ type Monitor struct {
 	Owner         string
 	Description   string
 	Response      string
-	Probe         probes.Probe
+	Probe         *Probe
 	ProbeTemplate template.HTML
 	Changed       time.Time
 	Version       int
@@ -55,10 +55,11 @@ func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 		return nil, err
 	}
 
-	viewmodel.Probe, err = probeType.Load(m.ProbeJson)
+	probe, err := probeType.Load(m.ProbeJson)
 	if err != nil {
 		return nil, err
 	}
+	viewmodel.Probe = NewProbe(probe)
 
 	return viewmodel, nil
 }
@@ -72,13 +73,11 @@ func BlankMonitor() (*Monitor, error) {
 		},
 	}
 
-	var err error
-	viewmodel.ProbeTemplate, err = probes.DefaultProbeTemplate()
-	if err != nil {
-		return nil, err
-	}
-
-	viewmodel.Probe = probes.DefaultProbe()
+	viewmodel.Probe = DefaultProbe()
 
 	return viewmodel, nil
+}
+
+func (m *Monitor) GetProbeType() probes.ProbeType {
+	return m.Probe.ProbeType()
 }

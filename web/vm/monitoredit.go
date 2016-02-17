@@ -6,24 +6,24 @@ type MonitorEdit struct {
 }
 
 func NewMonitorEdit(m *Monitor) *MonitorEdit {
-	mv := MonitorEdit{}
-	mv.viewmodel = m
-	mv.subs = map[string]Renderable{
-	//"Probe":    m.NewProbeEdit(m.Probe),
-	//"Triggers": m.TriggersEdit(m.Triggers),
+	me := MonitorEdit{}
+	me.viewmodel = m
+	me.subs = map[string]Renderable{
+		"Probe": NewProbeEdit(m.Probe),
+		//"Triggers": m.TriggersEdit(m.Triggers),
 	}
-	return &mv
+	return &me
 }
 
-func (mv *MonitorEdit) Template() string {
+func (me *MonitorEdit) Template() string {
 	return "monitors-edit.html"
 }
 
-func (mv *MonitorEdit) Data() interface{} {
-	return mv.viewmodel
+func (me *MonitorEdit) Data() interface{} {
+	return me.viewmodel
 }
 
-func (mv *MonitorEdit) Scripts() []string {
+func (me *MonitorEdit) Scripts() []string {
 	return []string{
 		"revere.js",
 		"monitors-edit.js",
@@ -32,10 +32,14 @@ func (mv *MonitorEdit) Scripts() []string {
 	}
 }
 
-func (mv *MonitorEdit) Breadcrumbs() []Breadcrumb {
+func (me *MonitorEdit) Breadcrumbs() []Breadcrumb {
 	return []Breadcrumb{}
 }
 
-func (mv *MonitorEdit) SubRenderables() map[string]Renderable {
-	return mv.subs
+func (me *MonitorEdit) SubRenderables() map[string]Renderable {
+	return me.subs
+}
+
+func (me *MonitorEdit) RenderNow() bool {
+	return false
 }

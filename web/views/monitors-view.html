@@ -15,12 +15,11 @@
   <p>{{.Description}}</p>
   <h4>Alert Response:</h4>
   <p>{{.Response}}</p>
-  {{if not .Probe}}
+  {{with $.Probe}}
+    <p>{{.}}</p>
+  {{else}}
     <h4>Probe:</h4>
     <p><a href="{{.Id}}/edit">Not yet configured</a></p>
-  {{else}}
-    <h4>Probe ({{.Probe.ProbeType.Name}}):</h4>
-    <p>{{.Probe}}</p>
   {{end}}
   <h3><a href="{{.Id}}/subprobes">subprobes</a></h3>
   

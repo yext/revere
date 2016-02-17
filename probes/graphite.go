@@ -1,10 +1,7 @@
 package probes
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"html/template"
 
 	"github.com/yext/revere/util"
 )
@@ -30,10 +27,21 @@ type Threshold struct {
 	Critical int64 `json:"criticalThreshold"`
 }
 
-const graphiteProbeTemplate = "graphite-probe.html"
+var (
+	templates = map[string]string{
+		"edit": "graphite-edit.html",
+		"view": "graphite-view.html",
+	}
+	scripts = map[string][]string{
+		"edit": []string{
+			"probes/graphite-preview.js",
+		},
+		"view": []string{},
+	}
 
-// All graphite datasources found in the conf file
-var GraphiteUrls []string
+	// All graphite datasources found in the conf file
+	GraphiteUrls []string
+)
 
 func init() {
 	addProbeType(GraphiteThreshold{})
@@ -61,6 +69,14 @@ func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
 	return g, nil
 }
 
+func (gt GraphiteThreshold) Templates() map[string]string {
+	return templates
+}
+
+func (gt GraphiteThreshold) Scripts() map[string][]string {
+	return scripts
+}
+
 func (g GraphiteThresholdProbe) ProbeType() ProbeType {
 	return GraphiteThreshold{}
 }
@@ -82,17 +98,4 @@ func (g GraphiteThresholdProbe) Validate() (errs []string) {
 	}
 
 	return
-}
-
-func (g GraphiteThresholdProbe) Render() (template.HTML, error) {
-	if t, ok := probeTemplates[graphiteProbeTemplate]; !ok {
-		return template.HTML(""), fmt.Errorf("Unable to find graphite probe template: %s", graphiteProbeTemplate)
-	} else {
-		b := bytes.Buffer{}
-		err := t.Execute(&b, g)
-		if err != nil {
-			return "", err
-		}
-		return template.HTML(b.String()), nil
-	}
 }
