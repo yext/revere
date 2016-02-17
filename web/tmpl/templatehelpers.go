@@ -5,8 +5,8 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
-	"path"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -64,7 +64,7 @@ func InitTemplates(dir string, funcs template.FuncMap) (templates map[string]*te
 	}
 
 	// When running packages for testing
-	if !strings.HasSuffix(pwd, "revere") {
+	if _, err = ioutil.ReadDir(path.Join(pwd, "web")); err != nil {
 		dir = fmt.Sprintf("../%s", dir)
 	}
 
