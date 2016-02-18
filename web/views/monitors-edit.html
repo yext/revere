@@ -54,8 +54,6 @@
     <div id="triggers">
       {{range .Triggers}}
         {{template "_triggers.html" .}}
-      {{else}}
-        {{template "_triggers.html"}}
       {{end}}
       <div class="form-group">
         <button id="js-add-trigger" class="btn btn-default">+ Add</button>

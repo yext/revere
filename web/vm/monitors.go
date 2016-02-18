@@ -10,14 +10,14 @@ import (
 type Monitor struct {
 	*revere.Monitor
 	Probe    *Probe
-	Triggers []*revere.Trigger
+	Triggers []*revere.MonitorTrigger
 }
 
 func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	viewmodel := new(Monitor)
 
-	viewmodel.Triggers = m.Triggers
 	viewmodel.Monitor = m
+	viewmodel.Triggers = m.Triggers
 
 	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
@@ -38,9 +38,11 @@ func BlankMonitor() (*Monitor, error) {
 
 	viewmodel.Monitor = new(revere.Monitor)
 
-	viewmodel.Triggers = []*revere.Trigger{
-		&revere.Trigger{
-			TargetTemplate: template.HTML("PLACEHOLDER DELETE"), //TODO(fchen): code cleanup[targets.DefaultTargetTemplate()]
+	viewmodel.Triggers = []*revere.MonitorTrigger{
+		&revere.MonitorTrigger{
+			Trigger: revere.Trigger{
+				TargetTemplate: template.HTML("PLACEHOLDER DELETE"), //TODO(fchen): code cleanup[targets.DefaultTargetTemplate()]
+			},
 		},
 	}
 

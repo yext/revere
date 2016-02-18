@@ -3,6 +3,7 @@ package revere
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/yext/revere/probes"
@@ -19,10 +20,19 @@ type Monitor struct {
 	Changed     time.Time          `json:"-"`
 	Version     int                `json:"-"`
 	Archived    *time.Time         `json:"-"` // nullable
-	Triggers    []*Trigger         `json:"triggers"`
+	Triggers    []*MonitorTrigger  `json:"triggers,omitempty"`
 }
 
-const allMonitorFields = "id, name, owner, description, response, probeType, probe, changed, version, archived"
+type MonitorTrigger struct {
+	Trigger
+	Subprobes string `json:"subprobes"`
+	Delete    bool   `json:"delete,omitempty"`
+}
+
+const (
+	allMonitorFields        = "id, name, owner, description, response, probeType, probe, changed, version, archived"
+	allMonitorTriggerFields = "monitor_id, subprobe, trigger_id"
+)
 
 func (m *Monitor) Validate() (errs []string) {
 	if m.Name == "" {
@@ -39,8 +49,8 @@ func (m *Monitor) Validate() (errs []string) {
 	}
 	errs = append(errs, probe.Validate()...)
 
-	for _, t := range m.Triggers {
-		errs = append(errs, t.Validate()...)
+	for _, mt := range m.Triggers {
+		errs = append(errs, mt.Validate()...)
 	}
 	return
 }
@@ -81,7 +91,7 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 	}
 
 	// Load Triggers
-	m.Triggers, err = LoadTriggers(db, id)
+	m.Triggers, err = LoadMonitorTriggers(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +108,7 @@ func loadMonitorFromRow(rows *sql.Rows) (*Monitor, error) {
 	return &m, nil
 }
 
-func (m *Monitor) SaveMonitor(db *sql.DB) (err error) {
+func (m *Monitor) Save(db *sql.DB) (err error) {
 	var tx *sql.Tx
 	tx, err = db.Begin()
 	if err != nil {
@@ -113,27 +123,33 @@ func (m *Monitor) SaveMonitor(db *sql.DB) (err error) {
 	}()
 
 	// Create/Update Monitor
-	// TODO: change to int64
 	if m.Id == 0 {
-		m.Id, err = m.createMonitor(tx)
+		m.Id, err = m.create(tx)
 	} else {
-		err = m.updateMonitor(tx)
+		err = m.update(tx)
 	}
 	if err != nil {
 		return
 	}
 
-	// Create/Update Triggers
+	// Create/Update/Delete Monitor Triggers
 	for _, t := range m.Triggers {
-		err = t.saveTrigger(tx, m)
-		if err != nil {
-			return
+		if t.Delete {
+			err = t.delete(tx)
+			if err != nil {
+				return
+			}
+		} else {
+			err = t.save(tx, m.Id)
+			if err != nil {
+				return
+			}
 		}
 	}
 	return
 }
 
-func (m *Monitor) createMonitor(tx *sql.Tx) (uint, error) {
+func (m *Monitor) create(tx *sql.Tx) (uint, error) {
 	stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO monitors(%s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", allMonitorFields))
 	if err != nil {
 		return 0, err
@@ -152,7 +168,7 @@ func (m *Monitor) createMonitor(tx *sql.Tx) (uint, error) {
 	return uint(id), err
 }
 
-func (m *Monitor) updateMonitor(tx *sql.Tx) error {
+func (m *Monitor) update(tx *sql.Tx) error {
 	stmt, err := tx.Prepare(`UPDATE monitors
 		SET name=?, owner=?, description=?, response=?, probeType=?, probe=?, changed=?, version=version+1, archived=?
 		WHERE id=?`)
@@ -170,4 +186,66 @@ func (m *Monitor) updateMonitor(tx *sql.Tx) error {
 		return err
 	}
 	return nil
+}
+
+func (mt *MonitorTrigger) Validate() (errs []string) {
+	// Ensure subprobe is a valid regex
+	if _, err := regexp.Compile(mt.Subprobes); err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid subprobes: %s", err.Error()))
+	}
+
+	errs = append(errs, mt.Trigger.Validate()...)
+	return
+}
+
+func (mt *MonitorTrigger) save(tx *sql.Tx, mId uint) (err error) {
+	var newTriggerId uint
+	newTriggerId, err = mt.Trigger.save(tx)
+	if err != nil {
+		return
+	}
+
+	if mt.Id == 0 {
+		mt.Id = newTriggerId
+		err = mt.create(tx, mId)
+	} else {
+		err = mt.update(tx, mId)
+	}
+	return
+}
+
+func (mt *MonitorTrigger) create(tx *sql.Tx, mId uint) error {
+	stmt, err := tx.Prepare(
+		fmt.Sprintf("INSERT INTO monitor_triggers(%s) VALUES (?, ?, ?)", allMonitorTriggerFields))
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(mId, mt.Subprobes, mt.Id)
+	if err != nil {
+		return err
+	}
+	return stmt.Close()
+}
+
+func (mt *MonitorTrigger) update(tx *sql.Tx, mId uint) error {
+	stmt, err := tx.Prepare(`
+		UPDATE monitor_triggers
+		SET subprobe=?
+		WHERE monitor_id=? AND trigger_id=?
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(mt.Subprobes, mId, mt.Id)
+	if err != nil {
+		return err
+	}
+	return stmt.Close()
+}
+
+func (mt *MonitorTrigger) delete(tx *sql.Tx) error {
+	// Trigger delete will cascade to monitor triggers
+	return mt.Trigger.delete(tx)
 }

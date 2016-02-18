@@ -48,29 +48,22 @@ var monitorsEdit = function() {
   var initTriggers = function() {
     var $triggers = $('.js-trigger');
 
-    // Don't allow the removal of triggers if there is only one
-    if ($triggers.length == 1) {
-      $('.js-remove-trigger').hide();
-    }
-
     $('#js-add-trigger').click(function(e) {
       e.preventDefault();
-      $('.js-remove-trigger').show();
-      $triggers.first()
+      $newTrigger = $triggers.first()
         .clone()
         .insertAfter('.js-trigger:last')
-        .find('input[type="text"]')
-        .val('');
+      $newTrigger.find('input[type="text"]').val('');
+      $newTrigger.find('input[name="id"]').val(0);
+      $newTrigger.find('input[name="delete"]').prop('checked', false);
+      $newTrigger.show();
     });
 
     $(document.body).on('click', '.js-remove-trigger', function(e) {
       e.preventDefault();
-      if ($('.js-trigger').length > 1) {
-        $(this).parents('.js-trigger').remove();
-      }
-      if ($('.js-trigger').length == 1) {
-        $('.js-remove-trigger').hide();
-      }
+      $trigger = $(this).parents('.js-trigger');
+      $trigger.hide();
+      $trigger.find('input[name="delete"]').prop('checked', true);
     });
 
     $('.js-targetType').change(function() {

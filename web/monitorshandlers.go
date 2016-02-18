@@ -112,7 +112,7 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			w.Write(errors)
 			return
 		}
-		err = m.SaveMonitor(db)
+		err = m.Save(db)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
 				http.StatusInternalServerError)

@@ -29,8 +29,8 @@ CREATE TABLE monitor_triggers (
   subprobe TEXT NOT NULL DEFAULT '',
   trigger_id INTEGER NOT NULL,
   PRIMARY KEY (`monitor_id`, `trigger_id`),
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id),
-  FOREIGN KEY (`trigger_id`) REFERENCES triggers(id)
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`trigger_id`) REFERENCES triggers(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE subprobes (
@@ -39,7 +39,7 @@ CREATE TABLE subprobes (
   name VARCHAR(150) NOT NULL,
   archived DATETIME DEFAULT NULL,
   CONSTRAINT UNIQUE (monitor_id,name),
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id)
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE subprobe_statuses (
@@ -48,8 +48,8 @@ CREATE TABLE subprobe_statuses (
   state TINYINT NOT NULL,
   silenced BOOLEAN NOT NULL DEFAULT FALSE,
   enteredState DATETIME NOT NULL,
-  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(id),
-  INDEX (state, silenced, enteredState, recorded, subprobe_id)
+  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(`id`) ON DELETE CASCADE,
+  INDEX (`state`, `silenced`, `enteredState`, `recorded`, `subprobe_id`)
 ) ENGINE = InnoDB;
 
 CREATE TABLE readings2 (
@@ -57,7 +57,7 @@ CREATE TABLE readings2 (
   subprobe_id INTEGER NOT NULL,
   recorded DATETIME NOT NULL,
   state TINYINT NOT NULL,
-  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(id),
+  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(`id`) ON DELETE CASCADE,
   INDEX (subprobe_id, recorded, id)
 ) ENGINE = InnoDB;
 
@@ -67,7 +67,7 @@ CREATE TABLE silences (
   subprobes TEXT NOT NULL DEFAULT '',
   start DATETIME NOT NULL,
   end DATETIME NOT NULL,
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id)
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE labels (
@@ -81,14 +81,14 @@ CREATE TABLE labels_monitors (
   monitor_id INTEGER NOT NULL,
   subprobes TEXT NOT NULL DEFAULT '',
   PRIMARY KEY (`monitor_id`, `label_id`),
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(id),
-  FOREIGN KEY (`label_id`) REFERENCES labels(id)
+  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`label_id`) REFERENCES labels(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE label_triggers (
   label_id INTEGER NOT NULL,
   trigger_id INTEGER NOT NULL,
   PRIMARY KEY (`trigger_id`, `label_id`),
-  FOREIGN KEY (`trigger_id`) REFERENCES triggers(id),
-  FOREIGN KEY (`label_id`) REFERENCES labels(id)
+  FOREIGN KEY (`trigger_id`) REFERENCES triggers(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`label_id`) REFERENCES labels(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
