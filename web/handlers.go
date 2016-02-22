@@ -34,14 +34,12 @@ func init() {
 	tmpl.AddDefaultFunc("isLastBc", vm.IsLastBc)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
-	tmpl.AddDefaultFunc("targetScripts", vm.TargetScripts)
 	tmpl.AddDefaultFunc("probes", probes.AllProbes)
 	tmpl.SetPartialsLocation(partials)
 
 	functions["isLastBc"] = vm.IsLastBc
 	functions["strEq"] = tmpl.StrEq
 	functions["targets"] = targets.AllTargets
-	functions["targetScripts"] = vm.TargetScripts
 	functions["probes"] = probes.AllProbes
 }
 

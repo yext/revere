@@ -13,7 +13,7 @@ type Probe struct {
 }
 
 var (
-	defaultProbeType = probes.GraphiteThreshold{}.Id()
+	defaultProbeTypeId = probes.GraphiteThreshold{}.Id()
 )
 
 const (
@@ -31,7 +31,7 @@ func NewProbe(p probes.Probe) *Probe {
 }
 
 func DefaultProbe() *Probe {
-	probe, err := BlankProbe(int(defaultProbeType))
+	probe, err := BlankProbe(int(defaultProbeTypeId))
 	if err != nil {
 		panic(err)
 	}

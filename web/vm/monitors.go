@@ -6,7 +6,6 @@ import (
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
-	"github.com/yext/revere/targets"
 )
 
 type Monitor struct {
@@ -23,19 +22,6 @@ type Monitor struct {
 	Triggers      []*revere.Trigger
 }
 
-var (
-	templateView string = "monitors-view.html"
-	templateEdit string = "monitors-edit.html"
-
-	scriptsView []string = []string{}
-	scriptsEdit []string = []string{
-		"revere.js",
-		"monitors-edit.js",
-		"probes/graphite-preview.js",
-		"targets/email.js",
-	}
-)
-
 func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	viewmodel := new(Monitor)
 
@@ -49,7 +35,6 @@ func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	viewmodel.Archived = m.Archived
 	viewmodel.Triggers = m.Triggers
 
-	// Load Probe
 	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		return nil, err
@@ -69,7 +54,7 @@ func BlankMonitor() (*Monitor, error) {
 
 	viewmodel.Triggers = []*revere.Trigger{
 		&revere.Trigger{
-			TargetTemplate: targets.DefaultTargetTemplate(),
+			TargetTemplate: template.HTML("PLACEHOLDER DELETE"), //TODO(fchen): code cleanup[targets.DefaultTargetTemplate()]
 		},
 	}
 

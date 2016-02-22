@@ -14,10 +14,9 @@ const (
 
 	baseDir         = "web/js"
 	baseServingPath = "static/js"
-
-	targetsDir         = "web/js/targets"
-	targetsServingPath = "static/js/targets"
 )
+
+//TODO(fchen): code cleanup
 
 func getScripts(dir string, servingPath string) (scripts []string, err error) {
 	scriptInfo, err := ioutil.ReadDir(dir)
@@ -35,10 +34,6 @@ func getScripts(dir string, servingPath string) (scripts []string, err error) {
 
 func GetScript(filepath string) string {
 	return path.Join(baseServingPath, filepath)
-}
-
-func TargetScripts() (scripts []string, err error) {
-	return getScripts(targetsDir, targetsServingPath)
 }
 
 func newScripts(scripts []string) template.HTML {

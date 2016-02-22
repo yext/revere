@@ -31,10 +31,7 @@ func (pv *ProbeView) Data() interface{} {
 }
 
 func (pv *ProbeView) Scripts() []string {
-	scripts, ok := pv.viewmodel.Scripts()["view"]
-	if !ok {
-		panic(fmt.Sprintf("Unable to find scripts for probe type %s", pv.viewmodel.Probe.ProbeType().Name()))
-	}
+	scripts := pv.viewmodel.Scripts()["view"]
 
 	return appendDir(probesDir, scripts)
 }

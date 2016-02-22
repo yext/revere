@@ -24,7 +24,7 @@ func (mv *MonitorView) Data() interface{} {
 }
 
 func (mv *MonitorView) Scripts() []string {
-	return []string{}
+	return nil
 }
 
 func (mv *MonitorView) Breadcrumbs() []Breadcrumb {

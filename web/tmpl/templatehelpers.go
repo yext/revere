@@ -77,7 +77,7 @@ func InitTemplates(dir string, funcs template.FuncMap) (templates map[string]*te
 		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
 			continue
 		}
-		templates[t.Name()] = template.Must(template.New(t.Name()).Funcs(funcs).ParseFiles(dir + t.Name()))
+		templates[t.Name()] = template.Must(template.New(t.Name()).Funcs(funcs).ParseFiles(path.Join(dir, t.Name())))
 	}
 	return
 }

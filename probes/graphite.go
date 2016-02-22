@@ -36,7 +36,6 @@ var (
 		"edit": []string{
 			"probes/graphite-preview.js",
 		},
-		"view": []string{},
 	}
 
 	// All graphite datasources found in the conf file

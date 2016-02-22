@@ -22,7 +22,18 @@ type EmailAddress struct {
 
 const emailTargetTemplate = "email-target.html"
 
-var emailRegex = regexp.MustCompile(`^[\w\.\-\+\_]+@[\w\.\-]+\.[a-zA-Z]+$`)
+var (
+	templates = map[string]string{
+		"edit": "email-edit",
+	}
+	scripts = map[string][]string{
+		"edit": []string{
+			"email.js",
+		},
+	}
+
+	emailRegex = regexp.MustCompile(`^[\w\.\-\+\_]+@[\w\.\-]+\.[a-zA-Z]+$`)
+)
 
 func init() {
 	addTargetType(Email{})
@@ -45,6 +56,14 @@ func (e Email) Load(target string) (Target, error) {
 	return et, nil
 }
 
+func (et Email) Templates() map[string]string {
+	return templates
+}
+
+func (et Email) Scripts() map[string][]string {
+	return scripts
+}
+
 func (et EmailTarget) Validate() (errs []string) {
 	for _, e := range et.EmailAddresses {
 		if !emailRegex.MatchString(e.EmailTo) {
@@ -59,6 +78,10 @@ func (et EmailTarget) Validate() (errs []string) {
 		}
 	}
 	return
+}
+
+func (et EmailTarget) TargetType() TargetType {
+	return Email{}
 }
 
 func (et EmailTarget) Render() (template.HTML, error) {

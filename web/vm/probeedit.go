@@ -31,10 +31,7 @@ func (pe *ProbeEdit) Data() interface{} {
 }
 
 func (pe *ProbeEdit) Scripts() []string {
-	scripts, ok := pe.viewmodel.Scripts()["edit"]
-	if !ok {
-		panic(fmt.Sprintf("Unable to find scripts for probe type %s", pe.viewmodel.Probe.ProbeType().Name()))
-	}
+	scripts := pe.viewmodel.Scripts()["edit"]
 
 	return appendDir(probesDir, scripts)
 }

@@ -7,43 +7,34 @@ import (
 	"github.com/yext/revere/web/tmpl"
 )
 
-type Target interface {
-	Validate() (errs []string)
-	Render() (template.HTML, error)
-}
-
 type TargetTypeId int
 
 type TargetType interface {
 	Id() TargetTypeId
 	Name() string
 	Load(target string) (Target, error)
+	Templates() map[string]string
+	Scripts() map[string][]string
+}
+
+type Target interface {
+	TargetType() TargetType
+	Validate() (errs []string)
+
+	//TODO(fchen): code cleanup
+	Render() (template.HTML, error)
 }
 
 var (
-	targetTemplateDir = "web/views/targets/"
-
 	targetTypes map[TargetTypeId]TargetType = make(map[TargetTypeId]TargetType)
 
-	targetTemplates map[string]*template.Template
-
-	defaultTargetType     TargetType = Email{}
-	defaultTargetTemplate template.HTML
+	//TODO(fchen): code cleanup
+	targetTemplates = map[string]*template.Template{}
 )
 
 func init() {
-	targetTemplates = tmpl.InitTemplates(targetTemplateDir, template.FuncMap{"strEq": tmpl.StrEq})
-
-	t, err := defaultTargetType.Load(`{}`)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load default target type: %v", err))
-	}
-
-	template, err := t.Render()
-	if err != nil {
-		panic(fmt.Sprintf("Failed to render default target type: %v", err))
-	}
-	defaultTargetTemplate = template
+	//TODO(fchen): code cleanup
+	targetTemplates = tmpl.InitTemplates("web/views/targets", template.FuncMap{"strEq": tmpl.StrEq})
 }
 
 func TargetTypeById(targetType TargetTypeId) (TargetType, error) {
@@ -67,8 +58,4 @@ func AllTargets() (tts []TargetType) {
 		tts = append(tts, v)
 	}
 	return tts
-}
-
-func DefaultTargetTemplate() template.HTML {
-	return defaultTargetTemplate
 }

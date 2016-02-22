@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/yext/revere"
-	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/vm"
 
 	"github.com/julienschmidt/httprouter"
@@ -168,7 +167,6 @@ func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Pa
 		return
 	}
 
-	// Render empty probe template
 	probe, err := vm.BlankProbe(pt)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
@@ -203,22 +201,16 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 		return
 	}
 
-	// TODO(psingh): Make into fn and remove comment
-	// Render empty target template
-	targetType, err := targets.TargetTypeById(targets.TargetTypeId(tt))
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Target type not found: %s", tt), http.StatusNotFound)
-		return
-	}
-
-	target, err := targetType.Load(`{}`)
+	target, err := vm.BlankTarget(tt)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)
 		return
 	}
 
-	tmpl, err := target.Render()
+	te := vm.NewTargetEdit(target)
+
+	tmpl, err := renderPartial(te)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)
