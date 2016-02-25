@@ -20,11 +20,12 @@ type EmailAddress struct {
 	ReplyTo string `json:"replyTo"`
 }
 
-const emailTargetTemplate = "email-target.html"
+const emailTargetTemplate = "email-edit.html"
 
 var (
 	templates = map[string]string{
-		"edit": "email-edit",
+		"edit": "email-edit.html",
+		"view": "email-view.html",
 	}
 	scripts = map[string][]string{
 		"edit": []string{
