@@ -1,0 +1,21 @@
+<input id="js-email-target-type" type="hidden" value="{{.Id}}">
+{{define "email-address"}}
+<div class="form-group js-email-address">
+  <label class="col-sm-2 control-label" for="emailTo">To</label>
+  <div class="col-sm-4">
+    <input type="text" class="form-control" name="emailTo" value="{{.EmailTo}}">
+  </div>
+  <label class="col-sm-1 control-label" for="replyTo">Reply-To</label>
+  <div class="col-sm-4">
+    <input type="text" class="form-control" name="replyTo" value="{{.ReplyTo}}">
+  </div>
+  <div class="col-sm-1">
+    <button class="js-add-email btn btn-default btn-block">+</button>
+  </div>
+</div>
+{{end}}
+{{range .EmailAddresses}}
+  {{template "email-address" .}}
+{{else}}
+  {{template "email-address"}}
+{{end}}

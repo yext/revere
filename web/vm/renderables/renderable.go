@@ -1,14 +1,16 @@
-package vm
+package renderables
 
 import (
 	"html/template"
+
+	"github.com/yext/revere/web/vm"
 )
 
 type Renderable interface {
 	Template() string
 	Scripts() []string
 	Data() interface{}
-	Breadcrumbs() []Breadcrumb
+	Breadcrumbs() []vm.Breadcrumb
 	SubRenderables() map[string]Renderable
 	RenderNow() bool
 }
@@ -17,7 +19,7 @@ type RenderResult struct {
 	Templates   []string
 	Scripts     []string
 	Data        map[string]interface{}
-	Breadcrumbs []Breadcrumb
+	Breadcrumbs []vm.Breadcrumb
 }
 
 func (current *RenderResult) AddSubRender(name string, sub *RenderResult) {
@@ -38,6 +40,6 @@ func NewRenderResult(r Renderable) *RenderResult {
 	result.Data = map[string]interface{}{
 		"Data": r.Data(),
 	}
-	result.Breadcrumbs = []Breadcrumb{}
+	result.Breadcrumbs = []vm.Breadcrumb{}
 	return &result
 }

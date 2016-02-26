@@ -8,8 +8,6 @@ import (
 
 type Probe struct {
 	probes.Probe
-	templates map[string]string
-	scripts   map[string][]string
 }
 
 var (
@@ -17,15 +15,12 @@ var (
 )
 
 const (
-	probesDir = "probes"
+	ProbesDir = "probes"
 )
 
 func NewProbe(p probes.Probe) *Probe {
 	viewmodel := new(Probe)
 	viewmodel.Probe = p
-	probeType := p.ProbeType()
-	viewmodel.templates = probeType.Templates()
-	viewmodel.scripts = probeType.Scripts()
 
 	return viewmodel
 }
@@ -51,12 +46,4 @@ func BlankProbe(pt int) (*Probe, error) {
 	}
 
 	return NewProbe(probe), nil
-}
-
-func (p *Probe) Templates() map[string]string {
-	return p.templates
-}
-
-func (p *Probe) Scripts() map[string][]string {
-	return p.scripts
 }

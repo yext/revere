@@ -1,16 +1,18 @@
-package vm
+package renderables
 
 import (
 	"fmt"
 	"path"
+
+	"github.com/yext/revere/web/vm"
 )
 
 type ProbeView struct {
-	viewmodel *Probe
+	viewmodel *vm.Probe
 	subs      map[string]Renderable
 }
 
-func NewProbeView(p *Probe) *ProbeView {
+func NewProbeView(p *vm.Probe) *ProbeView {
 	pv := ProbeView{}
 	pv.viewmodel = p
 	pv.subs = map[string]Renderable{}
@@ -18,12 +20,12 @@ func NewProbeView(p *Probe) *ProbeView {
 }
 
 func (pv *ProbeView) Template() string {
-	tmpl, ok := pv.viewmodel.Templates()["view"]
+	tmpl, ok := pv.viewmodel.ProbeType().Templates()["view"]
 	if !ok {
 		panic(fmt.Sprintf("Unable to find templates for probe type %s", pv.viewmodel.Probe.ProbeType().Name()))
 	}
 
-	return path.Join(probesDir, tmpl)
+	return path.Join(vm.ProbesDir, tmpl)
 }
 
 func (pv *ProbeView) Data() interface{} {
@@ -31,13 +33,13 @@ func (pv *ProbeView) Data() interface{} {
 }
 
 func (pv *ProbeView) Scripts() []string {
-	scripts := pv.viewmodel.Scripts()["view"]
+	scripts := pv.viewmodel.ProbeType().Scripts()["view"]
 
-	return appendDir(probesDir, scripts)
+	return vm.AppendDir(vm.ProbesDir, scripts)
 }
 
-func (pv *ProbeView) Breadcrumbs() []Breadcrumb {
-	return []Breadcrumb{}
+func (pv *ProbeView) Breadcrumbs() []vm.Breadcrumb {
+	return []vm.Breadcrumb{}
 }
 
 func (pv *ProbeView) SubRenderables() map[string]Renderable {

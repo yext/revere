@@ -1,11 +1,15 @@
-package vm
+package renderables
+
+import (
+	"github.com/yext/revere/web/vm"
+)
 
 type MonitorView struct {
-	viewmodel *Monitor
+	viewmodel *vm.Monitor
 	subs      map[string]Renderable
 }
 
-func NewMonitorView(m *Monitor) *MonitorView {
+func NewMonitorView(m *vm.Monitor) *MonitorView {
 	mv := MonitorView{}
 	mv.viewmodel = m
 	mv.subs = map[string]Renderable{
@@ -27,8 +31,8 @@ func (mv *MonitorView) Scripts() []string {
 	return nil
 }
 
-func (mv *MonitorView) Breadcrumbs() []Breadcrumb {
-	return MonitorViewBcs(mv.viewmodel.Name, mv.viewmodel.Id)
+func (mv *MonitorView) Breadcrumbs() []vm.Breadcrumb {
+	return vm.MonitorViewBcs(mv.viewmodel.Name, mv.viewmodel.Id)
 }
 
 func (mv *MonitorView) SubRenderables() map[string]Renderable {

@@ -18,6 +18,7 @@ import (
 	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
+	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -98,7 +99,7 @@ func writeJsonResponse(w http.ResponseWriter, action string, data map[string]int
 	w.Write(response)
 }
 
-func render(w io.Writer, r vm.Renderable, title string) error {
+func render(w io.Writer, r renderables.Renderable, title string) error {
 	result, err := renderPropogate(r)
 	if err != nil {
 		return err
@@ -126,8 +127,8 @@ func render(w io.Writer, r vm.Renderable, title string) error {
 	return t.Execute(w, data)
 }
 
-func renderPropogate(r vm.Renderable) (*vm.RenderResult, error) {
-	result := vm.NewRenderResult(r)
+func renderPropogate(r renderables.Renderable) (*renderables.RenderResult, error) {
+	result := renderables.NewRenderResult(r)
 
 	for name, subrenderable := range r.SubRenderables() {
 		renderResult, err := renderPropogate(subrenderable)
@@ -150,7 +151,7 @@ func renderPropogate(r vm.Renderable) (*vm.RenderResult, error) {
 	return result, nil
 }
 
-func renderPartial(r vm.Renderable) (template.HTML, error) {
+func renderPartial(r renderables.Renderable) (template.HTML, error) {
 	b := bytes.Buffer{}
 	err := render(&b, r, "")
 	if err != nil {

@@ -1,16 +1,18 @@
-package vm
+package renderables
 
 import (
 	"fmt"
 	"path"
+
+	"github.com/yext/revere/web/vm"
 )
 
 type ProbeEdit struct {
-	viewmodel *Probe
+	viewmodel *vm.Probe
 	subs      map[string]Renderable
 }
 
-func NewProbeEdit(p *Probe) *ProbeEdit {
+func NewProbeEdit(p *vm.Probe) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.viewmodel = p
 	pe.subs = map[string]Renderable{}
@@ -18,12 +20,12 @@ func NewProbeEdit(p *Probe) *ProbeEdit {
 }
 
 func (pe *ProbeEdit) Template() string {
-	tmpl, ok := pe.viewmodel.Templates()["edit"]
+	tmpl, ok := pe.viewmodel.ProbeType().Templates()["edit"]
 	if !ok {
 		panic(fmt.Sprintf("Unable to find templates for probe type %s", pe.viewmodel.Probe.ProbeType().Name()))
 	}
 
-	return path.Join(probesDir, tmpl)
+	return path.Join(vm.ProbesDir, tmpl)
 }
 
 func (pe *ProbeEdit) Data() interface{} {
@@ -31,13 +33,13 @@ func (pe *ProbeEdit) Data() interface{} {
 }
 
 func (pe *ProbeEdit) Scripts() []string {
-	scripts := pe.viewmodel.Scripts()["edit"]
+	scripts := pe.viewmodel.ProbeType().Scripts()["edit"]
 
-	return appendDir(probesDir, scripts)
+	return vm.AppendDir(vm.ProbesDir, scripts)
 }
 
-func (pe *ProbeEdit) Breadcrumbs() []Breadcrumb {
-	return []Breadcrumb{}
+func (pe *ProbeEdit) Breadcrumbs() []vm.Breadcrumb {
+	return []vm.Breadcrumb{}
 }
 
 func (pe *ProbeEdit) SubRenderables() map[string]Renderable {

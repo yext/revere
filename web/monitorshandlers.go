@@ -10,6 +10,7 @@ import (
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/web/vm"
+	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -52,7 +53,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		renderable := vm.NewMonitorView(viewmodel)
+		renderable := renderables.NewMonitorView(viewmodel)
 		err = render(w, renderable, "Monitors")
 
 		if err != nil {
@@ -78,7 +79,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		renderable := vm.NewMonitorEdit(viewmodel)
+		renderable := renderables.NewMonitorEdit(viewmodel)
 		err = render(w, renderable, "Monitors")
 
 		if err != nil {
@@ -174,7 +175,7 @@ func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Pa
 		return
 	}
 
-	pe := vm.NewProbeEdit(probe)
+	pe := renderables.NewProbeEdit(probe)
 
 	tmpl, err := renderPartial(pe)
 	if err != nil {
@@ -208,7 +209,7 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 		return
 	}
 
-	te := vm.NewTargetEdit(target)
+	te := renderables.NewTargetEdit(target)
 
 	tmpl, err := renderPartial(te)
 	if err != nil {

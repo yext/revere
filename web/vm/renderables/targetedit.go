@@ -1,16 +1,18 @@
-package vm
+package renderables
 
 import (
 	"fmt"
 	"path"
+
+	"github.com/yext/revere/web/vm"
 )
 
 type TargetEdit struct {
-	viewmodel *Target
+	viewmodel *vm.Target
 	subs      map[string]Renderable
 }
 
-func NewTargetEdit(t *Target) *TargetEdit {
+func NewTargetEdit(t *vm.Target) *TargetEdit {
 	te := TargetEdit{}
 	te.viewmodel = t
 	te.subs = map[string]Renderable{}
@@ -18,12 +20,12 @@ func NewTargetEdit(t *Target) *TargetEdit {
 }
 
 func (te *TargetEdit) Template() string {
-	tmpl, ok := te.viewmodel.Templates()["edit"]
+	tmpl, ok := te.viewmodel.TargetType().Templates()["edit"]
 	if !ok {
 		panic(fmt.Sprintf("Unable to find templates for target type %s", te.viewmodel.Target.TargetType().Name()))
 	}
 
-	return path.Join(targetsDir, tmpl)
+	return path.Join(vm.TargetsDir, tmpl)
 }
 
 func (te *TargetEdit) Data() interface{} {
@@ -31,13 +33,13 @@ func (te *TargetEdit) Data() interface{} {
 }
 
 func (te *TargetEdit) Scripts() []string {
-	scripts := te.viewmodel.Scripts()["edit"]
+	scripts := te.viewmodel.TargetType().Scripts()["edit"]
 
-	return appendDir(targetsDir, scripts)
+	return vm.AppendDir(vm.TargetsDir, scripts)
 }
 
-func (te *TargetEdit) Breadcrumbs() []Breadcrumb {
-	return []Breadcrumb{}
+func (te *TargetEdit) Breadcrumbs() []vm.Breadcrumb {
+	return []vm.Breadcrumb{}
 }
 
 func (te *TargetEdit) SubRenderables() map[string]Renderable {

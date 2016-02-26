@@ -1,11 +1,15 @@
-package vm
+package renderables
+
+import (
+	"github.com/yext/revere/web/vm"
+)
 
 type MonitorEdit struct {
-	viewmodel *Monitor
+	viewmodel *vm.Monitor
 	subs      map[string]Renderable
 }
 
-func NewMonitorEdit(m *Monitor) *MonitorEdit {
+func NewMonitorEdit(m *vm.Monitor) *MonitorEdit {
 	me := MonitorEdit{}
 	me.viewmodel = m
 	me.subs = map[string]Renderable{
@@ -32,8 +36,8 @@ func (me *MonitorEdit) Scripts() []string {
 	}
 }
 
-func (me *MonitorEdit) Breadcrumbs() []Breadcrumb {
-	return []Breadcrumb{}
+func (me *MonitorEdit) Breadcrumbs() []vm.Breadcrumb {
+	return []vm.Breadcrumb{}
 }
 
 func (me *MonitorEdit) SubRenderables() map[string]Renderable {

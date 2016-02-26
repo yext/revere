@@ -8,8 +8,6 @@ import (
 
 type Target struct {
 	targets.Target
-	templates map[string]string
-	scripts   map[string][]string
 }
 
 var (
@@ -17,15 +15,12 @@ var (
 )
 
 const (
-	targetsDir = "targets"
+	TargetsDir = "targets"
 )
 
 func NewTarget(t targets.Target) *Target {
 	viewmodel := new(Target)
 	viewmodel.Target = t
-	targetType := t.TargetType()
-	viewmodel.templates = targetType.Templates()
-	viewmodel.scripts = targetType.Scripts()
 
 	return viewmodel
 }
@@ -51,12 +46,4 @@ func BlankTarget(tt int) (*Target, error) {
 	}
 
 	return NewTarget(target), nil
-}
-
-func (t *Target) Templates() map[string]string {
-	return t.templates
-}
-
-func (t *Target) Scripts() map[string][]string {
-	return t.scripts
 }
