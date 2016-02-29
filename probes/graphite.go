@@ -34,7 +34,7 @@ var (
 	}
 	scripts = map[string][]string{
 		"edit": []string{
-			"probes/graphite-preview.js",
+			"graphite-preview.js",
 		},
 	}
 

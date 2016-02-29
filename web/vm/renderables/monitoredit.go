@@ -31,7 +31,6 @@ func (me *MonitorEdit) Scripts() []string {
 	return []string{
 		"revere.js",
 		"monitors-edit.js",
-		"probes/graphite-preview.js",
 		"targets/email.js",
 	}
 }
