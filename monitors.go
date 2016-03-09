@@ -90,7 +90,6 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 		return nil, err
 	}
 
-	// Load Triggers
 	m.Triggers, err = LoadMonitorTriggers(db, id)
 	if err != nil {
 		return nil, err

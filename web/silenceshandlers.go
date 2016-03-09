@@ -25,12 +25,12 @@ func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 		past, curr, future := revere.SplitSilences(s)
 
 		err = executeTemplate(w, "silences-index.html",
-			silenceDataWith(map[string]interface{}{
+			map[string]interface{}{
 				"Past":        past,
 				"Curr":        curr,
 				"Future":      future,
 				"Breadcrumbs": vm.SilencesIndexBcs(),
-			}))
+			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silences: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -58,10 +58,10 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		err = executeTemplate(w, "silences-view.html",
-			silenceDataWith(map[string]interface{}{
+			map[string]interface{}{
 				"Silence":     s,
 				"Breadcrumbs": vm.SilencesViewBcs(s.Id, s.MonitorName),
-			}))
+			})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()), http.StatusInternalServerError)
 			return
@@ -85,10 +85,10 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				return
 			}
 
-			err = executeTemplate(w, "silences-edit.html", silenceDataWith(map[string]interface{}{
+			err = executeTemplate(w, "silences-edit.html", map[string]interface{}{
 				"Monitors":    m,
 				"Breadcrumbs": vm.SilencesIndexBcs(),
-			}))
+			})
 
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable load new silence page: %s", err.Error()), http.StatusInternalServerError)
@@ -110,10 +110,10 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		err = executeTemplate(w, "silences-edit.html",
-			silenceDataWith(map[string]interface{}{
+			map[string]interface{}{
 				"Silence":     s,
 				"Breadcrumbs": vm.SilencesViewBcs(s.Id, s.MonitorName),
-			}))
+			})
 	}
 }
 
@@ -164,14 +164,4 @@ func getSilenceId(idStr string) (uint, error) {
 
 	id, err := strconv.Atoi(idStr)
 	return uint(id), err
-}
-
-func silenceDataWith(d map[string]interface{}) map[string]interface{} {
-	data := map[string]interface{}{
-		"Title": "Silences",
-	}
-	for k, v := range d {
-		data[k] = v
-	}
-	return data
 }

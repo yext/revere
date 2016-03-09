@@ -23,7 +23,6 @@ func SettingsIndex(w http.ResponseWriter, req *http.Request, _ httprouter.Params
 		templates[i] = rendered
 	}
 	data := map[string]interface{}{
-		"Title":    "Settings",
 		"Settings": templates,
 	}
 	err := executeTemplate(w, "settings-index.html", data)

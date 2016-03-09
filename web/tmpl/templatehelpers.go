@@ -97,6 +97,11 @@ func newTemplate(filepath string) *Template {
 	return &Template{t}
 }
 
+func SetTitle(data map[string]interface{}, title string) map[string]interface{} {
+	data["Title"] = title
+	return data
+}
+
 func StrEq(a, b interface{}) bool {
 	c, ok := a.(string)
 	if !ok {

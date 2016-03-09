@@ -9,17 +9,21 @@ import (
 
 type ProbeEdit struct {
 	viewmodel *vm.Probe
-	subs      map[string]Renderable
+	subs      []Renderable
 }
 
 func NewProbeEdit(p *vm.Probe) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.viewmodel = p
-	pe.subs = map[string]Renderable{}
+	pe.subs = []Renderable{}
 	return &pe
 }
 
-func (pe *ProbeEdit) Template() string {
+func (pe *ProbeEdit) name() string {
+	return "Probe"
+}
+
+func (pe *ProbeEdit) template() string {
 	tmpl, ok := pe.viewmodel.ProbeType().Templates()["edit"]
 	if !ok {
 		panic(fmt.Sprintf("Unable to find templates for probe type %s", pe.viewmodel.Probe.ProbeType().Name()))
@@ -28,24 +32,28 @@ func (pe *ProbeEdit) Template() string {
 	return path.Join(vm.ProbesDir, tmpl)
 }
 
-func (pe *ProbeEdit) Data() interface{} {
+func (pe *ProbeEdit) data() interface{} {
 	return pe.viewmodel.Probe
 }
 
-func (pe *ProbeEdit) Scripts() []string {
+func (pe *ProbeEdit) scripts() []string {
 	scripts := pe.viewmodel.ProbeType().Scripts()["edit"]
 
 	return vm.AppendDir(vm.ProbesDir, scripts)
 }
 
-func (pe *ProbeEdit) Breadcrumbs() []vm.Breadcrumb {
+func (pe *ProbeEdit) breadcrumbs() []vm.Breadcrumb {
 	return []vm.Breadcrumb{}
 }
 
-func (pe *ProbeEdit) SubRenderables() map[string]Renderable {
+func (pe *ProbeEdit) subRenderables() []Renderable {
 	return pe.subs
 }
 
-func (pe *ProbeEdit) RenderNow() bool {
-	return true
+func (pe *ProbeEdit) renderPropogate() (*renderResult, error) {
+	return renderPropogateImmediate(pe)
+}
+
+func (pe *ProbeEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {
+	aggregatePipelineDataMap(parent, child)
 }

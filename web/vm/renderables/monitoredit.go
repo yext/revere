@@ -6,28 +6,32 @@ import (
 
 type MonitorEdit struct {
 	viewmodel *vm.Monitor
-	subs      map[string]Renderable
+	subs      []Renderable
 }
 
 func NewMonitorEdit(m *vm.Monitor) *MonitorEdit {
 	me := MonitorEdit{}
 	me.viewmodel = m
-	me.subs = map[string]Renderable{
-		"Probe": NewProbeEdit(m.Probe),
-		//"Triggers": m.TriggersEdit(m.Triggers),
+	me.subs = []Renderable{
+		NewProbeEdit(m.Probe),
+		//m.TriggersEdit(m.Triggers),
 	}
 	return &me
 }
 
-func (me *MonitorEdit) Template() string {
+func (me *MonitorEdit) name() string {
+	return "Monitor"
+}
+
+func (me *MonitorEdit) template() string {
 	return "monitors-edit.html"
 }
 
-func (me *MonitorEdit) Data() interface{} {
+func (me *MonitorEdit) data() interface{} {
 	return me.viewmodel
 }
 
-func (me *MonitorEdit) Scripts() []string {
+func (me *MonitorEdit) scripts() []string {
 	return []string{
 		"revere.js",
 		"monitors-edit.js",
@@ -35,14 +39,18 @@ func (me *MonitorEdit) Scripts() []string {
 	}
 }
 
-func (me *MonitorEdit) Breadcrumbs() []vm.Breadcrumb {
+func (me *MonitorEdit) breadcrumbs() []vm.Breadcrumb {
 	return []vm.Breadcrumb{}
 }
 
-func (me *MonitorEdit) SubRenderables() map[string]Renderable {
+func (me *MonitorEdit) subRenderables() []Renderable {
 	return me.subs
 }
 
-func (me *MonitorEdit) RenderNow() bool {
-	return false
+func (me *MonitorEdit) renderPropogate() (*renderResult, error) {
+	return renderPropogate(me)
+}
+
+func (me *MonitorEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {
+	aggregatePipelineDataMap(parent, child)
 }

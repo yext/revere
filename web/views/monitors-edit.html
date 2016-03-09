@@ -1,5 +1,5 @@
-{{template "_header.html" .}}
-{{with .Data}}
+{{template "_header.html" setTitle . "Monitors"}}
+{{with ._}}
   <h1>{{if .Name}}Edit{{else}}New{{end}} Monitor</h1>
   <div id="js-errors">
     <div class="js-error alert alert-danger hidden"></div>
@@ -37,14 +37,14 @@
         <div class="col-sm-10">
           <select id="#js-probe-type" class="form-control" data-json-type="Number" name="probeType">
             {{range probes}}
-              <option value="{{.Id}}" {{if eq $.Data.GetProbeType.Id .Id}}selected{{end}}>{{.Name}}</option>
+              <option value="{{.Id}}" {{if eq $._.GetProbeType.Id .Id}}selected{{end}}>{{.Name}}</option>
             {{end}}
           </select>
         </div>
       </div>
     </div>
     {{/* Probe */}}
-    {{with $.Probe}}
+    {{with $.Probe._Render}}
       <div id="js-probe">
         {{.}}
       </div>

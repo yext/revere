@@ -9,17 +9,21 @@ import (
 
 type TargetEdit struct {
 	viewmodel *vm.Target
-	subs      map[string]Renderable
+	subs      []Renderable
 }
 
 func NewTargetEdit(t *vm.Target) *TargetEdit {
 	te := TargetEdit{}
 	te.viewmodel = t
-	te.subs = map[string]Renderable{}
+	te.subs = []Renderable{}
 	return &te
 }
 
-func (te *TargetEdit) Template() string {
+func (te *TargetEdit) name() string {
+	return "Target"
+}
+
+func (te *TargetEdit) template() string {
 	tmpl, ok := te.viewmodel.TargetType().Templates()["edit"]
 	if !ok {
 		panic(fmt.Sprintf("Unable to find templates for target type %s", te.viewmodel.Target.TargetType().Name()))
@@ -28,24 +32,28 @@ func (te *TargetEdit) Template() string {
 	return path.Join(vm.TargetsDir, tmpl)
 }
 
-func (te *TargetEdit) Data() interface{} {
+func (te *TargetEdit) data() interface{} {
 	return te.viewmodel.Target
 }
 
-func (te *TargetEdit) Scripts() []string {
+func (te *TargetEdit) scripts() []string {
 	scripts := te.viewmodel.TargetType().Scripts()["edit"]
 
 	return vm.AppendDir(vm.TargetsDir, scripts)
 }
 
-func (te *TargetEdit) Breadcrumbs() []vm.Breadcrumb {
+func (te *TargetEdit) breadcrumbs() []vm.Breadcrumb {
 	return []vm.Breadcrumb{}
 }
 
-func (te *TargetEdit) SubRenderables() map[string]Renderable {
+func (te *TargetEdit) subRenderables() []Renderable {
 	return te.subs
 }
 
-func (te *TargetEdit) RenderNow() bool {
-	return true
+func (te *TargetEdit) renderPropogate() (*renderResult, error) {
+	return renderPropogateImmediate(te)
+}
+
+func (te *TargetEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {
+	aggregatePipelineDataMap(parent, child)
 }

@@ -1,5 +1,5 @@
-{{template "_header.html" .}}
-{{with .Data}}
+{{template "_header.html" setTitle . "Monitors"}}
+{{with ._}}
   <h1 class="monitor-header">
     <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>
     <span class="monitor-version">v{{.Version}}</span>
@@ -15,7 +15,7 @@
   <p>{{.Description}}</p>
   <h4>Alert Response:</h4>
   <p>{{.Response}}</p>
-  {{with $.Probe}}
+  {{with $.Probe._Render}}
     <p>{{.}}</p>
   {{else}}
     <h4>Probe:</h4>

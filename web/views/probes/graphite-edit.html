@@ -1,131 +1,129 @@
-{{with .Data}}
-  <div id="js-graphite-threshold">
-    <div class="form-group">
-      <label class="col-sm-2 control-label" for="expression">Graphite expression</label>
-      <div class="col-sm-10">
-        <input id="expression" type="text" class="form-control" name="expression" value="{{.Expression}}">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="col-sm-2 control-label">Thresholds</label>
-      <label class="col-sm-1 control-label">Warning</label>
-      <div class="col-sm-1">
-        <input type="text" class="form-control" data-json-type="Number" name="warningThreshold" value="{{.Warning}}">
-      </div>
-      <label class="col-sm-1 control-label">Error</label>
-      <div class="col-sm-1">
-        <input type="text" class="form-control" data-json-type="Number" name="errorThreshold" value="{{.Error}}">
-      </div>
-      <label class="col-sm-1 control-label">Critical</label>
-      <div class="col-sm-1">
-        <input type="text" class="form-control" data-json-type="Number" name="criticalThreshold" value="{{.Critical}}">
-      </div>
-      <label class="col-sm-1 control-label" for="url">Graphite</label>
-      <div class="col-sm-3">
-        <select class="form-control" name="url">
-          {{range .DataSources}}
-            <option value="{{.}}" {{if strEq $.Url .}}selected{{end}}>{{.}}</option>
-          {{end}}
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="col-sm-2 control-label" for="checkPeriod">Check every</label>
-      <div class="col-sm-2">
-        <input type="number" min="1" class="form-control" name="checkPeriod" data-json-type="Number" value="{{.CheckPeriod}}" placeholder="5">
-      </div>
-      <div class="col-sm-2">
-        <select class="form-control" name="checkPeriodType">
-          <option value="second" {{if strEq .CheckPeriodType "second"}}selected{{end}}>Second(s)</option>
-          <option value="minute" {{if strEq .CheckPeriodType "minute"}}selected{{end}}>Minute(s)</option>
-          <option value="hour" {{if strEq .CheckPeriodType "hour"}}selected{{end}}>Hour(s)</option>
-          <option value="day" {{if strEq .CheckPeriodType "day"}}selected{{end}}>Day(s)</option>
-        </select>
-      </div>
-      <label class="col-sm-2 sentence-label control-label" for="auditFunction">and trigger if the</label>
-      <div class="col-sm-2">
-        <select class="form-control" name="auditFunction">
-          <option value="min" {{if strEq .AuditFunction "min"}}selected{{end}}>Min</option>
-          <option value="max" {{if strEq .AuditFunction "max"}}selected{{end}}>Max</option>
-          <option value="avg" {{if strEq .AuditFunction "avg"}}selected{{end}}>Avg</option>
-        </select>
-      </div>
-      <label class="col-sm-1 control-label" for="alertPeriod">of the last</label>
-    </div>
-    <div class="form-group">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-2">
-        <input type="number" min="1" class="form-control" name="auditPeriod" data-json-type="Number" value="{{.AuditPeriod}}" placeholder="5">
-      </div>
-      <div class="col-sm-2">
-        <select class="form-control" name="auditPeriodType">
-          <option value="second" {{if strEq .AuditPeriodType "second"}}selected{{end}}>Second(s)</option>
-          <option value="minute" {{if strEq .AuditPeriodType "minute"}}selected{{end}}>Minute(s)</option>
-          <option value="hour" {{if strEq .AuditPeriodType "hour"}}selected{{end}}>Hour(s)</option>
-          <option value="day" {{if strEq .AuditPeriodType "day"}}selected{{end}}>Day(s)</option>
-        </select>
-      </div>
-      <label class="col-sm-3 sentence-label control-label" for="triggerIf">of values from Graphite was</label>
-      <div class="col-sm-1">
-        <select class="form-control" name="triggerIf">
-          <option value="<" {{if strEq .TriggerIf "<"}}selected{{end}}>&lt;</option>
-          <option value="<=" {{if strEq .TriggerIf "<="}}selected{{end}}>&lt;=</option>
-          <option value=">" {{if strEq .TriggerIf ">"}}selected{{end}}>&gt;</option>
-          <option value=">=" {{if strEq .TriggerIf ">="}}selected{{end}}>&gt;=</option>
-        </select>
-      </div>
-      <label class="col-sm-2 sentence-label control-label">the threshold</label>
+<div id="js-graphite-threshold">
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="expression">Graphite expression</label>
+    <div class="col-sm-10">
+      <input id="expression" type="text" class="form-control" name="expression" value="{{.Expression}}">
     </div>
   </div>
-  <div id="js-preview" class="form-group">
-    <div class="col-sm-offset-2 col-sm-4">
-      <div class="form-group">
-        <div class="col-sm-1">
-          <input type="radio" name="previewPeriod" value="last" checked>
-        </div>
-        <label class="col-sm-2 control-label">Last</label>
-        <div class="col-sm-4">
-          <input type="number" min="1" class="form-control js-last-period" name="lastPeriod" data-json-type="Number" value="1">
-        </div>
-        <div class="col-sm-5">
-          <select class="form-control js-last-period" name="lastPeriodType">
-            <option value="s">Second(s)</option>
-            <option value="min">Minute(s)</option>
-            <option value="h">Hour(s)</option>
-            <option value="d" selected>Day(s)</option>
-            <option value="w">Week(s)</option>
-            <option value="mon">Month(s)</option>
-            <option value="y">Year(s)</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-1">
-          <input type="radio" name="previewPeriod" value="range">
-        </div>
-        <label class="col-sm-2 control-label">From</label>
-        <div id="js-datetimepicker-from" class="col-sm-9 input-group date">
-          <input type="text" class="form-control js-range-period" name="rangeFrom" disabled>
-          <span class="input-group-addon">
-            <span class="glyphicon glyphicon-calendar"></span>
-          </span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="col-sm-3 control-label">Until</label>
-        <div id="js-datetimepicker-until" class="col-sm-9 input-group date">
-          <input type="text" class="form-control js-range-period" name="rangeUntil" disabled>
-          <span class="input-group-addon">
-            <span class="glyphicon glyphicon-calendar"></span>
-          </span>
-        </div>
-      </div>
-      <div class="form-group">
-        <button id="js-preview-btn" class="btn btn-primary pull-right">Preview</button>
-      </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Thresholds</label>
+    <label class="col-sm-1 control-label">Warning</label>
+    <div class="col-sm-1">
+      <input type="text" class="form-control" data-json-type="Number" name="warningThreshold" value="{{.Warning}}">
     </div>
-    <div class="col-sm-6">
-      <img id="js-preview-img" class="img-responsive" src="">
+    <label class="col-sm-1 control-label">Error</label>
+    <div class="col-sm-1">
+      <input type="text" class="form-control" data-json-type="Number" name="errorThreshold" value="{{.Error}}">
+    </div>
+    <label class="col-sm-1 control-label">Critical</label>
+    <div class="col-sm-1">
+      <input type="text" class="form-control" data-json-type="Number" name="criticalThreshold" value="{{.Critical}}">
+    </div>
+    <label class="col-sm-1 control-label" for="url">Graphite</label>
+    <div class="col-sm-3">
+      <select class="form-control" name="url">
+        {{range .DataSources}}
+          <option value="{{.}}" {{if strEq $.Url .}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
     </div>
   </div>
-{{end}}
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="checkPeriod">Check every</label>
+    <div class="col-sm-2">
+      <input type="number" min="1" class="form-control" name="checkPeriod" data-json-type="Number" value="{{.CheckPeriod}}" placeholder="5">
+    </div>
+    <div class="col-sm-2">
+      <select class="form-control" name="checkPeriodType">
+        <option value="second" {{if strEq .CheckPeriodType "second"}}selected{{end}}>Second(s)</option>
+        <option value="minute" {{if strEq .CheckPeriodType "minute"}}selected{{end}}>Minute(s)</option>
+        <option value="hour" {{if strEq .CheckPeriodType "hour"}}selected{{end}}>Hour(s)</option>
+        <option value="day" {{if strEq .CheckPeriodType "day"}}selected{{end}}>Day(s)</option>
+      </select>
+    </div>
+    <label class="col-sm-2 sentence-label control-label" for="auditFunction">and trigger if the</label>
+    <div class="col-sm-2">
+      <select class="form-control" name="auditFunction">
+        <option value="min" {{if strEq .AuditFunction "min"}}selected{{end}}>Min</option>
+        <option value="max" {{if strEq .AuditFunction "max"}}selected{{end}}>Max</option>
+        <option value="avg" {{if strEq .AuditFunction "avg"}}selected{{end}}>Avg</option>
+      </select>
+    </div>
+    <label class="col-sm-1 control-label" for="alertPeriod">of the last</label>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-2">
+      <input type="number" min="1" class="form-control" name="auditPeriod" data-json-type="Number" value="{{.AuditPeriod}}" placeholder="5">
+    </div>
+    <div class="col-sm-2">
+      <select class="form-control" name="auditPeriodType">
+        <option value="second" {{if strEq .AuditPeriodType "second"}}selected{{end}}>Second(s)</option>
+        <option value="minute" {{if strEq .AuditPeriodType "minute"}}selected{{end}}>Minute(s)</option>
+        <option value="hour" {{if strEq .AuditPeriodType "hour"}}selected{{end}}>Hour(s)</option>
+        <option value="day" {{if strEq .AuditPeriodType "day"}}selected{{end}}>Day(s)</option>
+      </select>
+    </div>
+    <label class="col-sm-3 sentence-label control-label" for="triggerIf">of values from Graphite was</label>
+    <div class="col-sm-1">
+      <select class="form-control" name="triggerIf">
+        <option value="<" {{if strEq .TriggerIf "<"}}selected{{end}}>&lt;</option>
+        <option value="<=" {{if strEq .TriggerIf "<="}}selected{{end}}>&lt;=</option>
+        <option value=">" {{if strEq .TriggerIf ">"}}selected{{end}}>&gt;</option>
+        <option value=">=" {{if strEq .TriggerIf ">="}}selected{{end}}>&gt;=</option>
+      </select>
+    </div>
+    <label class="col-sm-2 sentence-label control-label">the threshold</label>
+  </div>
+</div>
+<div id="js-preview" class="form-group">
+  <div class="col-sm-offset-2 col-sm-4">
+    <div class="form-group">
+      <div class="col-sm-1">
+        <input type="radio" name="previewPeriod" value="last" checked>
+      </div>
+      <label class="col-sm-2 control-label">Last</label>
+      <div class="col-sm-4">
+        <input type="number" min="1" class="form-control js-last-period" name="lastPeriod" data-json-type="Number" value="1">
+      </div>
+      <div class="col-sm-5">
+        <select class="form-control js-last-period" name="lastPeriodType">
+          <option value="s">Second(s)</option>
+          <option value="min">Minute(s)</option>
+          <option value="h">Hour(s)</option>
+          <option value="d" selected>Day(s)</option>
+          <option value="w">Week(s)</option>
+          <option value="mon">Month(s)</option>
+          <option value="y">Year(s)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-1">
+        <input type="radio" name="previewPeriod" value="range">
+      </div>
+      <label class="col-sm-2 control-label">From</label>
+      <div id="js-datetimepicker-from" class="col-sm-9 input-group date">
+        <input type="text" class="form-control js-range-period" name="rangeFrom" disabled>
+        <span class="input-group-addon">
+          <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-3 control-label">Until</label>
+      <div id="js-datetimepicker-until" class="col-sm-9 input-group date">
+        <input type="text" class="form-control js-range-period" name="rangeUntil" disabled>
+        <span class="input-group-addon">
+          <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <button id="js-preview-btn" class="btn btn-primary pull-right">Preview</button>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <img id="js-preview-img" class="img-responsive" src="">
+  </div>
+</div>

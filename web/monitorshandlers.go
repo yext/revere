@@ -25,7 +25,6 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 		}
 		err = executeTemplate(w, "monitors-index.html",
 			map[string]interface{}{
-				"Title":       "Monitors",
 				"Monitors":    m,
 				"Breadcrumbs": vm.MonitorIndexBcs(),
 			})
@@ -54,7 +53,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		renderable := renderables.NewMonitorView(viewmodel)
-		err = render(w, renderable, "Monitors")
+		err = render(w, renderable)
 
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
@@ -80,7 +79,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 
 		renderable := renderables.NewMonitorEdit(viewmodel)
-		err = render(w, renderable, "Monitors")
+		err = render(w, renderable)
 
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
@@ -177,7 +176,7 @@ func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Pa
 
 	pe := renderables.NewProbeEdit(probe)
 
-	tmpl, err := renderPartial(pe)
+	tmpl, err := renderables.RenderPartial(pe)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 			http.StatusInternalServerError)
@@ -211,7 +210,7 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 
 	te := renderables.NewTargetEdit(target)
 
-	tmpl, err := renderPartial(te)
+	tmpl, err := renderables.RenderPartial(te)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)
@@ -263,7 +262,6 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 
 		err = executeTemplate(w, "subprobes-index.html",
 			map[string]interface{}{
-				"Title":       "Monitors",
 				"Subprobes":   s,
 				"MonitorName": monitorName,
 				"Breadcrumbs": vm.SubprobeIndexBcs(monitorName, monitorId),
@@ -325,7 +323,6 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 
 		err = executeTemplate(w, "subprobes-view.html",
 			map[string]interface{}{
-				"Title":       "Monitors",
 				"Readings":    readings,
 				"Subprobe":    s,
 				"MonitorName": s.MonitorName,

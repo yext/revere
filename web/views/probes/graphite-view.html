@@ -1,54 +1,52 @@
-{{with .Data}}
-  <h4>Probe - {{.ProbeType.Name}}</h4>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-sm-2 field-label">Graphite Expression</div>
-      <div class="col-sm-10">{{.Expression}}</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 field-label">Graphite Url</div>
-      <div class="col-sm-10">{{.Url}}</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 field-label">Check Every</div>
-      <div class="col-sm-10">{{.CheckPeriod}} {{.CheckPeriodType}}(s)</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 field-label">Calculates</div>
-      <div class="col-sm-10">{{.AuditFunction}}</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 field-label">Over Past</div>
-      <div class="col-sm-10">{{.AuditPeriod}} {{.AuditPeriodType}}</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 field-label">Triggers if</div>
-      <div class="col-sm-10">Graphite Values {{.TriggerIf}} Thresholds</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 field-label">Thresholds</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12">
-        <div class="row">
-          <div class="col-sm-2">
-            <div class="col-sm-11 col-offset-1 field-label">Warning</div>
-          </div>
-          <div class="col-sm-10">{{.Warning}}</div>
+<h4>Probe - {{.ProbeType.Name}}</h4>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-2 field-label">Graphite Expression</div>
+    <div class="col-sm-10">{{.Expression}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 field-label">Graphite Url</div>
+    <div class="col-sm-10">{{.Url}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 field-label">Check Every</div>
+    <div class="col-sm-10">{{.CheckPeriod}} {{.CheckPeriodType}}(s)</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 field-label">Calculates</div>
+    <div class="col-sm-10">{{.AuditFunction}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 field-label">Over Past</div>
+    <div class="col-sm-10">{{.AuditPeriod}} {{.AuditPeriodType}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 field-label">Triggers if</div>
+    <div class="col-sm-10">Graphite Values {{.TriggerIf}} Thresholds</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 field-label">Thresholds</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="row">
+        <div class="col-sm-2">
+          <div class="col-sm-11 col-offset-1 field-label">Warning</div>
         </div>
-        <div class="row">
-          <div class="col-sm-2">
-            <div class="col-sm-11 col-offset-1 field-label">Error</div>
-          </div>
-          <div class="col-sm-10">{{.Error}}</div>
+        <div class="col-sm-10">{{.Warning}}</div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2">
+          <div class="col-sm-11 col-offset-1 field-label">Error</div>
         </div>
-        <div class="row">
-          <div class="col-sm-2">
-            <div class="col-sm-11 col-offset-1 field-label">Critical</div>
-          </div>
-          <div class="col-sm-10">{{.Critical}}</div>
+        <div class="col-sm-10">{{.Error}}</div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2">
+          <div class="col-sm-11 col-offset-1 field-label">Critical</div>
         </div>
+        <div class="col-sm-10">{{.Critical}}</div>
       </div>
     </div>
   </div>
-{{end}}
+</div>
