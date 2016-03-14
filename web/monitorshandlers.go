@@ -149,7 +149,7 @@ func loadViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 		return nil, err
 	}
 	if monitor == nil {
-		return nil, err
+		return nil, fmt.Errorf("Error loading monitor with id: %d", id)
 	}
 
 	viewmodel, err := vm.NewMonitor(monitor)

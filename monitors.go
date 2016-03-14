@@ -84,14 +84,15 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 		if err != nil {
 			return nil, err
 		}
+
+		m.Triggers, err = LoadMonitorTriggers(db, id)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	m.Triggers, err = LoadMonitorTriggers(db, id)
-	if err != nil {
 		return nil, err
 	}
 
