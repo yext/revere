@@ -29,16 +29,15 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="col-sm-2 control-label" for="subprobes">Subprobes</label>
-      <div class="col-sm-4">
-        <input type="text" class="form-control" name="subprobes" value="{{.Subprobes}}">
-      </div>
-      <div class="col-sm-4">
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" name="triggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}> Notify on de-escalation
-          </label>
+      {{if hasField . "Subprobes"}}
+        <label class="col-sm-2 control-label" for="subprobes">Subprobes</label>
+        <div class="col-sm-4">
+          <input type="text" class="form-control" name="subprobes" value="{{.Subprobes}}">
         </div>
+      {{end}}
+      <label class="col-sm-2 control-label" for="triggerOnExit">Notify on de-escalation</label>
+      <div class="checkbox col-sm-1">
+        <input type="checkbox" name="triggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}>
       </div>
     </div>
     <div class="form-group">

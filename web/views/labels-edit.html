@@ -1,0 +1,55 @@
+{{template "_header.html" .}}
+{{with .Data}}
+  <h1>{{if .Name}}Edit{{else}}New{{end}} Label</h1>
+  <div id="js-errors">
+    <div class="js-error alert alert-danger hidden"></div>
+  </div>
+  <form id="js-label-form" action="/labels/new/edit" class="form-horizontal" method="POST">
+    {{/* Label Info */}}
+    <div id="js-label-info">
+      <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.Id}}">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="name">Name</label>
+        <div class="col-sm-10">
+          <input id="name" type="text" class="form-control" name="name" value="{{.Name}}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="description">Description</label>
+        <div class="col-sm-10">
+          <textarea id="description" class="form-control" rows="4" name="description">{{.Description}}</textarea>
+        </div>
+      </div>
+    </div>
+    {{/* Triggers */}}
+    <h2>Triggers</h2>
+    <div id="triggers">
+      {{with .Triggers}}
+        {{range .}}
+          {{template "_triggers.html" .}}
+        {{end}}
+      {{else}}
+        <h4>There are no triggers associated with this label</h4>
+      {{end}}
+      <div class="form-group">
+        <button id="js-add-trigger" class="btn btn-default">+ Add</button>
+      </div>
+    </div>
+    {{/* Monitors */}}
+    <h2>Monitors</h2>
+    <div id="monitors" class="js-monitors">
+      {{if .Monitors}}
+        {{template "_label-monitors.html" .}}
+      {{else}}
+        <h4>There are no monitors associated with this label</h4>
+      {{end}}
+      <div class="form-group">
+        <button id="js-add-monitor" class="btn btn-default">+ Add</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <input type="submit" class="btn-lg btn-success" value="Save">
+    </div>
+  </form>
+{{end}}
+{{template "_footer.html" .}}

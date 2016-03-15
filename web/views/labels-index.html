@@ -1,0 +1,20 @@
+{{template "_header.html" .}}
+<div class="index-headers">
+  <h1 class="index-header">Labels</h1>
+  <a href="/labels/new/edit" class="btn btn-success new-btn">+ new</a>
+</div>
+<div>
+  <div class="revere-row">
+    <div class="col-md-3">Name</div>
+    <div class="col-md-9">Description</div>
+  </div>
+  {{range .Labels}}
+    <div class="revere-row">
+      <div class="col-md-3">
+          <a href="/labels/{{.Id}}">{{.Name}}</a>
+      </div>
+      <div class="col-md-9">{{.Description}}</div>
+    </div>
+  {{end}}
+</div>
+{{template "_footer.html"}}
