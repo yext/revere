@@ -51,10 +51,11 @@ func addScripts(addl []string, current template.HTML) template.HTML {
 }
 
 func AppendDir(dir string, scripts []string) []string {
+	result := make([]string, len(scripts))
 	for i, script := range scripts {
-		scripts[i] = path.Join(dir, script)
+		result[i] = path.Join(dir, script)
 	}
-	return scripts
+	return result
 }
 
 func newScript(script string) template.HTML {
