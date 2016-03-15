@@ -35,6 +35,14 @@ func SilencesViewBcs(id uint, mn string) []Breadcrumb {
 	return append(SilencesIndexBcs(), Breadcrumb{fmt.Sprintf("Silence for %s", mn), fmt.Sprintf("/silences/%d", id)})
 }
 
+func LabelIndexBcs() []Breadcrumb {
+	return []Breadcrumb{Breadcrumb{"Labels", "/labels"}}
+}
+
+func LabelViewBcs(mn string, id uint) []Breadcrumb {
+	return append(LabelIndexBcs(), Breadcrumb{mn, fmt.Sprintf("/labels/%d", id)})
+}
+
 func IsLastBc(a []Breadcrumb, i int) bool {
 	return i == len(a)-1
 }

@@ -95,6 +95,64 @@ func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson, &t.Subprobes); err != nil {
 		return nil, err
 	}
+	//TODO(psingh): Move into view monitor
+	t.Level = States(level)
+	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
+
+	targetType, err = targets.TargetTypeById(t.TargetType)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Target, err = targetType.Load(t.TargetJson)
+	if err != nil {
+		return nil, err
+	}
+
+	t.TargetTemplate, err = t.Target.Render()
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
+}
+
+func LoadLabelTriggers(db *sql.DB, labelId uint) (triggers []*LabelTrigger, err error) {
+	rows, err := db.Query(
+		fmt.Sprintf(`
+			SELECT %s FROM triggers t JOIN label_triggers lt ON t.id = lt.trigger_id
+				WHERE lt.label_id = %d
+			`, allTriggerLoadFields, labelId))
+	if err != nil {
+		return nil, err
+	}
+	triggers = make([]*LabelTrigger, 0)
+	for rows.Next() {
+		t, err := loadLabelTriggerFromRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		triggers = append(triggers, t)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return triggers, nil
+}
+
+func loadLabelTriggerFromRow(rows *sql.Rows) (*LabelTrigger, error) {
+	var (
+		t          LabelTrigger
+		err        error
+		level      State
+		targetType targets.TargetType
+		periodMs   int64
+	)
+	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson); err != nil {
+		return nil, err
+	}
+	//TODO(psingh): Move into view monitor
 	t.Level = States(level)
 	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
 

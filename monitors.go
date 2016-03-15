@@ -3,7 +3,6 @@ package revere
 import (
 	"database/sql"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/yext/revere/probes"
@@ -108,6 +107,18 @@ func loadMonitorFromRow(rows *sql.Rows) (*Monitor, error) {
 	return &m, nil
 }
 
+func isExistingMonitor(db *sql.DB, id uint) (exists bool) {
+	if id == 0 {
+		return false
+	}
+
+	err := db.QueryRow("SELECT EXISTS (SELECT * FROM monitors WHERE id = ?)", id).Scan(&exists)
+	if err != nil {
+		return false
+	}
+	return
+}
+
 func (m *Monitor) Save(db *sql.DB) (err error) {
 	var tx *sql.Tx
 	tx, err = db.Begin()
@@ -189,11 +200,9 @@ func (m *Monitor) update(tx *sql.Tx) error {
 }
 
 func (mt *MonitorTrigger) Validate() (errs []string) {
-	// Ensure subprobe is a valid regex
-	if _, err := regexp.Compile(mt.Subprobes); err != nil {
-		errs = append(errs, fmt.Sprintf("Invalid subprobes: %s", err.Error()))
+	if err := validateSubprobes(mt.Subprobes); err != nil {
+		errs = append(errs, err.Error())
 	}
-
 	errs = append(errs, mt.Trigger.Validate()...)
 	return
 }

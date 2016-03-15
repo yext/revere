@@ -45,7 +45,7 @@ func MonitorsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		viewmodel, err := loadViewModel(db, id)
+		viewmodel, err := loadMonitorViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -67,11 +67,11 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		if id == "" {
-			http.Error(w, fmt.Sprintf("Monitor not found: %s", id), http.StatusNotFound)
+			http.Error(w, "Monitor not found", http.StatusNotFound)
 			return
 		}
 
-		viewmodel, err := loadViewModel(db, id)
+		viewmodel, err := loadMonitorViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -130,7 +130,7 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	}
 }
 
-func loadViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
+func loadMonitorViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 	if unparsedId == "new" {
 		viewmodel, err := vm.BlankMonitor()
 		if err != nil {

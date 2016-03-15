@@ -34,6 +34,7 @@ func init() {
 	tmpl.AddDefaultFunc("isLastBc", vm.IsLastBc)
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
+	tmpl.AddDefaultFunc("hasField", tmpl.HasField)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("probes", probes.AllProbes)
 	tmpl.SetPartialsLocation(partials)
@@ -41,6 +42,7 @@ func init() {
 	functions["isLastBc"] = vm.IsLastBc
 	functions["setTitle"] = tmpl.SetTitle
 	functions["strEq"] = tmpl.StrEq
+	functions["hasField"] = tmpl.HasField
 	functions["targets"] = targets.AllTargets
 	functions["probes"] = probes.AllProbes
 }

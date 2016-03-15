@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 )
 
@@ -115,4 +116,15 @@ func StrEq(a, b interface{}) bool {
 		return true
 	}
 	return false
+}
+
+func HasField(v interface{}, name string) bool {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		return false
+	}
+	return rv.FieldByName(name).IsValid()
 }
