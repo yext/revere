@@ -49,19 +49,19 @@ func RenderPartial(r Renderable) (template.HTML, error) {
 }
 
 func renderPropogate(r Renderable) (*renderResult, error) {
-	result := newRenderResult(r)
+	parent := newRenderResult(r)
 
 	for _, subrenderable := range r.subRenderables() {
-		renderResult, err := subrenderable.renderPropogate()
+		child, err := subrenderable.renderPropogate()
 		if err != nil {
 			return nil, err
 		}
 
-		result.addSubRender(renderResult)
-		r.aggregatePipelineData(result, renderResult)
+		parent.addSubRender(child)
+		r.aggregatePipelineData(parent, child)
 	}
 
-	return result, nil
+	return parent, nil
 }
 
 func renderPropogateImmediate(r Renderable) (*renderResult, error) {
@@ -101,10 +101,13 @@ func aggregatePipelineDataMap(parent *renderResult, child *renderResult) {
 }
 
 func aggregatePipelineDataArray(parent *renderResult, child *renderResult) {
-	if parent.data["_Array"] == nil {
+	if _, ok := parent.data["_Array"]; !ok {
 		parent.data["_Array"] = []interface{}{}
 	}
-	array := parent.data["_Array"].([]interface{})
+	array, ok := parent.data["_Array"].([]interface{})
+	if !ok {
+		panic("Non-array value found in \"_Array\" field of renderResult")
+	}
 	array = append(array, child.data)
 }
 
