@@ -33,7 +33,7 @@ func (pe *ProbeEdit) template() string {
 }
 
 func (pe *ProbeEdit) data() interface{} {
-	return pe.viewmodel.Probe
+	return pe.viewmodel
 }
 
 func (pe *ProbeEdit) scripts() []string {

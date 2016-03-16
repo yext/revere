@@ -3,6 +3,7 @@ package probes
 import (
 	"encoding/json"
 
+	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/util"
 )
 
@@ -36,6 +37,9 @@ var (
 		"edit": []string{
 			"graphite-preview.js",
 		},
+	}
+	AcceptedDataSourceTypes = []datasources.DataSourceTypeId{
+		datasources.GraphiteDataSource{}.Id(),
 	}
 
 	// All graphite datasources found in the conf file
@@ -74,6 +78,10 @@ func (gt GraphiteThreshold) Templates() map[string]string {
 
 func (gt GraphiteThreshold) Scripts() map[string][]string {
 	return scripts
+}
+
+func (g GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
+	return AcceptedDataSourceTypes
 }
 
 func (g GraphiteThresholdProbe) ProbeType() ProbeType {

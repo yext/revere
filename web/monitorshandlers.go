@@ -163,38 +163,40 @@ func loadMonitorViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 	return viewmodel, nil
 }
 
-func LoadProbeTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-	pt, err := strconv.Atoi(p.ByName("probeType"))
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Probe type not found: %s", p.ByName("probeType")), http.StatusNotFound)
-		return
+func LoadProbeTemplate(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		pt, err := strconv.Atoi(p.ByName("probeType"))
+
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Probe type not found: %s", p.ByName("probeType")), http.StatusNotFound)
+			return
+		}
+
+		probe, err := vm.BlankProbe(db, pt)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		pe := renderables.NewProbeEdit(probe)
+
+		tmpl, err := renderables.RenderPartial(pe)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		template, err := json.Marshal(map[string]template.HTML{"template": tmpl})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(template)
 	}
-
-	probe, err := vm.BlankProbe(pt)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	pe := renderables.NewProbeEdit(probe)
-
-	tmpl, err := renderables.RenderPartial(pe)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	template, err := json.Marshal(map[string]template.HTML{"template": tmpl})
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(template)
 }
 
 func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.Params) {

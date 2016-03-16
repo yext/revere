@@ -1,3 +1,4 @@
+{{with .Probe}}
 <div id="js-graphite-threshold">
   <div class="form-group">
     <label class="col-sm-2 control-label" for="expression">Graphite expression</label>
@@ -22,8 +23,8 @@
     <label class="col-sm-1 control-label" for="url">Graphite</label>
     <div class="col-sm-3">
       <select class="form-control" name="url">
-        {{range .DataSources}}
-          <option value="{{.}}" {{if strEq $.Url .}}selected{{end}}>{{.}}</option>
+        {{range $.DataSourceInfo.Graphite}}
+          <option value="{{.Url}}" {{if strEq $.Probe.Url .Url}}selected{{end}}>{{.Url}}</option>
         {{end}}
       </select>
     </div>
@@ -127,3 +128,4 @@
     <img id="js-preview-img" class="img-responsive" src="">
   </div>
 </div>
+{{end}}

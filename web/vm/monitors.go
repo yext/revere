@@ -50,7 +50,10 @@ func newMonitorFromModel(db *sql.DB, m *revere.Monitor) (*Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	viewmodel.Probe = NewProbe(probe)
+	viewmodel.Probe, err = NewProbe(db, probe)
+	if err != nil {
+		return nil, err
+	}
 
 	return viewmodel, nil
 }
@@ -79,7 +82,7 @@ func BlankMonitor(db *sql.DB) (*Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	viewmodel.Probe = DefaultProbe()
+	viewmodel.Probe = DefaultProbe(db)
 
 	return viewmodel, nil
 }

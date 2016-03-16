@@ -1,0 +1,21 @@
+{{template "_header.html" setTitle . "Data Sources"}}
+    <div class="index-header">
+        <h1 class="index-header">Data Sources</h1>
+    </div>
+  <div id="js-errors">
+    <div class="js-error alert alert-danger hidden"></div>
+  </div>
+    <div>
+    <form id="js-datasources-form" method="post" action="/datasources">
+        {{range ._Array}}
+            <div>
+                {{._Render}}
+            </div>
+        {{end}}
+        <br/>
+        <div class="form-group">
+            <input type="submit" class="btn-lg btn-success" value="Save">
+        </div>
+    </form>
+    </div>
+{{template "_footer.html" .}}
