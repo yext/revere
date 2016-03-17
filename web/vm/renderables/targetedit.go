@@ -50,8 +50,8 @@ func (te *TargetEdit) subRenderables() []Renderable {
 	return te.subs
 }
 
-func (te *TargetEdit) renderPropogate() (*renderResult, error) {
-	return renderPropogateImmediate(te)
+func (te *TargetEdit) renderPropagate() (*renderResult, error) {
+	return renderPropagateImmediate(te)
 }
 
 func (te *TargetEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {

@@ -18,7 +18,7 @@ type Renderable interface {
 	breadcrumbs() []vm.Breadcrumb
 	subRenderables() []Renderable
 
-	renderPropogate() (*renderResult, error)
+	renderPropagate() (*renderResult, error)
 	aggregatePipelineData(*renderResult, *renderResult)
 }
 
@@ -31,7 +31,7 @@ type renderResult struct {
 }
 
 func Render(w io.Writer, r Renderable) error {
-	result, err := r.renderPropogate()
+	result, err := r.renderPropagate()
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func Render(w io.Writer, r Renderable) error {
 }
 
 func RenderPartial(r Renderable) (template.HTML, error) {
-	result, err := renderPropogateImmediate(r)
+	result, err := renderPropagateImmediate(r)
 	if err != nil {
 		return "", err
 	}
@@ -48,11 +48,11 @@ func RenderPartial(r Renderable) (template.HTML, error) {
 	return template.HTML(fmt.Sprintf("%s", result.data["_Render"])), nil
 }
 
-func renderPropogate(r Renderable) (*renderResult, error) {
+func renderPropagate(r Renderable) (*renderResult, error) {
 	parent := newRenderResult(r)
 
 	for _, subrenderable := range r.subRenderables() {
-		child, err := subrenderable.renderPropogate()
+		child, err := subrenderable.renderPropagate()
 		if err != nil {
 			return nil, err
 		}
@@ -64,8 +64,8 @@ func renderPropogate(r Renderable) (*renderResult, error) {
 	return parent, nil
 }
 
-func renderPropogateImmediate(r Renderable) (*renderResult, error) {
-	result, err := renderPropogate(r)
+func renderPropagateImmediate(r Renderable) (*renderResult, error) {
+	result, err := renderPropagate(r)
 	if err != nil {
 		return nil, err
 	}

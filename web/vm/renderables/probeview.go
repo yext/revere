@@ -50,8 +50,8 @@ func (pv *ProbeView) subRenderables() []Renderable {
 	return pv.subs
 }
 
-func (pv *ProbeView) renderPropogate() (*renderResult, error) {
-	return renderPropogateImmediate(pv)
+func (pv *ProbeView) renderPropagate() (*renderResult, error) {
+	return renderPropagateImmediate(pv)
 }
 
 func (pv *ProbeView) aggregatePipelineData(parent *renderResult, child *renderResult) {

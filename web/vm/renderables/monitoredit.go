@@ -47,8 +47,8 @@ func (me *MonitorEdit) subRenderables() []Renderable {
 	return me.subs
 }
 
-func (me *MonitorEdit) renderPropogate() (*renderResult, error) {
-	return renderPropogate(me)
+func (me *MonitorEdit) renderPropagate() (*renderResult, error) {
+	return renderPropagate(me)
 }
 
 func (me *MonitorEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {

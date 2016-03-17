@@ -50,8 +50,8 @@ func (pe *ProbeEdit) subRenderables() []Renderable {
 	return pe.subs
 }
 
-func (pe *ProbeEdit) renderPropogate() (*renderResult, error) {
-	return renderPropogateImmediate(pe)
+func (pe *ProbeEdit) renderPropagate() (*renderResult, error) {
+	return renderPropagateImmediate(pe)
 }
 
 func (pe *ProbeEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {

@@ -43,8 +43,8 @@ func (mv *MonitorView) subRenderables() []Renderable {
 	return mv.subs
 }
 
-func (mv *MonitorView) renderPropogate() (*renderResult, error) {
-	return renderPropogate(mv)
+func (mv *MonitorView) renderPropagate() (*renderResult, error) {
+	return renderPropagate(mv)
 }
 
 func (mv *MonitorView) aggregatePipelineData(parent *renderResult, child *renderResult) {
