@@ -12,7 +12,7 @@ var labelsEdit = function() {
   };
 
   var initLabelTriggers = function() {
-    // triggerEdit.init();
+    triggersEdit.init();
   };
 
   var initLabelMonitors = function() {
@@ -92,11 +92,10 @@ var labelsEdit = function() {
       var $form = $(this);
       var url = $form.attr('action');
 
-      // TODO(psingh): Add monitor and trigger data
       data = $.extend(
         getLabelData(),
-        {"monitors": getLabelMonitorData()}
-        // TODO(psingh): Triggers
+        {'monitors': getLabelMonitorData()},
+        {'triggers': triggersEdit.getData()}
       );
 
       $.ajax({
@@ -138,11 +137,6 @@ var labelsEdit = function() {
       data.push($(this).find(':input').serializeObject());
     });
     return data;
-  };
-
-  var getLabelTriggerData = function() {
-    //FIXME(psingh): Use same function thats in monitors-edit
-    return $('#js-trigger-info').find(':input').serializeObject();
   };
 
   return le;

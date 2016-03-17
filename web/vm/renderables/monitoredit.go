@@ -34,6 +34,7 @@ func (me *MonitorEdit) data() interface{} {
 func (me *MonitorEdit) scripts() []string {
 	return []string{
 		"revere.js",
+		"triggers-edit.js",
 		"monitors-edit.js",
 		"targets/email.js",
 	}

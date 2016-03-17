@@ -1,5 +1,5 @@
-{{template "_header.html" .}}
-{{with .Data}}
+{{template "_header.html" setTitle . "Labels"}}
+{{with ._}}
   <h1>{{if .Name}}Edit{{else}}New{{end}} Label</h1>
   <div id="js-errors">
     <div class="js-error alert alert-danger hidden"></div>

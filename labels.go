@@ -9,20 +9,20 @@ type Label struct {
 	Id          uint            `json:"id,omitempty"`
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
-	Triggers    []*LabelTrigger `json:"triggers"`
+	Triggers    []*LabelTrigger `json:"triggers,omitempty"`
 	Monitors    []*LabelMonitor `json:"monitors,omitempty"`
 }
 
 type LabelMonitor struct {
 	Subprobes string `json:"subprobes"`
 	Monitor
-	Create bool `json:"create"`
-	Delete bool `json:"delete"`
+	Create bool `json:"create,omitempty"`
+	Delete bool `json:"delete,omitempty"`
 }
 
 type LabelTrigger struct {
 	Trigger
-	Delete bool `json:"delete"`
+	Delete bool `json:"delete,omitempty"`
 }
 
 const (

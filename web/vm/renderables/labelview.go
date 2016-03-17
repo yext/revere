@@ -40,8 +40,8 @@ func (lv *LabelView) subRenderables() []Renderable {
 	return lv.subs
 }
 
-func (lv *LabelView) renderPropogate() (*renderResult, error) {
-	return renderPropogate(lv)
+func (lv *LabelView) renderPropagate() (*renderResult, error) {
+	return renderPropagate(lv)
 }
 
 func (lv *LabelView) aggregatePipelineData(parent *renderResult, child *renderResult) {

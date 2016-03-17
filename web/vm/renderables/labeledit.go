@@ -33,6 +33,8 @@ func (le *LabelEdit) data() interface{} {
 func (le *LabelEdit) scripts() []string {
 	return []string{
 		"revere.js",
+		"targets/email.js",
+		"triggers-edit.js",
 		"labels-edit.js",
 	}
 }
@@ -45,8 +47,8 @@ func (le *LabelEdit) subRenderables() []Renderable {
 	return le.subs
 }
 
-func (le *LabelEdit) renderPropogate() (*renderResult, error) {
-	return renderPropogate(le)
+func (le *LabelEdit) renderPropagate() (*renderResult, error) {
+	return renderPropagate(le)
 }
 
 func (le *LabelEdit) aggregatePipelineData(parent *renderResult, child *renderResult) {

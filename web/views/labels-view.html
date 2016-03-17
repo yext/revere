@@ -1,5 +1,5 @@
-{{template "_header.html" .}}
-{{with .Data}}
+{{template "_header.html" setTitle . "Labels"}}
+{{with ._}}
   <h1>{{.Name}}</h1>
   <h4>Description:</h4>
   <p>{{.Description}}</p>
