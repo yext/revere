@@ -14,10 +14,10 @@ type Label struct {
 }
 
 type LabelMonitor struct {
-	Subprobes string `json:"subprobes"`
 	Monitor
-	Create bool `json:"create,omitempty"`
-	Delete bool `json:"delete,omitempty"`
+	Subprobes string `json:"subprobes"`
+	Create    bool   `json:"create,omitempty"`
+	Delete    bool   `json:"delete,omitempty"`
 }
 
 type LabelTrigger struct {
@@ -109,6 +109,20 @@ func LoadLabelMonitors(db *sql.DB, labelId uint) ([]*LabelMonitor, error) {
 		return nil, err
 	}
 	return labelMonitors, nil
+}
+
+// TODO(psingh): Perhaps we want to package these up into one function
+// and call with something that implements a "Model" interface which has a tableName()
+func isExistingLabel(db *sql.DB, id uint) (exists bool) {
+	if id == 0 {
+		return false
+	}
+
+	err := db.QueryRow("SELECT EXISTS (SELECT * FROM labels WHERE id = ?)", id).Scan(&exists)
+	if err != nil {
+		return false
+	}
+	return
 }
 
 func (l *Label) Validate(db *sql.DB) (errs []string) {

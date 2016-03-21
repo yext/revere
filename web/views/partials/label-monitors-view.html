@@ -1,0 +1,16 @@
+{{with ._}}
+  <div class="revere-row">
+    <div class="col-md-3">Name</div>
+    <div class="col-md-3">Subprobes</div>
+    <div class="col-md-6">Description</div>
+  </div>
+  {{range .Components}}
+    <div class="revere-row">
+      <div class="col-md-3"><a href="/{{$._.ComponentName}}/{{.Id}}">{{.Name}}</a></div>
+      <div class="col-md-3">{{with .Subprobes}}{{.}}{{else}}&lt;all&gt;{{end}}</div>
+      <div class="col-md-6">{{.Description}}</div>
+    </div>
+  {{else}}
+    <h4>There are no {{.ComponentName}} associated with this component.</h4>
+  {{end}}
+{{end}}

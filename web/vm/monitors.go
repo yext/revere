@@ -1,6 +1,9 @@
 package vm
 
 import (
+	"database/sql"
+	"fmt"
+
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 )
@@ -9,15 +12,25 @@ type Monitor struct {
 	*revere.Monitor
 	Probe    *Probe
 	Triggers []*Trigger
+	Labels   *MonitorLabels
 }
 
-func NewMonitor(m *revere.Monitor) (*Monitor, error) {
+func NewMonitor(db *sql.DB, id int) (*Monitor, error) {
+	m, err := revere.LoadMonitor(db, uint(id))
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return nil, fmt.Errorf("Error loading monitor with id: %d", id)
+	}
+
 	viewmodel := new(Monitor)
-
 	viewmodel.Monitor = m
-
-	var err error
 	viewmodel.Triggers, err = NewTriggersFromMonitorTriggers(m.Triggers)
+	if err != nil {
+		return nil, err
+	}
+	viewmodel.Labels, err = NewMonitorLabels(db, m.Labels)
 	if err != nil {
 		return nil, err
 	}
@@ -36,15 +49,17 @@ func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	return viewmodel, nil
 }
 
-func BlankMonitor() (*Monitor, error) {
+func BlankMonitor(db *sql.DB) (*Monitor, error) {
+	var err error
 	viewmodel := new(Monitor)
-
 	viewmodel.Monitor = new(revere.Monitor)
-
 	viewmodel.Triggers = []*Trigger{
 		BlankTrigger(),
 	}
-
+	viewmodel.Labels, err = BlankMonitorLabels(db)
+	if err != nil {
+		return nil, err
+	}
 	viewmodel.Probe = DefaultProbe()
 
 	return viewmodel, nil

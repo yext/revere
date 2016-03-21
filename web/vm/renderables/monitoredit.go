@@ -15,6 +15,7 @@ func NewMonitorEdit(m *vm.Monitor) *MonitorEdit {
 	me.subs = []Renderable{
 		NewProbeEdit(m.Probe),
 		NewTriggersEdit(m.Triggers),
+		NewLabelMonitorsEdit(m.Labels),
 	}
 	return &me
 }

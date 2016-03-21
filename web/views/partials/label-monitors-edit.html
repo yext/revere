@@ -1,0 +1,50 @@
+{{with ._}}
+  <div class="form-group revere-row">
+    <label class="col-sm-offset-1 col-sm-3">Name</label>
+    <label class="col-sm-3">Subprobes</label>
+    <label class="col-sm-5">Description</label>
+  </div>
+  <div class="form-group js-new-label-monitor hidden">
+    <input type="checkbox" class="form-control hide" name="create" data-json-type="Boolean" checked>
+    <div class="col-sm-1">
+      <button class="js-remove-new-label-monitor btn btn-default btn-block">x</button>
+    </div>
+    <div class="col-sm-3 name">
+      <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="id">
+        <option></option>
+        {{range .All}}
+          <option value="{{.Id}}" data-description="{{.Description}}">{{.Name}}</option>
+        {{end}}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <input type="text" class="form-control" name="subprobes" value="" placeholder="all">
+    </div>
+    <div class="col-sm-5">
+      <p class="description"></p>
+    </div>
+  </div>
+  {{range .Components}}
+    <div class="form-group js-label-monitor">
+      <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.Id}}">
+      <div class="col-sm-1">
+        <input type="checkbox" class="form-control hide" name="delete" data-json-type="Boolean">
+        <button class="js-remove-label-monitor btn btn-default btn-block">x</button>
+      </div>
+      <div class="col-sm-3">
+        <p>{{.Name}}</p>
+      </div>
+      <div class="col-sm-3">
+        <input type="text" class="form-control" name="subprobes" value="{{.Subprobes}}" placeholder="all">
+      </div>
+      <div class="col-sm-5">
+        <p>{{.Description}}</p>
+      </div>
+    </div>
+  {{else}}
+    <h4 class="js-empty-label-monitor">There are no {{$.ComponentName}} associated with this component</h4>
+  {{end}}
+  <div class="form-group">
+    <button id="js-add-label-monitor" class="btn btn-default">+ Add</button>
+  </div>
+{{end}}

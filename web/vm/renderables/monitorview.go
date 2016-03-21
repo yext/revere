@@ -15,6 +15,7 @@ func NewMonitorView(m *vm.Monitor) *MonitorView {
 	mv.subs = []Renderable{
 		NewProbeView(m.Probe),
 		NewTriggersView(m.Triggers),
+		NewLabelMonitorsView(m.Labels),
 	}
 	return &mv
 }

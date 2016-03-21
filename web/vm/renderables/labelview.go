@@ -14,6 +14,7 @@ func NewLabelView(l *vm.Label) *LabelView {
 	lv.viewmodel = l
 	lv.subs = []Renderable{
 		NewTriggersView(l.Triggers),
+		NewLabelMonitorsView(l.Monitors),
 	}
 	return &lv
 }

@@ -7,6 +7,7 @@ var monitorsEdit = function() {
 
   m.init = function() {
     triggersEdit.init();
+    labelMonitors.init();
     initProbe();
     initForm();
   };
@@ -38,7 +39,8 @@ var monitorsEdit = function() {
         data = $.extend(
           getMonitorData(),
           {'probe': JSON.stringify(getProbeData())},
-          {'triggers': triggersEdit.getData()}
+          {'triggers': triggersEdit.getData()},
+          {'labels': labelMonitors.getData()}
         );
       $.ajax({
         url: url,

@@ -28,15 +28,8 @@
     </div>
     {{/* Monitors */}}
     <h2>Monitors</h2>
-    <div id="monitors" class="js-monitors">
-      {{if .Monitors}}
-        {{template "label-monitors.html" .}}
-      {{else}}
-        <h4>There are no monitors associated with this label</h4>
-      {{end}}
-      <div class="form-group">
-        <button id="js-add-monitor" class="btn btn-default">+ Add</button>
-      </div>
+    <div id="monitors">
+      {{template "label-monitors-edit.html" $.LabelMonitors}}
     </div>
     <div class="form-group">
       <input type="submit" class="btn-lg btn-success" value="Save">

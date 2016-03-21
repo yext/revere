@@ -72,7 +72,7 @@ func LabelsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 
 		viewmodel, err := loadLabelViewModel(db, id)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+			http.Error(w, fmt.Sprintf("Unable to retrieve label: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
@@ -131,7 +131,7 @@ func LabelsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 
 func loadLabelViewModel(db *sql.DB, unparsedId string) (*vm.Label, error) {
 	if unparsedId == "new" {
-		viewmodel, err := vm.BlankLabel()
+		viewmodel, err := vm.BlankLabel(db)
 		if err != nil {
 			return nil, err
 		}
@@ -143,20 +143,7 @@ func loadLabelViewModel(db *sql.DB, unparsedId string) (*vm.Label, error) {
 		return nil, err
 	}
 
-	label, err := revere.LoadLabel(db, uint(id))
-	if err != nil {
-		return nil, err
-	}
-	if label == nil {
-		return nil, fmt.Errorf("Label not found")
-	}
-
-	allMonitors, err := revere.LoadMonitors(db)
-	if err != nil {
-		return nil, err
-	}
-
-	viewmodel, err := vm.NewLabel(label, allMonitors)
+	viewmodel, err := vm.NewLabel(db, id)
 	if err != nil {
 		return nil, err
 	}

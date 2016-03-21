@@ -98,7 +98,7 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 				http.StatusInternalServerError)
 			return
 		}
-		errs := m.Validate()
+		errs := m.Validate(db)
 		if errs != nil {
 			errors, err := json.Marshal(map[string][]string{"errors": errs})
 			if err != nil {
@@ -132,7 +132,7 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 func loadMonitorViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 	if unparsedId == "new" {
-		viewmodel, err := vm.BlankMonitor()
+		viewmodel, err := vm.BlankMonitor(db)
 		if err != nil {
 			return nil, err
 		}
@@ -144,15 +144,7 @@ func loadMonitorViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 		return nil, err
 	}
 
-	monitor, err := revere.LoadMonitor(db, uint(id))
-	if err != nil {
-		return nil, err
-	}
-	if monitor == nil {
-		return nil, fmt.Errorf("Error loading monitor with id: %d", id)
-	}
-
-	viewmodel, err := vm.NewMonitor(monitor)
+	viewmodel, err := vm.NewMonitor(db, id)
 	if err != nil {
 		return nil, err
 	}

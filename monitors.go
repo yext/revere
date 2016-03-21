@@ -20,6 +20,7 @@ type Monitor struct {
 	Version     int                `json:"-"`
 	Archived    *time.Time         `json:"-"` // nullable
 	Triggers    []*MonitorTrigger  `json:"triggers,omitempty"`
+	Labels      []*MonitorLabel    `json:"labels,omitempty"`
 }
 
 type MonitorTrigger struct {
@@ -28,12 +29,20 @@ type MonitorTrigger struct {
 	Delete    bool   `json:"delete,omitempty"`
 }
 
+type MonitorLabel struct {
+	Label
+	Subprobes string `json:"subprobes"`
+	Create    bool   `json:"create,omitempty"`
+	Delete    bool   `json:"delete,omitempty"`
+}
+
 const (
 	allMonitorFields        = "id, name, owner, description, response, probeType, probe, changed, version, archived"
 	allMonitorTriggerFields = "monitor_id, subprobe, trigger_id"
+	allMonitorLabelFields   = "l.Id, l.Name, l.Description, lm.Subprobes"
 )
 
-func (m *Monitor) Validate() (errs []string) {
+func (m *Monitor) Validate(db *sql.DB) (errs []string) {
 	if m.Name == "" {
 		errs = append(errs, fmt.Sprintf("Monitor name is required"))
 	}
@@ -50,6 +59,10 @@ func (m *Monitor) Validate() (errs []string) {
 
 	for _, mt := range m.Triggers {
 		errs = append(errs, mt.Validate()...)
+	}
+
+	for _, ml := range m.Labels {
+		errs = append(errs, ml.Validate(db)...)
 	}
 	return
 }
@@ -106,6 +119,7 @@ func LoadMonitor(db *sql.DB, id uint) (m *Monitor, err error) {
 			return nil, err
 		}
 
+		m.Labels, err = LoadMonitorLabels(db, id)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
@@ -122,6 +136,40 @@ func loadMonitorFromRow(rows *sql.Rows) (*Monitor, error) {
 	}
 
 	return &m, nil
+}
+
+func LoadMonitorLabels(db *sql.DB, monitorId uint) ([]*MonitorLabel, error) {
+	rows, err := db.Query(fmt.Sprintf(`
+		SELECT %s FROM labels l
+		JOIN labels_monitors lm on l.id=lm.label_id
+		WHERE lm.monitor_id = %d
+	`, allMonitorLabelFields, monitorId))
+	if err != nil {
+		return nil, err
+	}
+
+	monitorLabels := make([]*MonitorLabel, 0)
+	for rows.Next() {
+		ml, err := loadMonitorLabelsFromRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		monitorLabels = append(monitorLabels, ml)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return monitorLabels, nil
+}
+
+func loadMonitorLabelsFromRow(rows *sql.Rows) (*MonitorLabel, error) {
+	var ml MonitorLabel
+	if err := rows.Scan(&ml.Id, &ml.Name, &ml.Description, &ml.Subprobes); err != nil {
+		return nil, err
+	}
+
+	return &ml, nil
 }
 
 func isExistingMonitor(db *sql.DB, id uint) (exists bool) {
@@ -172,6 +220,13 @@ func (m *Monitor) Save(db *sql.DB) (err error) {
 			if err != nil {
 				return
 			}
+		}
+	}
+
+	for _, ml := range m.Labels {
+		err = ml.save(tx, m.Id)
+		if err != nil {
+			return
 		}
 	}
 	return
@@ -274,4 +329,72 @@ func (mt *MonitorTrigger) update(tx *sql.Tx, mId uint) error {
 func (mt *MonitorTrigger) delete(tx *sql.Tx) error {
 	// Trigger delete will cascade to monitor triggers
 	return mt.Trigger.delete(tx)
+}
+
+func (ml *MonitorLabel) Validate(db *sql.DB) (errs []string) {
+	if err := validateSubprobes(ml.Subprobes); err != nil {
+		errs = append(errs, err.Error())
+	}
+
+	if !isExistingLabel(db, ml.Id) {
+		errs = append(errs, fmt.Sprintf("Invalid label: %d", ml.Id))
+	}
+	return
+}
+
+func (ml *MonitorLabel) save(tx *sql.Tx, monitorId uint) (err error) {
+	if ml.Create {
+		return ml.create(tx, monitorId)
+	}
+	if ml.Delete {
+		return ml.delete(tx, monitorId)
+	}
+	return ml.update(tx, monitorId)
+}
+
+func (ml *MonitorLabel) create(tx *sql.Tx, monitorId uint) error {
+	stmt, err := tx.Prepare(
+		`INSERT INTO labels_monitors(monitor_id, label_id, subprobes) VALUES (?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(monitorId, ml.Id, ml.Subprobes)
+	if err != nil {
+		return err
+	}
+	return stmt.Close()
+}
+
+func (ml *MonitorLabel) update(tx *sql.Tx, monitorId uint) error {
+	stmt, err := tx.Prepare(`
+		UPDATE labels_monitors
+		SET subprobes=?
+		WHERE monitor_id=? AND label_id=?
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(ml.Subprobes, monitorId, ml.Id)
+	if err != nil {
+		return err
+	}
+	return stmt.Close()
+}
+
+func (ml *MonitorLabel) delete(tx *sql.Tx, monitorId uint) error {
+	stmt, err := tx.Prepare(`
+		DELETE FROM labels_monitors
+		WHERE monitor_id=? AND label_id=?
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(monitorId, ml.Id)
+	if err != nil {
+		return err
+	}
+	return stmt.Close()
 }

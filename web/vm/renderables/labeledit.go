@@ -14,6 +14,7 @@ func NewLabelEdit(l *vm.Label) *LabelEdit {
 	le.viewmodel = l
 	le.subs = []Renderable{
 		NewTriggersEdit(l.Triggers),
+		NewLabelMonitorsEdit(l.Monitors),
 	}
 	return &le
 }
