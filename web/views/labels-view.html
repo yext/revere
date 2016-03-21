@@ -4,24 +4,7 @@
   <h4>Description:</h4>
   <p>{{.Description}}</p>
   <h2>Triggers</h2>
-  {{with .Triggers}}
-    <div class="revere-row">
-      <div class="col-md-2">Trigger On Exit</div>
-      <div class="col-md-2">Period</div>
-      <div class="col-md-3">Target Type</div>
-      <div class="col-md-5">Target</div>
-    </div>
-    {{range .}}
-      <div class="revere-row">
-        <div class="col-md-2">{{.TriggerOnExit}}</div>
-        <div class="col-md-2">{{.Period}} {{.PeriodType}}</div>
-        <div class="col-md-3">{{.TargetType}}</div>
-        <div class="col-md-5">{{.Target}}</div>
-      </div>
-    {{end}}
-  {{else}}
-    <h4>There are no triggers associated with this label</h4>
-  {{end}}
+  {{template "triggers-view.html" $.Triggers}}
   <h2>Monitors</h2>
   {{with .Monitors}}
     <div class="revere-row">

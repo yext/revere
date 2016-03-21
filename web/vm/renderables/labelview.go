@@ -9,11 +9,13 @@ type LabelView struct {
 	subs      []Renderable
 }
 
-func NewLabelView(m *vm.Label) *LabelView {
-	mv := LabelView{}
-	mv.viewmodel = m
-	mv.subs = []Renderable{}
-	return &mv
+func NewLabelView(l *vm.Label) *LabelView {
+	lv := LabelView{}
+	lv.viewmodel = l
+	lv.subs = []Renderable{
+		NewTriggersView(l.Triggers),
+	}
+	return &lv
 }
 
 func (lv *LabelView) name() string {

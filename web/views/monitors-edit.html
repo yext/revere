@@ -52,12 +52,7 @@
     {{/* Triggers */}}
     <h2>Triggers</h2>
     <div id="triggers">
-      {{range .Triggers}}
-        {{template "_triggers.html" .}}
-      {{end}}
-      <div class="form-group">
-        <button id="js-add-trigger" class="btn btn-default">+ Add</button>
-      </div>
+      {{template "triggers-edit.html" $.Triggers}}
     </div>
     <div class="form-group">
       <input type="submit" class="btn-lg btn-success" value="Save">

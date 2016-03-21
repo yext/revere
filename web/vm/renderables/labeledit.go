@@ -13,7 +13,7 @@ func NewLabelEdit(l *vm.Label) *LabelEdit {
 	le := LabelEdit{}
 	le.viewmodel = l
 	le.subs = []Renderable{
-	// "Triggers": le.TriggersEdit(m.Triggers),
+		NewTriggersEdit(l.Triggers),
 	}
 	return &le
 }

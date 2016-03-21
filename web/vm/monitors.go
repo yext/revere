@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"html/template"
-
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 )
@@ -10,14 +8,19 @@ import (
 type Monitor struct {
 	*revere.Monitor
 	Probe    *Probe
-	Triggers []*revere.MonitorTrigger
+	Triggers []*Trigger
 }
 
 func NewMonitor(m *revere.Monitor) (*Monitor, error) {
 	viewmodel := new(Monitor)
 
 	viewmodel.Monitor = m
-	viewmodel.Triggers = m.Triggers
+
+	var err error
+	viewmodel.Triggers, err = NewTriggersFromMonitorTriggers(m.Triggers)
+	if err != nil {
+		return nil, err
+	}
 
 	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
@@ -38,12 +41,8 @@ func BlankMonitor() (*Monitor, error) {
 
 	viewmodel.Monitor = new(revere.Monitor)
 
-	viewmodel.Triggers = []*revere.MonitorTrigger{
-		&revere.MonitorTrigger{
-			Trigger: revere.Trigger{
-				TargetTemplate: template.HTML("PLACEHOLDER DELETE"), //TODO(fchen): code cleanup[targets.DefaultTargetTemplate()]
-			},
-		},
+	viewmodel.Triggers = []*Trigger{
+		BlankTrigger(),
 	}
 
 	viewmodel.Probe = DefaultProbe()

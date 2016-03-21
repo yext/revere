@@ -5,19 +5,19 @@
 </div>
 <div>
   <h3>Current</h3>
-  {{template "_silence-header.html"}}
+  {{template "silence-header.html"}}
   {{range .Curr}}
-    {{template "_silence.html" .}}
+    {{template "silence.html" .}}
   {{end}}
   <h3>Future</h3>
-  {{template "_silence-header.html"}}
+  {{template "silence-header.html"}}
   {{range .Future}}
-    {{template "_silence.html" .}}
+    {{template "silence.html" .}}
   {{end}}
   <h3>Past</h3>
-  {{template "_silence-header.html"}}
+  {{template "silence-header.html"}}
   {{range .Past}}
-    {{template "_silence.html" .}}
+    {{template "silence.html" .}}
   {{end}}
 </div>
 {{template "_footer.html"}}

@@ -108,7 +108,7 @@ func aggregatePipelineDataArray(parent *renderResult, child *renderResult) {
 	if !ok {
 		panic("Non-array value found in \"_Array\" field of renderResult")
 	}
-	array = append(array, child.data)
+	parent.data["_Array"] = append(array, child.data)
 }
 
 func appendWithoutRepeat(current []string, other ...string) []string {

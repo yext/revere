@@ -24,21 +24,6 @@
   <h3><a href="{{.Id}}/subprobes">subprobes</a></h3>
   
   <h2>Triggers</h2>
-  <div class="revere-row">
-    <div class="col-md-3">Subprobes</div>
-    <div class="col-md-1">Trigger On Exit</div>
-    <div class="col-md-1">Period</div>
-    <div class="col-md-3">Target Type</div>
-    <div class="col-md-4">Target</div>
-  </div>
-  {{range .Triggers}}
-  <div class="revere-row">
-    <div class="col-md-3">{{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</div>
-    <div class="col-md-1">{{.TriggerOnExit}}</div>
-    <div class="col-md-1">{{.Period}} {{.PeriodType}}</div>
-    <div class="col-md-3">{{.TargetType}}</div>
-    <div class="col-md-4">{{.Target}}</div>
-  </div>
-  {{end}}
+  {{template "triggers-view.html" $.Triggers}}
 {{end}}
 {{template "_footer.html" .}}

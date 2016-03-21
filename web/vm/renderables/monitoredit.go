@@ -14,7 +14,7 @@ func NewMonitorEdit(m *vm.Monitor) *MonitorEdit {
 	me.viewmodel = m
 	me.subs = []Renderable{
 		NewProbeEdit(m.Probe),
-		//m.TriggersEdit(m.Triggers),
+		NewTriggersEdit(m.Triggers),
 	}
 	return &me
 }
@@ -34,7 +34,6 @@ func (me *MonitorEdit) data() interface{} {
 func (me *MonitorEdit) scripts() []string {
 	return []string{
 		"revere.js",
-		"triggers-edit.js",
 		"monitors-edit.js",
 		"targets/email.js",
 	}

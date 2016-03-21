@@ -24,22 +24,13 @@
     {{/* Triggers */}}
     <h2>Triggers</h2>
     <div id="triggers">
-      {{with .Triggers}}
-        {{range .}}
-          {{template "_triggers.html" .}}
-        {{end}}
-      {{else}}
-        <h4>There are no triggers associated with this label</h4>
-      {{end}}
-      <div class="form-group">
-        <button id="js-add-trigger" class="btn btn-default">+ Add</button>
-      </div>
+      {{template "triggers-edit.html" $.Triggers}}
     </div>
     {{/* Monitors */}}
     <h2>Monitors</h2>
     <div id="monitors" class="js-monitors">
       {{if .Monitors}}
-        {{template "_label-monitors.html" .}}
+        {{template "label-monitors.html" .}}
       {{else}}
         <h4>There are no monitors associated with this label</h4>
       {{end}}

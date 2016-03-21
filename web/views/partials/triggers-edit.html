@@ -1,0 +1,10 @@
+{{with ._Array}}
+  {{range .}}
+    {{template "trigger-edit.html" .}}
+  {{else}}
+    <h4>There are no triggers associated with this component.</h4>
+  {{end}}
+  <div class="form-group">
+    <button id="js-add-trigger" class="btn btn-default">+ Add</button>
+  </div>
+{{end}}

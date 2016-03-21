@@ -1,0 +1,38 @@
+{{with ._}}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-2 field-label">Alert on</div>
+      <div class="col-sm-10">{{.Level}}</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 field-label">Frequency</div>
+      <div class="col-sm-10">{{.Period}} {{.PeriodType}}(s)</div>
+    </div>
+    {{if .Subprobes}}
+      <div class="row">
+        <div class="col-sm-2 field-label">Subprobes</div>
+        <div class="col-sm-10">{{.Subprobes}}</div>
+      </div>
+    {{end}}
+    <div class="row">
+      <div class="col-sm-2 field-label">Notify on de-escalation</div>
+      <div class="col-sm-10">
+        {{if .TriggerOnExit}}
+          Yes
+        {{else}}
+          No
+        {{end}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+      <h4>Targets</h4>
+        <div class="row">
+          <div class="col-sm-11 col-offset-1">
+            {{$.Target._Render}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{{end}}

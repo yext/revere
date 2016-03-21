@@ -1,0 +1,59 @@
+{{with ._}}
+  <div class="js-trigger">
+    <div class="js-trigger-options">
+      <input type="hidden" class="form-control" name="id" data-json-type="Number" value={{.Id}}>
+      <div class="form-group">
+        <div class="col-sm-1">
+          <input type="checkbox" class="form-control hide" name="delete" data-json-type="Boolean">
+          <button class="js-remove-trigger btn btn-default btn-block">x</button>
+        </div>
+        <label class="col-sm-1 control-label" for="level">Alert on</label>
+        <div class="col-sm-4">
+          <select class="form-control" name="level">
+            <option value="ERROR" {{if strEq .Level "ERROR"}}selected{{end}}>ERROR</option>
+            <option value="CRITICAL" {{if strEq .Level "CRITICAL"}}selected{{end}}>CRITICAL</option>
+            <option value="WARNING" {{if strEq .Level "WARNING"}}selected{{end}}>WARNING</option>
+            <option value="UNKNOWN" {{if strEq .Level "UNKNOWN"}}selected{{end}}>UNKNOWN</option>
+          </select>
+        </div>
+        <label class="col-sm-2">no more than once every</label>
+        <div class="col-sm-2">
+          <input type="number" min="1" class="form-control" name="period" data-json-type="Number" value="{{.Period}}" placeholder="5">
+        </div>
+        <div class="col-sm-2">
+          <select class="form-control" name="periodType">
+            <option value="second" {{if strEq .PeriodType "second"}}selected{{end}}>Second(s)</option>
+            <option value="minute" {{if strEq .PeriodType "minute"}}selected{{end}}>Minute(s)</option>
+            <option value="hour" {{if strEq .PeriodType "hour"}}selected{{end}}>Hour(s)</option>
+            <option value="day" {{if strEq .PeriodType "day"}}selected{{end}}>Day(s)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        {{if .Subprobes}}
+          <label class="col-sm-2 control-label" for="subprobes">Subprobes</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" name="subprobes" value="{{.Subprobes}}">
+          </div>
+        {{end}}
+        <label class="col-sm-2 control-label" for="triggerOnExit">Notify on de-escalation</label>
+        <div class="checkbox col-sm-1">
+          <input type="checkbox" name="triggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="targetType">Target</label>
+        <div class="col-sm-4">
+          <select class="form-control js-targetType" data-json-type="Number" name="targetType">
+            {{range targets}}
+              <option value="{{.Id}}" {{if strEq $.TargetType "{{.Id}}"}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="js-target">
+      {{$.Target._Render}}
+    </div>
+  </div>
+{{end}}
