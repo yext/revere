@@ -9,6 +9,7 @@ import (
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/web/vm"
+	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -41,29 +42,25 @@ func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 
 func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		id, err := strconv.Atoi(p.ByName("id"))
-		if err != nil {
-			http.NotFound(w, req)
-			return
-		}
-		s, err := revere.LoadSilence(db, uint(id))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()), http.StatusInternalServerError)
-			return
-		}
-		if s == nil {
-			http.Error(w, fmt.Sprintf("Silence not found: %d", id),
-				http.StatusNotFound)
+		id := p.ByName("id")
+		if id == "new" {
+			http.Redirect(w, req, "/silences/new/edit", http.StatusMovedPermanently)
 			return
 		}
 
-		err = executeTemplate(w, "silences-view.html",
-			map[string]interface{}{
-				"Silence":     s,
-				"Breadcrumbs": vm.SilencesViewBcs(s.Id, s.MonitorName),
-			})
+		viewmodel, err := loadSilenceViewModel(db, id)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		renderable := renderables.NewSilenceView(viewmodel)
+		err = render(w, renderable)
+
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
 	}
@@ -71,49 +68,27 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		idStr := p.ByName("id")
-		if idStr == "" {
-			http.Error(w, fmt.Sprintf("Silence not found: %s", idStr), http.StatusNotFound)
+		id := p.ByName("id")
+		if id == "" {
+			http.Error(w, "Silence not found", http.StatusNotFound)
 			return
 		}
 
-		// Create new silence
-		if p.ByName("id") == "new" {
-			m, err := revere.LoadMonitors(db)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Unable load new silence page: %s", err.Error()), http.StatusInternalServerError)
-				return
-			}
-
-			err = executeTemplate(w, "silences-edit.html", map[string]interface{}{
-				"Monitors":    m,
-				"Breadcrumbs": vm.SilencesIndexBcs(),
-			})
-
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Unable load new silence page: %s", err.Error()), http.StatusInternalServerError)
-			}
-			return
-		}
-
-		// Edit existing silence
-		id, err := strconv.Atoi(idStr)
+		viewmodel, err := loadSilenceViewModel(db, id)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Silence not found: %s", idStr), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
 
-		s, err := revere.LoadSilence(db, uint(id))
+		renderable := renderables.NewSilenceEdit(viewmodel)
+		err = render(w, renderable)
+
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable load edit silence page: %s", err.Error()), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
-
-		err = executeTemplate(w, "silences-edit.html",
-			map[string]interface{}{
-				"Silence":     s,
-				"Breadcrumbs": vm.SilencesViewBcs(s.Id, s.MonitorName),
-			})
 	}
 }
 
@@ -155,6 +130,29 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 		writeJsonResponse(w, "save silence", map[string]interface{}{"id": s.Id})
 	}
+}
+
+func loadSilenceViewModel(db *sql.DB, unparsedId string) (*vm.Silence, error) {
+	if unparsedId == "new" {
+		viewmodel, err := vm.BlankSilence(db)
+		if err != nil {
+			return nil, err
+		}
+
+		return viewmodel, nil
+	}
+
+	id, err := strconv.Atoi(unparsedId)
+	if err != nil {
+		return nil, err
+	}
+
+	viewmodel, err := vm.NewSilence(db, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return viewmodel, nil
 }
 
 func getSilenceId(idStr string) (uint, error) {

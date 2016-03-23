@@ -11,6 +11,9 @@ type TriggersEdit struct {
 
 func NewTriggersEdit(ts []*vm.Trigger) *TriggersEdit {
 	tse := TriggersEdit{}
+	tse.subs = []Renderable{
+		NewTriggerEdit(vm.BlankTrigger()),
+	}
 	for _, trigger := range ts {
 		tse.subs = append(tse.subs, NewTriggerEdit(trigger))
 	}

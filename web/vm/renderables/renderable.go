@@ -86,7 +86,7 @@ func newRenderResult(r Renderable) *renderResult {
 	result.data = map[string]interface{}{
 		"_": r.data(),
 	}
-	result.breadcrumbs = []vm.Breadcrumb{}
+	result.breadcrumbs = r.breadcrumbs()
 	return &result
 }
 

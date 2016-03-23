@@ -20,25 +20,45 @@ var triggersEdit = function() {
     initTriggers();
   };
 
+  var noTriggers = function() {
+    return $('.js-trigger').not('.hidden').length == 0;
+  }
+
   var initTriggers = function() {
-    var $triggers = $('.js-trigger');
+    var $triggers = $('.js-trigger'),
+      $emptyTriggers = $('.js-empty-triggers'),
+      $triggerTemplate = $triggers.first();
+
+    $.each($('.js-trigger').not(':first'), function() {
+      $(this).removeClass('hidden');
+    });
+
+    if(noTriggers()) {
+      $emptyTriggers.removeClass('hidden');
+    }
 
     $('#js-add-trigger').click(function(e) {
       e.preventDefault();
-      $newTrigger = $triggers.first()
+      $newTrigger = $triggerTemplate
         .clone()
-        .insertAfter('.js-trigger:last')
-      $newTrigger.find('input[type="text"]').val('');
-      $newTrigger.find('input[name="id"]').val(0);
-      $newTrigger.find('input[name="delete"]').prop('checked', false);
-      $newTrigger.show();
+        .insertAfter('.js-trigger:last');
+      $newTrigger.removeClass('hidden');
+      $emptyTriggers.addClass('hidden');
     });
 
     $(document.body).on('click', '.js-remove-trigger', function(e) {
       e.preventDefault();
       $trigger = $(this).parents('.js-trigger');
-      $trigger.hide();
-      $trigger.find('input[name="delete"]').prop('checked', true);
+      var id = $trigger.find('input[name="id"]').val();
+      if(id == '0'){
+        $trigger.remove();
+      } else {
+        $trigger.addClass('hidden');
+        $trigger.find('input[name="delete"]').prop('checked', true);
+      }
+      if(noTriggers()) {
+        $emptyTriggers.removeClass('hidden');
+      }
     });
 
     $('.js-targetType').change(function() {
@@ -63,7 +83,7 @@ var triggersEdit = function() {
 
   te.getData = function() {
     var data = []
-    $.each($('.js-trigger'), function() {
+    $.each($('.js-trigger').not(':first'), function() {
       var triggerOptions = $(this).find('.js-trigger-options :input').serializeObject(),
         targetFn = targets.getSerializeFn(triggerOptions['targetType']),
         target;

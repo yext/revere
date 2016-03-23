@@ -1,8 +1,20 @@
 var revere = function() {
   r = {};
-  r.dateTimeFormat = function() {
+  r.displayDateTimeFormat = function() {
     return 'YYYY-MM-DD HH:mm';
   };
+  r.modelDateTimeFormat = function () {
+    return 'X';
+  }
+  r.goTimeZero = function () {
+    return -62135596800;
+  }
+  r.serverTimeZone = function() {
+    return 'UTC';
+  }
+  r.localTimeZone = function() {
+    return moment.tz.guess();
+  }
   return r;
 }();
 

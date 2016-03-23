@@ -1,5 +1,5 @@
 {{with ._}}
-  <div class="js-trigger">
+  <div class="js-trigger hidden">
     <div class="js-trigger-options">
       <input type="hidden" class="form-control" name="id" data-json-type="Number" value={{.Id}}>
       <div class="form-group">
@@ -18,7 +18,7 @@
         </div>
         <label class="col-sm-2">no more than once every</label>
         <div class="col-sm-2">
-          <input type="number" min="1" class="form-control" name="period" data-json-type="Number" value="{{.Period}}" placeholder="5">
+          <input type="number" min="1" class="form-control" name="period" data-json-type="Number" value="{{if .Period}}{{.Period}}{{else}}5{{end}}">
         </div>
         <div class="col-sm-2">
           <select class="form-control" name="periodType">
@@ -30,12 +30,7 @@
         </div>
       </div>
       <div class="form-group">
-        {{if .Subprobes}}
-          <label class="col-sm-2 control-label" for="subprobes">Subprobes</label>
-          <div class="col-sm-4">
-            <input type="text" class="form-control" name="subprobes" value="{{.Subprobes}}">
-          </div>
-        {{end}}
+        {{block "subprobes" .Subprobes}}{{end}}
         <label class="col-sm-2 control-label" for="triggerOnExit">Notify on de-escalation</label>
         <div class="checkbox col-sm-1">
           <input type="checkbox" name="triggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}>

@@ -217,7 +217,7 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 		return
 	}
 
-	template, err := json.Marshal(map[string]interface{}{"template": tmpl})
+	template, err := json.Marshal(map[string]template.HTML{"template": tmpl})
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)

@@ -1,32 +1,43 @@
-var silenceDtp = function() {
-  var sdtp = {};
+$(document).ready(function() {
+  silencesEdit.init();
+});
+
+var silencesEdit = function() {
+  var s = {};
   var defaultDtpSettings = {
     useCurrent: false,
-    sideBySide: true
+    sideBySide: true,
+    format: revere.displayDateTimeFormat()
   };
+  var defaultStartEndOffset = 60 * 60; // 1 hour offset in unix timestamp
 
-  sdtp.init = function(id) {
-    defaultDtpSettings['format'] = revere.dateTimeFormat();
+  s.init = function() {
     initDtps();
-    initForm(id);
+    initForm();
   };
 
   var initDtps = function() {
     var $startDtp = $('.js-datetimepicker-start'),
       $endDtp = $('.js-datetimepicker-end');
-    var now = moment().seconds(0),
-      startTime = $startDtp.data('time'),
-      endTime = $endDtp.data('time'),
-      start = getStartMoment(now, startTime),
-      end = getEndMoment(now, endTime);
+
+    var nowEpoch = moment().seconds(0).format(revere.modelDateTimeFormat()),
+      modelStart = $startDtp.data('time'),
+      modelEnd = $endDtp.data('time');
+
+    var startEpoch = defaultToNow(nowEpoch, modelStart),
+      endEpoch = defaultToNow(addDefaultOffsetToEpoch(nowEpoch), modelEnd);
+
+    var now = epochToLocalTimeString(nowEpoch),
+      start = epochToLocalTimeString(startEpoch),
+      end = epochToLocalTimeString(endEpoch);
 
     setStartDtp($startDtp, now, start);
     setEndDtp($endDtp, now, start, end);
 
     $startDtp.on('dp.change', function(e) {
       var now = moment(),
-        start = moment(e.date),
-        end = moment($endDtp.data('DateTimePicker').date());
+        start = e.date,
+        end = $endDtp.data('DateTimePicker').date();
 
       if (end.isBefore(start)) {
         end = moment(start);
@@ -34,12 +45,12 @@ var silenceDtp = function() {
       }
 
       setStartDtp($startDtp, now, start);
-      setEndDtp($endDtp, now, start, end);
+      setEndDtp($endDtp, now, start, end.format(revere.displayDateTimeFormat()));
     });
 
-    if (start.isBefore(now)) {
+    if (moment(start).isBefore(now)) {
       $startDtp.data('DateTimePicker').disable();
-      if (end.isBefore(now)) {
+      if (moment(end).isBefore(now)) {
         $endDtp.data('DateTimePicker').disable();
         return;
       }
@@ -47,7 +58,7 @@ var silenceDtp = function() {
 
   };
 
-  var initForm = function(id) {
+  var initForm = function() {
     $('.js-submit-btn').click(function(e) {
       e.preventDefault();
       var $invalidInput = $('.js-invalid-input')
@@ -59,9 +70,12 @@ var silenceDtp = function() {
 
       var $startDtp = $('.js-datetimepicker-start').data('DateTimePicker'),
         $endDtp = $('.js-datetimepicker-end').data('DateTimePicker');
+      var startDtpMoment = $startDtp.date(),
+        endDtpMoment = $endDtp.date();
       var data = getSilenceData();
-      data.start = $startDtp.date().format();
-      data.end = $endDtp.date().format();
+      var id = data['id'];
+      data.start = localTimeToUtc(startDtpMoment);
+      data.end = localTimeToUtc(endDtpMoment);
       $.ajax({
         method: 'POST',
         url: '/silences/'+ id + '/edit',
@@ -106,22 +120,30 @@ var silenceDtp = function() {
     var $dtpObj = $endDtp.data('DateTimePicker');
     $dtpObj.defaultDate(end);
     $dtpObj.minDate(start);
-    $dtpObj.maxDate(moment(start).add(2, 'week'));
+    $dtpObj.maxDate(moment(start).add(2, 'week').format(revere.displayDateTimeFormat()));
     $dtpObj.date(end);
   }
 
-  var getStartMoment = function(now, start) {
-    return start === '' ? moment(now) : moment(start, defaultDtpSettings.format);
+  var defaultToNow = function(now, time) {
+    return time === revere.goTimeZero() ? now : time;
   };
 
-  var getEndMoment = function(now, end) {
-    return end === '' ? moment(now).add(1, 'hour') : moment(end, defaultDtpSettings.format);
+  var epochToLocalTimeString = function(epoch) {
+    return moment.unix(epoch).tz(revere.localTimeZone()).format(revere.displayDateTimeFormat());
   };
 
-  var getSilenceData = function() {
-    return $('#js-silence-form').find(':input').serializeObject();
+  var addDefaultOffsetToEpoch = function(epoch) {
+    return (parseInt(epoch) + parseInt(defaultStartEndOffset)).toString();
   }
 
-  return sdtp;
+  var getSilenceData = function() {
+    return $('#js-silence-info').find(':input').serializeObject();
+  }
+
+  var localTimeToUtc = function(time) {
+    return moment.tz(time.format(revere.displayDateTimeFormat()), revere.localTimeZone()).tz(revere.serverTimeZone());
+  }
+
+  return s;
 }();
 

@@ -32,9 +32,6 @@ func (le *LabelEdit) data() interface{} {
 
 func (le *LabelEdit) scripts() []string {
 	return []string{
-		"revere.js",
-		"targets/email.js",
-		"triggers-edit.js",
 		"labels-edit.js",
 	}
 }

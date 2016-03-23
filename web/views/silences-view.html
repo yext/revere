@@ -1,14 +1,16 @@
 {{template "_header.html" setTitle . "Silences"}}
-<div class="silences-headers">
-  <h1 class="silences-header">
-    silence for <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
-  </h1>
-  <h4 class="silence-edit"><a href="/silences/{{.Silence.Id}}/edit">Edit</a></h4>
-</div>
-<h4 class="silence-subheader">Subprobe: {{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</h4>
-
-<h4>silence time:</h4>
-<span>{{.Silence.Start}}</span>
-<span style="font-weight: bold;">to</span>
-<span>{{.Silence.End}}</span>
+{{with ._}}
+  <div class="silences-headers">
+    <h1 class="silences-header">
+      silence for <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
+    </h1>
+    <h4 class="silence-edit"><a href="/silences/{{.Silence.Id}}/edit">Edit</a></h4>
+  </div>
+  <h4 class="silence-subheader">Subprobes: {{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</h4>
+  
+  <h4>silence time:</h4>
+  <span>{{.Silence.Start}}</span>
+  <span style="font-weight: bold;">to</span>
+  <span>{{.Silence.End}}</span>
+{{end}}
 {{template "_footer.html"}}

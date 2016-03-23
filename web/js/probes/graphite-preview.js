@@ -15,11 +15,11 @@ var graphitePreview = function() {
       $untilDtp = $('#js-datetimepicker-until');
 
     $fromDtp.datetimepicker({
-      format: revere.dateTimeFormat(),
+      format: revere.displayDateTimeFormat(),
       defaultDate: moment().subtract(1, 'days')
     });
     $untilDtp.datetimepicker({
-      format: revere.dateTimeFormat(),
+      format: revere.displayDateTimeFormat(),
       useCurrent: false,
       defaultDate: moment()
     });
