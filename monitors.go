@@ -60,6 +60,23 @@ func LoadMonitors(db *sql.DB) ([]*Monitor, error) {
 		return nil, err
 	}
 
+	return loadMonitorsFromRows(rows)
+}
+
+func LoadMonitorsForLabel(db *sql.DB, labelId uint) ([]*Monitor, error) {
+	rows, err := db.Query(fmt.Sprintf(
+		`SELECT %s FROM monitors
+		JOIN labels_monitors lt on lt.monitor_id = id
+		WHERE lt.label_id = %d ORDER BY name`,
+		allMonitorFields, labelId))
+	if err != nil {
+		return nil, err
+	}
+
+	return loadMonitorsFromRows(rows)
+}
+
+func loadMonitorsFromRows(rows *sql.Rows) ([]*Monitor, error) {
 	allMonitors := make([]*Monitor, 0)
 	for rows.Next() {
 		m, err := loadMonitorFromRow(rows)
