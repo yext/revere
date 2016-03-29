@@ -9,7 +9,7 @@ import (
 
 type Silence struct {
 	*revere.Silence
-	AllMonitors []*revere.Monitor
+	AllMonitors []*Monitor
 }
 
 func NewSilence(db *sql.DB, id int) (*Silence, error) {
@@ -45,7 +45,7 @@ func baseSilence(db *sql.DB) (*Silence, error) {
 	viewmodel := new(Silence)
 
 	var err error
-	viewmodel.AllMonitors, err = revere.LoadMonitors(db)
+	viewmodel.AllMonitors, err = AllMonitors(db)
 	if err != nil {
 		return nil, err
 	}

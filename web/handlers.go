@@ -1,7 +1,5 @@
 package web
 
-// TODO(dp): rename this file once we finish migration
-
 import (
 	"database/sql"
 	"encoding/json"

@@ -17,17 +17,15 @@ import (
 
 func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		m, err := revere.LoadMonitors(db)
+		viewmodels, err := vm.AllMonitors(db)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
-		err = executeTemplate(w, "monitors-index.html",
-			map[string]interface{}{
-				"Monitors":    m,
-				"Breadcrumbs": vm.MonitorIndexBcs(),
-			})
+
+		renderable := renderables.NewMonitorsIndex(viewmodels)
+		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
 				http.StatusInternalServerError)

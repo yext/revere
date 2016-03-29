@@ -8,13 +8,15 @@
     <div class="col-md-3">Name</div>
     <div class="col-md-9">Description</div>
   </div>
-  {{range .Monitors}}
-  <div class="revere-row">
-    <div class="col-md-3">
-      <a href="/monitors/{{.Id}}">{{.Name}}</a>
+  {{range ._}}
+    <div class="revere-row">
+      <div class="col-md-3">
+        <a href="/monitors/{{.Id}}">{{.Name}}</a>
+      </div>
+      <div class="col-md-9">{{.Description}}</div>
     </div>
-    <div class="col-md-9">{{.Description}}</div>
-  </div>
+  {{else}}
+    <h4>There are no existing monitors.</h4>
   {{end}}
 </div>
 {{template "_footer.html"}}
