@@ -1,23 +1,35 @@
+{{define "silence-header"}}
+  <div class="revere-row js-silence-header">
+    <div class="col-md-2">Monitor Name</div>
+    <div class="col-md-3">Subprobes</div>
+    <div class="col-md-3">Start</div>
+    <div class="col-md-3">End</div>
+    <div class="col-md-1"></div>
+  </div>
+{{end}}
+
 {{template "_header.html" setTitle . "Silences"}}
-<div class="silences-headers">
-  <h1 class="silences-header">Silences</h1>
+<div class="index-headers">
+  <h1 class="index-header">Silences</h1>
   <a href="/silences/new/edit" class="btn btn-success new-btn">+ new</a>
 </div>
 <div>
-  <h3>Current</h3>
-  {{template "silence-header.html"}}
-  {{range .Curr}}
+  <div class="js-current-silences hidden">
+    <h3>Current</h3>
+    {{template "silence-header"}}
+  </div>
+  <div class="js-future-silences hidden">
+    <h3>Future</h3>
+    {{template "silence-header"}}
+  </div>
+  <div class="js-past-silences hidden">
+    <h3>Past</h3>
+    {{template "silence-header"}}
+  </div>
+  {{range ._}}
     {{template "silence.html" .}}
-  {{end}}
-  <h3>Future</h3>
-  {{template "silence-header.html"}}
-  {{range .Future}}
-    {{template "silence.html" .}}
-  {{end}}
-  <h3>Past</h3>
-  {{template "silence-header.html"}}
-  {{range .Past}}
-    {{template "silence.html" .}}
+  {{else}}
+    <h4>There are no existing silences.</h4>
   {{end}}
 </div>
 {{template "_footer.html" .}}

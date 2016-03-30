@@ -5,13 +5,15 @@ import (
 )
 
 type SilenceEdit struct {
-	viewmodel *vm.Silence
-	subs      []Renderable
+	silence  *vm.Silence
+	monitors []*vm.Monitor
+	subs     []Renderable
 }
 
-func NewSilenceEdit(s *vm.Silence) *SilenceEdit {
+func NewSilenceEdit(s *vm.Silence, ms []*vm.Monitor) *SilenceEdit {
 	se := SilenceEdit{}
-	se.viewmodel = s
+	se.silence = s
+	se.monitors = ms
 
 	return &se
 }
@@ -25,7 +27,10 @@ func (se *SilenceEdit) template() string {
 }
 
 func (se *SilenceEdit) data() interface{} {
-	return se.viewmodel
+	return map[string]interface{}{
+		"silence":  se.silence,
+		"monitors": se.monitors,
+	}
 }
 
 func (se *SilenceEdit) scripts() []string {
@@ -35,7 +40,7 @@ func (se *SilenceEdit) scripts() []string {
 }
 
 func (se *SilenceEdit) breadcrumbs() []vm.Breadcrumb {
-	return vm.SilencesViewBcs(se.viewmodel.Id, se.viewmodel.MonitorName)
+	return vm.SilencesViewBcs(se.silence.Id, se.silence.MonitorName)
 }
 
 func (se *SilenceEdit) subRenderables() []Renderable {

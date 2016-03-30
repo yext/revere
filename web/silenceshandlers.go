@@ -16,22 +16,15 @@ import (
 
 func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		s, err := revere.LoadSilences(db)
+		silences, err := vm.AllSilences(db)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silences: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		past, curr, future := revere.SplitSilences(s)
-
-		err = executeTemplate(w, "silences-index.html",
-			map[string]interface{}{
-				"Past":        past,
-				"Curr":        curr,
-				"Future":      future,
-				"Breadcrumbs": vm.SilencesIndexBcs(),
-			})
+		renderable := renderables.NewSilencesIndex(silences)
+		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silences: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -48,14 +41,14 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		viewmodel, err := loadSilenceViewModel(db, id)
+		silence, err := loadSilenceViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		renderable := renderables.NewSilenceView(viewmodel)
+		renderable := renderables.NewSilenceView(silence)
 		err = render(w, renderable)
 
 		if err != nil {
@@ -74,14 +67,21 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		viewmodel, err := loadSilenceViewModel(db, id)
+		silence, err := loadSilenceViewModel(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		renderable := renderables.NewSilenceEdit(viewmodel)
+		allMonitors, err := vm.AllMonitors(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		renderable := renderables.NewSilenceEdit(silence, allMonitors)
 		err = render(w, renderable)
 
 		if err != nil {

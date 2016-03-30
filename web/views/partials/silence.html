@@ -1,8 +1,8 @@
-<div class="revere-row">
+<div class="revere-row js-silence hidden">
   <div class="col-md-2"><a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
   <div class="col-md-3">{{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</div>
-  <div class="col-md-3">{{.Start}}</div>
-  <div class="col-md-3">{{.End}}</div>
+  <div class="col-md-3 js-silence-start" data-time="{{.Start.Unix}}"></div>
+  <div class="col-md-3 js-silence-end" data-time="{{.End.Unix}}"></div>
   <div class="col-md-1">
     <a href="silences/{{.Id}}">View</a>
     {{if .Editable}}

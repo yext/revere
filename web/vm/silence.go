@@ -7,17 +7,15 @@ import (
 	"github.com/yext/revere"
 )
 
+var (
+	allMonitors []*Monitor
+)
+
 type Silence struct {
 	*revere.Silence
-	AllMonitors []*Monitor
 }
 
 func NewSilence(db *sql.DB, id int) (*Silence, error) {
-	viewmodel, err := baseSilence(db)
-	if err != nil {
-		return nil, err
-	}
-
 	silence, err := revere.LoadSilence(db, uint(id))
 	if err != nil {
 		return nil, err
@@ -26,29 +24,31 @@ func NewSilence(db *sql.DB, id int) (*Silence, error) {
 		return nil, fmt.Errorf("Error loading silence with id: %d", id)
 	}
 
-	viewmodel.Silence = silence
-
-	return viewmodel, nil
+	return newSilence(silence), nil
 }
 
 func BlankSilence(db *sql.DB) (*Silence, error) {
-	viewmodel, err := baseSilence(db)
-	if err != nil {
-		return nil, err
-	}
-	viewmodel.Silence = new(revere.Silence)
+	silence := new(revere.Silence)
 
-	return viewmodel, nil
+	return newSilence(silence), nil
 }
 
-func baseSilence(db *sql.DB) (*Silence, error) {
+func newSilence(s *revere.Silence) *Silence {
 	viewmodel := new(Silence)
+	viewmodel.Silence = s
+	return viewmodel
+}
 
-	var err error
-	viewmodel.AllMonitors, err = AllMonitors(db)
+func AllSilences(db *sql.DB) ([]*Silence, error) {
+	revereSilences, err := revere.LoadSilences(db)
 	if err != nil {
 		return nil, err
 	}
 
-	return viewmodel, nil
+	silences := make([]*Silence, len(revereSilences))
+	for i, revereSilence := range revereSilences {
+		silences[i] = newSilence(revereSilence)
+	}
+
+	return silences, nil
 }
