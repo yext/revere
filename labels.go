@@ -283,11 +283,14 @@ func (lm *LabelMonitor) delete(tx *sql.Tx, labelId uint) error {
 }
 
 func (lt *LabelTrigger) save(tx *sql.Tx, labelId uint) (err error) {
+	if lt.Delete {
+		return lt.delete(tx)
+	}
+
 	newTriggerId, err := lt.Trigger.save(tx)
 	if err != nil {
 		return err
 	}
-
 	if lt.Id == 0 {
 		lt.Id = newTriggerId
 		err = lt.create(tx, labelId)
