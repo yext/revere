@@ -55,6 +55,19 @@ func newMonitorFromModel(db *sql.DB, m *revere.Monitor) (*Monitor, error) {
 	return viewmodel, nil
 }
 
+func newMonitorsFromModels(db *sql.DB, rms []*revere.Monitor) ([]*Monitor, error) {
+	var err error
+	monitors := make([]*Monitor, len(rms))
+	for i, rm := range rms {
+		// TODO(psingh): Batch fetch monitor model data
+		monitors[i], err = newMonitorFromModel(db, rm)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return monitors, nil
+}
+
 func BlankMonitor(db *sql.DB) (*Monitor, error) {
 	var err error
 	viewmodel := new(Monitor)
@@ -72,20 +85,21 @@ func BlankMonitor(db *sql.DB) (*Monitor, error) {
 }
 
 func AllMonitors(db *sql.DB) ([]*Monitor, error) {
-	revereMonitors, err := revere.LoadMonitors(db)
+	rms, err := revere.LoadMonitors(db)
 	if err != nil {
 		return nil, err
 	}
 
-	monitors := make([]*Monitor, len(revereMonitors))
-	for i, revereMonitor := range revereMonitors {
-		monitors[i], err = newMonitorFromModel(db, revereMonitor)
-		if err != nil {
-			return nil, err
-		}
+	return newMonitorsFromModels(db, rms)
+}
+
+func AllMonitorsForLabel(db *sql.DB, labelId uint) ([]*Monitor, error) {
+	rms, err := revere.LoadMonitorsForLabel(db, labelId)
+	if err != nil {
+		return nil, err
 	}
 
-	return monitors, nil
+	return newMonitorsFromModels(db, rms)
 }
 
 func (m *Monitor) GetProbeType() probes.ProbeType {

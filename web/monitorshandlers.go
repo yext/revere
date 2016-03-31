@@ -17,7 +17,18 @@ import (
 
 func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		viewmodels, err := vm.AllMonitors(db)
+		var (
+			viewmodels []*vm.Monitor
+			err        error
+		)
+
+		l := req.FormValue("label")
+		labelId, err := strconv.Atoi(l)
+		if err != nil {
+			viewmodels, err = vm.AllMonitors(db)
+		} else {
+			viewmodels, err = vm.AllMonitorsForLabel(db, uint(labelId))
+		}
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
 				http.StatusInternalServerError)
