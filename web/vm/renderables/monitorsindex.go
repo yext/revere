@@ -5,13 +5,15 @@ import (
 )
 
 type MonitorsIndex struct {
-	viewmodel []*vm.Monitor
-	subs      []Renderable
+	monitors []*vm.Monitor
+	labels   []*vm.Label
+	subs     []Renderable
 }
 
-func NewMonitorsIndex(ms []*vm.Monitor) *MonitorsIndex {
+func NewMonitorsIndex(ms []*vm.Monitor, ls []*vm.Label) *MonitorsIndex {
 	msi := new(MonitorsIndex)
-	msi.viewmodel = ms
+	msi.monitors = ms
+	msi.labels = ls
 
 	return msi
 }
@@ -25,11 +27,16 @@ func (msi *MonitorsIndex) template() string {
 }
 
 func (msi *MonitorsIndex) data() interface{} {
-	return msi.viewmodel
+	return map[string]interface{}{
+		"Monitors": msi.monitors,
+		"Labels":   msi.labels,
+	}
 }
 
 func (msi *MonitorsIndex) scripts() []string {
-	return nil
+	return []string{
+		"monitors-index.js",
+	}
 }
 
 func (msi *MonitorsIndex) breadcrumbs() []vm.Breadcrumb {

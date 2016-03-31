@@ -15,6 +15,10 @@ var revere = function() {
   r.localTimeZone = function() {
     return moment.tz.guess();
   }
+  r.getParameterByName = function(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+  }
   return r;
 }();
 

@@ -18,16 +18,16 @@ import (
 func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		var (
-			viewmodels []*vm.Monitor
-			err        error
+			monitors []*vm.Monitor
+			err      error
 		)
 
 		l := req.FormValue("label")
 		labelId, err := strconv.Atoi(l)
 		if err != nil {
-			viewmodels, err = vm.AllMonitors(db)
+			monitors, err = vm.AllMonitors(db)
 		} else {
-			viewmodels, err = vm.AllMonitorsForLabel(db, uint(labelId))
+			monitors, err = vm.AllMonitorsForLabel(db, uint(labelId))
 		}
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
@@ -35,7 +35,9 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 			return
 		}
 
-		renderable := renderables.NewMonitorsIndex(viewmodels)
+		labels, err := vm.AllLabels(db)
+
+		renderable := renderables.NewMonitorsIndex(monitors, labels)
 		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),

@@ -19,9 +19,14 @@ func NewLabel(db *sql.DB, id int) (*Label, error) {
 		return nil, err
 	}
 	if l == nil {
-		return nil, fmt.Errorf("Label not found")
+		return nil, fmt.Errorf("Label not found: %d", id)
 	}
 
+	return newLabelFromModel(db, l)
+}
+
+func newLabelFromModel(db *sql.DB, l *revere.Label) (*Label, error) {
+	var err error
 	viewmodel := new(Label)
 	viewmodel.Label = l
 	viewmodel.Triggers, err = NewTriggersFromLabelTriggers(l.Triggers)
@@ -32,8 +37,20 @@ func NewLabel(db *sql.DB, id int) (*Label, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return viewmodel, nil
+}
+
+func newLabelsFromModels(db *sql.DB, rls []*revere.Label) ([]*Label, error) {
+	var err error
+	labels := make([]*Label, len(rls))
+	for i, rl := range rls {
+		// TODO(psingh): Batch fetch monitor model data
+		labels[i], err = newLabelFromModel(db, rl)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return labels, nil
 }
 
 func BlankLabel(db *sql.DB) (*Label, error) {
@@ -49,4 +66,13 @@ func BlankLabel(db *sql.DB) (*Label, error) {
 	}
 
 	return viewmodel, nil
+}
+
+func AllLabels(db *sql.DB) ([]*Label, error) {
+	rls, err := revere.LoadLabels(db)
+	if err != nil {
+		return nil, err
+	}
+
+	return newLabelsFromModels(db, rls)
 }
