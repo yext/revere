@@ -15,18 +15,15 @@ import (
 
 func LabelsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		l, err := revere.LoadLabels(db)
+		labels, err := vm.AllLabels(db)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
-		err = executeTemplate(w, "labels-index.html",
-			map[string]interface{}{
-				"Title":       "Labels",
-				"Labels":      l,
-				"Breadcrumbs": vm.LabelIndexBcs(),
-			})
+
+		renderable := renderables.NewLabelsIndex(labels)
+		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 				http.StatusInternalServerError)
