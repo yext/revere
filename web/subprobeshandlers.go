@@ -8,6 +8,7 @@ import (
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/web/vm"
+	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,35 +22,22 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 			return
 		}
 
-		s, err := revere.LoadSubprobesByName(db, uint(id))
+		subprobes, err := vm.AllSubprobesFromMonitor(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		var monitorName string
-		var monitorId uint
-		if len(s) == 0 {
-			m, err := revere.LoadMonitor(db, uint(id))
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
-					http.StatusInternalServerError)
-				return
-			}
-			monitorName = m.Name
-			monitorId = m.Id
-		} else {
-			monitorName = s[0].MonitorName
-			monitorId = s[0].MonitorId
+		monitor, err := vm.NewMonitor(db, id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
 		}
 
-		err = executeTemplate(w, "subprobes-index.html",
-			map[string]interface{}{
-				"Subprobes":   s,
-				"MonitorName": monitorName,
-				"Breadcrumbs": vm.SubprobeIndexBcs(monitorName, monitorId),
-			})
+		renderable := renderables.NewSubprobesIndex(subprobes, monitor)
+		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
 				http.StatusInternalServerError)
