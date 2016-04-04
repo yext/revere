@@ -1,16 +1,33 @@
 {{template "_header.html" setTitle . "Monitors"}}
-<div class="subprobes-headers">
-  <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
-</div>
-<div>
-  <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
-  {{range .Readings}}
-    <div class="revere-row {{if eq .State $.States.NORMAL}}bg-success{{end}}">
-      <div class="col-md-6">{{.StateStr}}</div>
-      <div class="col-md-6">{{.Recorded}}</div>
+{{with ._}}
+  {{$States := .States}}
+  {{$Readings := .Readings}}
+  {{with .Subprobe}}
+    <div class="subprobes-headers">
+      <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
     </div>
-  {{else}}
-    None yet!
+    <div>
+      <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
+      {{range $Readings}}
+        <div class="revere-row
+        {{if eq .State $States.NORMAL}}
+          bg-success
+        {{else if eq .State $States.WARNING}}
+          bg-warning
+        {{else if eq .State $States.ERROR}}
+          bg-danger
+        {{else if eq .State $States.CRITICAL}}
+          bg-critical
+        {{else}}
+          bg-unknown
+        {{end}}">
+          <div class="col-md-6">{{.StateStr}}</div>
+          <div class="col-md-6">{{.Recorded}}</div>
+        </div>
+      {{else}}
+        None yet!
+      {{end}}
+    </div>
   {{end}}
-</div>
+{{end}}
 {{template "_footer.html" .}}

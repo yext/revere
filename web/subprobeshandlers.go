@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/yext/revere"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 
@@ -62,44 +61,27 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 
-		s, err := revere.LoadSubprobe(db, uint(id))
+		subprobe, err := vm.NewSubprobe(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		if s == nil {
-			http.Error(w, fmt.Sprintf("Subprobe not found: %d", id),
-				http.StatusNotFound)
-			return
-		}
-
-		if s.MonitorId != uint(mId) {
+		if subprobe.MonitorId != uint(mId) {
 			http.Error(w, fmt.Sprintf("Subprobe %d does not exist for monitor: %d", id, mId),
 				http.StatusNotFound)
 			return
 		}
 
-		readings, err := revere.LoadReadings(db, uint(id))
+		readings, err := vm.AllReadingsFromSubprobe(db, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve readings: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 
-		if s == nil {
-			http.Error(w, fmt.Sprintf("Subprobe not found: %s", id),
-				http.StatusNotFound)
-			return
-		}
-
-		err = executeTemplate(w, "subprobes-view.html",
-			map[string]interface{}{
-				"Readings":    readings,
-				"Subprobe":    s,
-				"MonitorName": s.MonitorName,
-				"Breadcrumbs": vm.SubprobeViewBcs(s),
-			})
+		renderable := renderables.NewSubprobeView(subprobe, readings)
+		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
 				http.StatusInternalServerError)
