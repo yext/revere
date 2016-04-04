@@ -82,11 +82,6 @@
 	overflow: hidden;
 }
 
-.silence-edit {
-	float: right;
-	margin-right: 50px;
-}
-
 .silence-form {
 	display: inline-block;
 	width: 200px;

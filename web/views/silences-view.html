@@ -3,8 +3,8 @@
   <div class="silences-headers">
     <h1 class="silences-header">
       silence for <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
+      <span><a class="btn btn-primary" href="/silences/{{.Silence.Id}}/edit" role="button">Edit</a></span>
     </h1>
-    <h4 class="silence-edit"><a href="/silences/{{.Silence.Id}}/edit">Edit</a></h4>
   </div>
   <h4 class="silence-subheader">Subprobes: {{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</h4>
   

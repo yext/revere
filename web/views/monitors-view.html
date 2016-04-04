@@ -3,6 +3,7 @@
   <h1 class="monitor-header">
     <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>
     <span class="monitor-version">v{{.Version}}</span>
+    <span><a class="btn btn-primary" href="/monitors/{{.Id}}/edit" role="button">Edit</a></span>
   </h1>
   <div class="monitor-subheading">
     <h5>{{.Owner}}</h5>

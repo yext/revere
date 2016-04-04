@@ -1,6 +1,9 @@
 {{template "_header.html" setTitle . "Labels"}}
 {{with ._}}
-  <h1>{{.Name}}</h1>
+  <h1>
+    <span>{{.Name}}</span>
+    <span><a class="btn btn-primary" href="/labels/{{.Id}}/edit" role="button">Edit</a></span>
+  </h1>
   <h4>Description:</h4>
   <p>{{.Description}}</p>
   <h2>Triggers</h2>
