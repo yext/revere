@@ -35,6 +35,7 @@ func (msi *MonitorsIndex) data() interface{} {
 
 func (msi *MonitorsIndex) scripts() []string {
 	return []string{
+		"label-filter.js",
 		"monitors-index.js",
 	}
 }

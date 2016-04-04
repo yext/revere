@@ -4,22 +4,7 @@
     <h1 class="index-header">Monitors</h1>
     <a href="/monitors/new/edit" class="btn btn-success new-btn">+ new</a>
   </div>
-  <div>
-    <form class="form-horizontal">
-      <label class="col-sm-1 control-label" for="label">Label:</label>
-      <div class="col-sm-4">
-        <select class="form-control" name="label">
-          <option>All</option>
-          {{range .Labels}}
-            <option class="labels" value="{{.Id}}">{{.Name}}</option>
-          {{end}}
-        </select>
-      </div>
-      <div class="form-group">
-        <input type="submit" class="btn btn-default" value="Filter">
-      </div>
-    </form>
-  </div>
+  {{template "label-filter.html" .}}
   <div>
     <div class="revere-row">
       <div class="col-md-3">Name</div>
