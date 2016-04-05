@@ -46,7 +46,12 @@ var graphitePreview = function() {
         getGraphiteTargets(gtFields),
         getGraphitePreviewPeriod(previewFields)
       );
-      $('#js-preview-img').attr('src', url);
+
+      $('#js-preview-error').addClass('hidden');
+      $('#js-preview-img').on('error', function() {
+        $('#js-preview-error').removeClass('hidden');
+        $('#js-preview-img').addClass('hidden');
+      }).removeClass('hidden').attr('src', url);
     });
   };
 
