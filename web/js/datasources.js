@@ -80,7 +80,7 @@ var datasources = function() {
     var initAddButtons = function() {
         $('.js-add-source').click(function(e) {
             e.preventDefault();
-            let type = $(this).data('sourceref');
+            var type = $(this).data('sourceref');
             newField = $('.' + type).first()
                 .clone()
                 .insertAfter('.' + type + ':last');
