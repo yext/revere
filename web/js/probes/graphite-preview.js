@@ -51,7 +51,8 @@ var graphitePreview = function() {
       $('#js-preview-img').on('error', function() {
         $('#js-preview-error').removeClass('hidden');
         $('#js-preview-img').addClass('hidden');
-      }).removeClass('hidden').attr('src', url);
+      }).removeClass('hidden')
+      .attr('src', url);
     });
   };
 
