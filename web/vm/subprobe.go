@@ -62,3 +62,12 @@ func AllAbnormalSubprobes(db *sql.DB) ([]*Subprobe, error) {
 
 	return newSubprobesFromModel(db, ss), nil
 }
+
+func AllAbnormalSubprobesForLabel(db *sql.DB, id int) ([]*Subprobe, error) {
+	ss, err := revere.LoadSubprobesBySeverityForLabel(db, uint(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return newSubprobesFromModel(db, ss), nil
+}

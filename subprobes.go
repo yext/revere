@@ -44,7 +44,7 @@ func LoadSubprobesBySeverity(db *sql.DB) (subprobes []*Subprobe, err error) {
 	return loadSubprobes(db, fmt.Sprintf("WHERE ss.state != %d ORDER BY ss.state DESC, ss.enteredState, m.name, s.name", NORMAL))
 }
 
-func LoadSubprobesBySeverityWithLabel(db *sql.DB, labelId uint) (subprobes []*Subprobe, err error) {
+func LoadSubprobesBySeverityForLabel(db *sql.DB, labelId uint) (subprobes []*Subprobe, err error) {
 	return loadSubprobes(db, fmt.Sprintf(`
 		JOIN labels_monitors lm ON lm.monitor_id = m.id
 		WHERE ss.state != %d AND lm.label_id = %d

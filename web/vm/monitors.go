@@ -96,8 +96,8 @@ func AllMonitors(db *sql.DB) ([]*Monitor, error) {
 	return newMonitorsFromModels(db, rms)
 }
 
-func AllMonitorsForLabel(db *sql.DB, labelId uint) ([]*Monitor, error) {
-	rms, err := revere.LoadMonitorsForLabel(db, labelId)
+func AllMonitorsForLabel(db *sql.DB, labelId int) ([]*Monitor, error) {
+	rms, err := revere.LoadMonitorsForLabel(db, uint(labelId))
 	if err != nil {
 		return nil, err
 	}

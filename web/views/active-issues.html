@@ -1,37 +1,36 @@
 {{template "_header.html" setTitle . "Active Issues"}}
-<div class="active-issues-headers">
-  <h1 class="active-issues-header">Active Issues</h1>
-</div>
-<div>
-  <div class="revere-row">
-    <div class="col-md-3">Monitor Name</div>
-    <div class="col-md-3">Subprobe Name</div>
-    <div class="col-md-3">State</div>
-    <div class="col-md-3">Duration</div>
+{{with ._}}
+  {{$States := .States}}
+  <div class="active-issues-headers">
+    <h1 class="active-issues-header">Active Issues</h1>
   </div>
-  {{range .Subprobes}}
-    <div class="revere-row
-    {{if eq .Status.State $.States.WARNING}}
-      bg-warning
-    {{else if eq .Status.State $.States.ERROR}}
-      bg-danger
-    {{else if eq .Status.State $.States.CRITICAL}}
-      bg-critical
-    {{else}}
-      bg-unknown
-    {{end}}">
-      <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
-      <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
-      <div class="col-md-3">{{.Status.StateStr}}</div>
-      <div class="col-md-3"><span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span></div>
+  {{template "label-filter.html" .}}
+  <div>
+    <div class="revere-row">
+      <div class="col-md-3">Monitor Name</div>
+      <div class="col-md-3">Subprobe Name</div>
+      <div class="col-md-3">State</div>
+      <div class="col-md-3">Duration</div>
     </div>
-  {{else}}
-    None yet!
-  {{end}}
-</div>
-
-{{define "MoreScripts"}}
-<script src="/static/js/entered-state.js"></script>
+    {{range .Subprobes}}
+      <div class="revere-row
+      {{if eq .Status.State $States.WARNING}}
+        bg-warning
+      {{else if eq .Status.State $States.ERROR}}
+        bg-danger
+      {{else if eq .Status.State $States.CRITICAL}}
+        bg-critical
+      {{else}}
+        bg-unknown
+      {{end}}">
+        <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
+        <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
+        <div class="col-md-3">{{.Status.StateStr}}</div>
+        <div class="col-md-3"><span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span></div>
+      </div>
+    {{else}}
+      None yet!
+    {{end}}
+  </div>
 {{end}}
-
 {{template "_footer.html" .}}

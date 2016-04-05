@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/yext/revere"
@@ -64,18 +65,33 @@ func LoadTemplates() {
 
 func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		s, err := revere.LoadSubprobesBySeverity(db)
+		var (
+			subprobes []*vm.Subprobe
+			err       error
+		)
+
+		l := req.FormValue("label")
+		labelId, err := strconv.Atoi(l)
+		if err != nil {
+			subprobes, err = vm.AllAbnormalSubprobes(db)
+		} else {
+			subprobes, err = vm.AllAbnormalSubprobesForLabel(db, labelId)
+		}
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		err = executeTemplate(w, "active-issues.html",
-			map[string]interface{}{
-				"Subprobes":   s,
-				"Breadcrumbs": []vm.Breadcrumb{vm.Breadcrumb{"active issues", "/"}},
-			})
+		labels, err := vm.AllLabels(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		renderable := renderables.NewActiveIssues(subprobes, labels)
+		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 				http.StatusInternalServerError)

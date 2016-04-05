@@ -1,24 +1,31 @@
 var revere = function() {
   r = {};
+
   r.displayDateTimeFormat = function() {
     return 'YYYY-MM-DD HH:mm';
   };
+
   r.modelDateTimeFormat = function () {
     return 'X';
-  }
+  };
+
   r.goTimeZero = function () {
     return -62135596800;
-  }
+  };
+
   r.serverTimeZone = function() {
     return 'UTC';
-  }
+  };
+
   r.localTimeZone = function() {
     return moment.tz.guess();
-  }
+  };
+
   r.getParameterByName = function(name) {
     var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-  }
+  };
+
   return r;
 }();
 

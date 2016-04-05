@@ -27,7 +27,7 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 		if err != nil {
 			monitors, err = vm.AllMonitors(db)
 		} else {
-			monitors, err = vm.AllMonitorsForLabel(db, uint(labelId))
+			monitors, err = vm.AllMonitorsForLabel(db, labelId)
 		}
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
@@ -36,6 +36,11 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 		}
 
 		labels, err := vm.AllLabels(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
 
 		renderable := renderables.NewMonitorsIndex(monitors, labels)
 		err = render(w, renderable)

@@ -37,6 +37,7 @@ func (ssi *SubprobesIndex) data() interface{} {
 
 func (ssi *SubprobesIndex) scripts() []string {
 	return []string{
+		"entered-states.js",
 		"subprobes-index.js",
 	}
 }
