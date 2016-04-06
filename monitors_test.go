@@ -1,6 +1,7 @@
 package revere_test
 
 import (
+	"database/sql"
 	"testing"
 
 	. "github.com/yext/revere"
@@ -11,6 +12,11 @@ import (
 var (
 	probeType = probes.GraphiteThreshold{}
 	probeJson = test.DefaultProbeJson
+
+	subprobes = []string{
+		"[a-z]",
+		"test.*\\.example",
+	}
 )
 
 func validMonitor() *Monitor {
@@ -21,15 +27,43 @@ func validMonitor() *Monitor {
 	m.Response = "Response"
 	m.ProbeType = probeType.Id()
 	m.ProbeJson = probeJson
-	m.Triggers = []*Trigger{validTrigger()}
+	m.Triggers = []*MonitorTrigger{validMonitorTrigger()}
 	return m
+}
+
+func validMonitorTrigger() *MonitorTrigger {
+	mt := new(MonitorTrigger)
+	mt.Trigger = *validTrigger()
+	mt.Subprobes = "test.*examples"
+	mt.Delete = false
+	return mt
 }
 
 func TestInvalidMonitorName(t *testing.T) {
 	monitor := validMonitor()
+	testDB := new(sql.DB)
+	// XXX only works because of how we use the db currently,
+	// should be replaced with a real dummy db eventually
 	monitor.Name = ""
-	errs := monitor.Validate()
-	if errs == nil {
+	if errs := monitor.Validate(testDB); errs == nil {
 		t.Error("Expected error for invalid monitor name")
+	}
+}
+
+func TestInvalidMonitorTriggerSubprobe(t *testing.T) {
+	trigger := validMonitorTrigger()
+	trigger.Subprobes = "a["
+	if errs := trigger.Validate(); errs == nil {
+		t.Error("Expected error for invalid subprobe")
+	}
+}
+
+func TestValidTriggerSubprobe(t *testing.T) {
+	trigger := validMonitorTrigger()
+	for _, s := range subprobes {
+		trigger.Subprobes = s
+		if errs := trigger.Validate(); errs != nil {
+			t.Errorf("Unexpected error for subprobe: %s\n", s)
+		}
 	}
 }
