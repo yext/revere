@@ -42,16 +42,16 @@ var (
 		datasources.GraphiteDataSource{}.Id(),
 	}
 
-	// All graphite datasources found in the conf file
-	GraphiteUrls []string
+	validGraphitePeriodTypes = []string{
+		"day",
+		"hour",
+		"minute",
+		"second",
+	}
 )
 
 func init() {
 	addProbeType(GraphiteThreshold{})
-}
-
-func SetGraphiteUrls(urls []string) {
-	GraphiteUrls = urls
 }
 
 func (gt GraphiteThreshold) Id() ProbeTypeId {
@@ -68,7 +68,6 @@ func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
 	if err != nil {
 		return g, err
 	}
-	g.DataSources = GraphiteUrls
 	return g, nil
 }
 
@@ -96,12 +95,35 @@ func (g GraphiteThresholdProbe) Validate() (errs []string) {
 	if g.Expression == "" {
 		errs = append(errs, "Graphite expression is required")
 	}
-	if util.GetMs(g.CheckPeriod, g.CheckPeriodType) == 0 {
+
+	isValidCheckPeriodType := false
+	for _, vpt := range validGraphitePeriodTypes {
+		if g.CheckPeriodType == vpt {
+			isValidCheckPeriodType = true
+			break
+		}
+	}
+	if !isValidCheckPeriodType {
+		errs = append(errs, "Invalid check period type")
+	}
+
+	isValidAuditPeriodType := false
+	for _, vpt := range validGraphitePeriodTypes {
+		if g.AuditPeriodType == vpt {
+			isValidAuditPeriodType = true
+			break
+		}
+	}
+	if !isValidAuditPeriodType {
+		errs = append(errs, "Invalid audit period type")
+	}
+
+	if util.GetMs(g.CheckPeriod, g.CheckPeriodType) <= 0 {
 		errs = append(errs, "Invalid check period")
 	}
 
-	if util.GetMs(g.AuditPeriod, g.AuditPeriodType) == 0 {
-		errs = append(errs, "Invalid alert period")
+	if util.GetMs(g.AuditPeriod, g.AuditPeriodType) <= 0 {
+		errs = append(errs, "Invalid audit period")
 	}
 
 	return

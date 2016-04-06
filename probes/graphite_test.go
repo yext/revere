@@ -3,7 +3,6 @@ package probes_test
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"testing"
 
 	. "github.com/yext/revere/probes"
@@ -18,7 +17,6 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	SetGraphiteUrls([]string{"foo.bar"})
 	os.Exit(m.Run())
 }
 
@@ -57,30 +55,6 @@ func TestGraphiteThresholdEmptyLoad(t *testing.T) {
 	_, ok := probe.(GraphiteThresholdProbe)
 	if !ok {
 		t.Fatalf("Invalid probe loaded for probe type: %s\n", gtProbeType.Name())
-	}
-}
-
-func TestGraphiteThresholdDataSources(t *testing.T) {
-	gtProbe, err := validGraphiteThresholdProbe()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-
-	if !reflect.DeepEqual(gtProbe.DataSources, GraphiteUrls) {
-		t.Errorf("Expected graphite datasources: %v got: %v\n", GraphiteUrls, gtProbe.DataSources)
-	}
-}
-
-func TestInvalidGraphiteThresholdUrl(t *testing.T) {
-	gtProbe, err := validGraphiteThresholdProbe()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-
-	gtProbe.Url = ""
-	errs := gtProbe.Validate()
-	if errs == nil {
-		t.Error("Expected error for nil graphite url")
 	}
 }
 
