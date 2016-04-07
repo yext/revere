@@ -6,17 +6,14 @@ import (
 )
 
 type ActiveIssues struct {
-	labels    []*vm.Label
-	subprobes []*vm.Subprobe
-	subs      []Renderable
+	labels        []*vm.Label
+	subprobes     []*vm.Subprobe
+	monitorLabels map[uint]*vm.MonitorLabels
+	subs          []Renderable
 }
 
-func NewActiveIssues(ss []*vm.Subprobe, ls []*vm.Label) *ActiveIssues {
-	ai := new(ActiveIssues)
-	ai.labels = ls
-	ai.subprobes = ss
-
-	return ai
+func NewActiveIssues(ss []*vm.Subprobe, ls []*vm.Label, mls map[uint]*vm.MonitorLabels) *ActiveIssues {
+	return &ActiveIssues{ls, ss, mls, nil}
 }
 
 func (ai *ActiveIssues) name() string {
@@ -29,9 +26,10 @@ func (ai *ActiveIssues) template() string {
 
 func (ai *ActiveIssues) data() interface{} {
 	return map[string]interface{}{
-		"Labels":    ai.labels,
-		"Subprobes": ai.subprobes,
-		"States":    revere.ReverseStates,
+		"Labels":        ai.labels,
+		"Subprobes":     ai.subprobes,
+		"MonitorLabels": ai.monitorLabels,
+		"States":        revere.ReverseStates,
 	}
 }
 

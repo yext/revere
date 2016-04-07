@@ -35,3 +35,16 @@ func loadMonitorLabels(db *sql.DB) (*MonitorLabels, error) {
 	}
 	return viewmodel, nil
 }
+
+func allMonitorLabels(db *sql.DB, mIds []uint) (map[uint]*MonitorLabels, error) {
+	labelsByMonitorId, err := revere.BatchLoadMonitorLabels(db, mIds)
+	if err != nil {
+		return nil, err
+	}
+
+	mls := make(map[uint]*MonitorLabels)
+	for mId, labels := range labelsByMonitorId {
+		mls[mId] = &MonitorLabels{Components: labels, ComponentName: "labels"}
+	}
+	return mls, nil
+}

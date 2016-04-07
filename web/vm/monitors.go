@@ -101,6 +101,23 @@ func AllMonitorsForLabel(db *sql.DB, labelId int) ([]*Monitor, error) {
 	return newMonitorsFromModels(rms), nil
 }
 
+func PopulateLabelsForMonitors(db *sql.DB, monitors []*Monitor) error {
+	mIds := make([]uint, len(monitors))
+	for i, m := range monitors {
+		mIds[i] = m.Id
+	}
+
+	mls, err := allMonitorLabels(db, mIds)
+	if err != nil {
+		return err
+	}
+
+	for _, m := range monitors {
+		m.Labels = mls[m.Id]
+	}
+	return nil
+}
+
 func (m *Monitor) GetProbeType() probes.ProbeType {
 	return m.Probe.ProbeType()
 }

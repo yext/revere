@@ -83,14 +83,21 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			return
 		}
 
-		labels, err := vm.AllLabels(db)
+		monitorLabels, err := vm.AllMonitorLabelsForSubprobes(db, subprobes)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		allLabels, err := vm.AllLabels(db)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		renderable := renderables.NewActiveIssues(subprobes, labels)
+		renderable := renderables.NewActiveIssues(subprobes, allLabels, monitorLabels)
 		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),

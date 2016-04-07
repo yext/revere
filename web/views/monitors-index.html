@@ -8,14 +8,22 @@
   <div>
     <div class="revere-row">
       <div class="col-md-3">Name</div>
-      <div class="col-md-9">Description</div>
+      <div class="col-md-5">Description</div>
+      <div class="col-md-4">Labels</div>
     </div>
     {{range .Monitors}}
       <div class="revere-row">
         <div class="col-md-3">
           <a href="/monitors/{{.Id}}">{{.Name}}</a>
         </div>
-        <div class="col-md-9">{{.Description}}</div>
+        <div class="col-md-5">{{.Description}}</div>
+        <div class="col-md-4">
+          {{with .Labels}}
+            {{range .Components}}
+              <span class="label label-primary">{{.Name}}</span>
+            {{end}}
+          {{end}}
+        </div>
       </div>
     {{else}}
       <h4>There are no existing monitors.</h4>

@@ -3,6 +3,7 @@ package revere
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/yext/revere/probes"
@@ -155,6 +156,46 @@ func LoadMonitorLabels(db *sql.DB, monitorId uint) ([]*MonitorLabel, error) {
 			return nil, err
 		}
 		monitorLabels = append(monitorLabels, ml)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return monitorLabels, nil
+}
+
+func BatchLoadMonitorLabels(db *sql.DB, mIds []uint) (map[uint][]*MonitorLabel, error) {
+	monitors := make([]interface{}, len(mIds))
+	for i, m := range mIds {
+		monitors[i] = m
+	}
+
+	stmt, err := db.Prepare(fmt.Sprintf(`
+		SELECT %s, lm.monitor_id FROM labels l
+		JOIN labels_monitors lm on l.id=lm.label_id
+		WHERE lm.monitor_id IN (%s)
+	`, allMonitorLabelFields,
+		strings.TrimSuffix(strings.Repeat("?,", len(monitors)), ",")))
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(monitors...)
+	if err != nil {
+		return nil, err
+	}
+
+	monitorLabels := make(map[uint][]*MonitorLabel)
+	for rows.Next() {
+		var (
+			ml  MonitorLabel
+			mId uint
+		)
+		if err := rows.Scan(&ml.Id, &ml.Name, &ml.Description, &ml.Subprobes, &mId); err != nil {
+			return nil, err
+		}
+		monitorLabels[mId] = append(monitorLabels[mId], &ml)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {

@@ -35,6 +35,13 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 			return
 		}
 
+		err = vm.PopulateLabelsForMonitors(db, monitors)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
 		labels, err := vm.AllLabels(db)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),

@@ -71,3 +71,11 @@ func AllAbnormalSubprobesForLabel(db *sql.DB, id int) ([]*Subprobe, error) {
 
 	return newSubprobesFromModel(db, ss), nil
 }
+
+func AllMonitorLabelsForSubprobes(db *sql.DB, subprobes []*Subprobe) (map[uint]*MonitorLabels, error) {
+	mIds := make([]uint, len(subprobes))
+	for i, subprobe := range subprobes {
+		mIds[i] = subprobe.MonitorId
+	}
+	return allMonitorLabels(db, mIds)
+}

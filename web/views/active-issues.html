@@ -8,11 +8,13 @@
   <div>
     <div class="revere-row">
       <div class="col-md-3">Monitor Name</div>
-      <div class="col-md-3">Subprobe Name</div>
-      <div class="col-md-3">State</div>
-      <div class="col-md-3">Duration</div>
+      <div class="col-md-2">Subprobe Name</div>
+      <div class="col-md-2">State</div>
+      <div class="col-md-2">Duration</div>
+      <div class="col-md-3">Labels</div>
     </div>
     {{range .Subprobes}}
+      {{$monitorId := .MonitorId}}
       <div class="revere-row
       {{if eq .Status.State $States.WARNING}}
         bg-warning
@@ -23,10 +25,23 @@
       {{else}}
         bg-unknown
       {{end}}">
-        <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a></div>
-        <div class="col-md-3"><a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a></div>
-        <div class="col-md-3">{{.Status.StateStr}}</div>
-        <div class="col-md-3"><span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span></div>
+        <div class="col-md-3">
+          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorId}}">{{.MonitorName}}</a>
+        </div>
+        <div class="col-md-2">
+          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorId}}/subprobes/{{.Id}}">{{.Name}}</a>
+        </div>
+        <div class="col-md-2">{{.Status.StateStr}}</div>
+        <div class="col-md-2">
+          <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
+        </div>
+        <div class="col-md-3">
+          {{with index $._.MonitorLabels $monitorId}}
+            {{range .Components}}
+              <span class="label label-primary">{{.Name}}</span>
+            {{end}}
+          {{end}}
+        </div>
       </div>
     {{else}}
       None yet!
