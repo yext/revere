@@ -11,6 +11,7 @@ type DataSource struct {
 	Id               uint                         `json:"id"`
 	DataSourceTypeId datasources.DataSourceTypeId `json:"sourceTypeId"`
 	Source           string                       `json:"source"`
+	Delete           bool                         `json:"delete,omitempty"`
 }
 
 const dataSourceFields = `id, sourceTypeId, source`
@@ -73,13 +74,19 @@ func (ds *DataSource) Save(db *sql.DB) (err error) {
 		err = tx.Commit()
 	}()
 
-	if ds.Id == 0 {
+	if ds.isCreate() {
 		_, err = ds.create(tx)
+	} else if ds.Delete {
+		err = ds.delete(tx)
 	} else {
 		err = ds.update(tx)
 	}
 
 	return
+}
+
+func (ds *DataSource) isCreate() bool {
+	return ds.Id == 0
 }
 
 func (ds *DataSource) create(tx *sql.Tx) (uint, error) {
@@ -108,31 +115,21 @@ func (ds *DataSource) update(tx *sql.Tx) error {
 	return err
 }
 
-func (ds *DataSource) Delete(db *sql.DB) (rowsAffected int64, err error) {
-	var tx *sql.Tx
-	tx, err = db.Begin()
+func (ds *DataSource) delete(tx *sql.Tx) error {
+	var stmt *sql.Stmt
+	stmt, err := tx.Prepare(`
+		DELETE FROM data_sources
+		WHERE id = ?
+	`)
 	if err != nil {
-		return
+		return err
 	}
-	stmt, err := tx.Prepare(`DELETE FROM data_sources WHERE id = ?`)
-	defer func() {
-		stmt.Close()
-		if err != nil {
-			tx.Rollback()
-			return
-		}
-		err = tx.Commit()
-	}()
 
+	_, err = stmt.Exec(ds.Id)
 	if err != nil {
-		return
+		return err
 	}
-	result, err := stmt.Exec(ds.Id)
-	if err != nil {
-		return
-	}
-	rowsAffected, err = result.RowsAffected()
-	return
+	return stmt.Close()
 }
 
 func loadDataSourceFromRow(rows *sql.Rows) (*DataSource, error) {

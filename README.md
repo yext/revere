@@ -24,10 +24,10 @@ The LoadInfo function should parse the JSON string stored in the string passed t
 This file will determine how data sources of your new type are displayed/edited on the data sources page in Revere. Within this file, you will have access to the view model described in web/vm/datasourcetype.go. General notes:
 
 * Each data source should have its own row
-* Each data source should be enclosed in a div with the `js-data-source` class
+* Each data source should be enclosed in a div with the `js-datasource` class
 * Each data source should have a delete button, with the class `delete`
 * This template needs to have an add button, which should have a class `js-add-source`
-* The add button needs to have a `data-sourceref` attribute unique to this data source type - in addition, each element that has `js-data-source` as a class should also have this attribute value as a class.
+* The add button needs to have a `data-sourceref` attribute unique to this data source type - in addition, each element that has `js-datasource` as a class should also have this attribute value as a class.
 
 See web/views/datasources/graphite-datasource.html for an example.
 

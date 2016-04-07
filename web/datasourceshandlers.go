@@ -32,43 +32,22 @@ func DataSourcesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request,
 	}
 }
 
-func DataSourcesDelete(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func DataSourcesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		var ds revere.DataSource
-		json.NewDecoder(req.Body).Decode(&ds)
-		if ds.Id == 0 {
-			// New source - not in database
-			http.StatusText(200)
-			return
-		}
-
-		numRows, err := ds.Delete(db)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to delete data source with id %s", err), http.StatusInternalServerError)
-			return
-		}
-
-		if numRows == 0 {
-			http.StatusText(404)
-			return
-		}
-
-		http.StatusText(200)
-		return
-	}
-}
-
-func DataSourcesUpdate(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		var newDataSources []revere.DataSource
-		err := json.NewDecoder(req.Body).Decode(&newDataSources)
+		var dataSources []*revere.DataSource
+		err := json.NewDecoder(req.Body).Decode(&dataSources)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Data sources must be in correct format: %s", err), http.StatusInternalServerError)
 			return
 		}
 
-		for _, dbSource := range newDataSources {
-			dbSource.Save(db)
+		for _, dataSource := range dataSources {
+			err = dataSource.Save(db)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
+					http.StatusInternalServerError)
+				return
+			}
 		}
 
 		http.Redirect(w, req, "/datasources", http.StatusMovedPermanently)

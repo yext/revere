@@ -27,8 +27,7 @@ func main() {
 
 	router.GET("/", web.ActiveIssues(db))
 	router.GET("/datasources", web.DataSourcesIndex(db))
-	router.POST("/datasources", web.DataSourcesUpdate(db))
-	router.POST("/datasources/delete", web.DataSourcesDelete(db))
+	router.POST("/datasources", web.DataSourcesSave(db))
 	router.GET("/monitors", web.MonitorsIndex(db))
 	router.GET("/monitors/:id", web.MonitorsView(db))
 	router.GET("/monitors/:id/edit", web.MonitorsEdit(db))

@@ -1,21 +1,21 @@
 $(document).ready(function() {
-    datasources.addSourceFunction(graphiteDataSourceHandler.getData);
+  datasources.addSourceFunction(graphiteDataSourceHandler.getData);
 });
 
 
 var graphiteDataSourceHandler = function() {
-    var gdsh = {}
+  var gdsh = {}
 
-    gdsh.getData = function() {
-        var data = [];
-        $.each($('.js-data-source.graphite'), function() {
-            var sendData = $(this).find(':input.required').serializeObject();
-            var sourceData = $(this).find(':input.source').serializeObject();
-            $.extend(sendData, {'source': JSON.stringify(sourceData)});
-            data.push(sendData)
-        });
-        return data;
-    };
+  gdsh.getData = function() {
+    var data = [];
+    $.each($('.js-datasource.graphite'), function() {
+      var sendData = $(this).find(':input.required').serializeObject();
+      var sourceData = $(this).find(':input.source').serializeObject();
+      $.extend(sendData, {'source': JSON.stringify(sourceData)});
+      data.push(sendData)
+    });
+    return data;
+  };
 
-    return gdsh
+  return gdsh
 }();
