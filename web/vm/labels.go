@@ -40,17 +40,13 @@ func newLabelFromModel(db *sql.DB, l *revere.Label) (*Label, error) {
 	return viewmodel, nil
 }
 
-func newLabelsFromModels(db *sql.DB, rls []*revere.Label) ([]*Label, error) {
-	var err error
+func newLabelsFromModels(db *sql.DB, rls []*revere.Label) []*Label {
 	labels := make([]*Label, len(rls))
 	for i, rl := range rls {
-		// TODO(psingh): Batch fetch monitor model data
-		labels[i], err = newLabelFromModel(db, rl)
-		if err != nil {
-			return nil, err
-		}
+		labels[i] = new(Label)
+		labels[i].Label = rl
 	}
-	return labels, nil
+	return labels
 }
 
 func BlankLabel(db *sql.DB) (*Label, error) {
@@ -74,5 +70,5 @@ func AllLabels(db *sql.DB) ([]*Label, error) {
 		return nil, err
 	}
 
-	return newLabelsFromModels(db, rls)
+	return newLabelsFromModels(db, rls), nil
 }
