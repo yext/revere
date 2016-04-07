@@ -44,6 +44,7 @@ import (
 	"github.com/juju/errors"
 	"golang.org/x/sys/unix"
 
+	"github.com/yext/revere/daemon"
 	"github.com/yext/revere/env"
 )
 
@@ -63,8 +64,6 @@ func main() {
 
 	env, err := loadEnv()
 	ifErrPrintAndExit(err)
-	// TODO(eefi): This is here just to get env marked as used.
-	_ = env
 
 	modes, err := parseMode()
 	ifErrPrintAndExit(err)
@@ -77,11 +76,9 @@ func main() {
 	for _, mode := range modes {
 		switch mode {
 		case "daemon":
-			// TODO(eefi): Start the daemon.
-
-			defer func() {
-				// TODO(eefi): Stop the daemon.
-			}()
+			d := daemon.New(env)
+			d.Start()
+			defer d.Stop()
 		case "web":
 			// TODO(eefi): Start the web server.
 
