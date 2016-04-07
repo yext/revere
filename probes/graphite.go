@@ -13,13 +13,12 @@ type GraphiteThresholdProbe struct {
 	Url        string `json:"url"`
 	Expression string `json:"expression"`
 	Threshold
-	AuditFunction   string   `json:"auditFunction"`
-	CheckPeriod     int64    `json:"checkPeriod"`
-	CheckPeriodType string   `json:"checkPeriodType"`
-	TriggerIf       string   `json:"triggerIf"`
-	AuditPeriod     int64    `json:"auditPeriod"`
-	AuditPeriodType string   `json:"auditPeriodType"`
-	DataSources     []string `json:"-"`
+	AuditFunction   string `json:"auditFunction"`
+	CheckPeriod     int64  `json:"checkPeriod"`
+	CheckPeriodType string `json:"checkPeriodType"`
+	TriggerIf       string `json:"triggerIf"`
+	AuditPeriod     int64  `json:"auditPeriod"`
+	AuditPeriodType string `json:"auditPeriodType"`
 }
 
 type Threshold struct {
@@ -29,19 +28,18 @@ type Threshold struct {
 }
 
 var (
-	templates = map[string]string{
+	graphiteThresholdTemplates = map[string]string{
 		"edit": "graphite-edit.html",
 		"view": "graphite-view.html",
 	}
-	scripts = map[string][]string{
+	graphiteThresholdScripts = map[string][]string{
 		"edit": []string{
 			"graphite-preview.js",
 		},
 	}
-	AcceptedDataSourceTypes = []datasources.DataSourceTypeId{
+	graphiteThresholdDataSources = []datasources.DataSourceTypeId{
 		datasources.GraphiteDataSource{}.Id(),
 	}
-
 	validGraphitePeriodTypes = []string{
 		"day",
 		"hour",
@@ -72,15 +70,15 @@ func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
 }
 
 func (gt GraphiteThreshold) Templates() map[string]string {
-	return templates
+	return graphiteThresholdTemplates
 }
 
 func (gt GraphiteThreshold) Scripts() map[string][]string {
-	return scripts
+	return graphiteThresholdScripts
 }
 
 func (g GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
-	return AcceptedDataSourceTypes
+	return graphiteThresholdDataSources
 }
 
 func (g GraphiteThresholdProbe) ProbeType() ProbeType {

@@ -23,11 +23,11 @@ type EmailAddress struct {
 const emailTargetTemplate = "email-edit.html"
 
 var (
-	templates = map[string]string{
+	emailTemplates = map[string]string{
 		"edit": "email-edit.html",
 		"view": "email-view.html",
 	}
-	scripts = map[string][]string{
+	emailScripts = map[string][]string{
 		"edit": []string{
 			"email.js",
 		},
@@ -58,11 +58,11 @@ func (e Email) Load(target string) (Target, error) {
 }
 
 func (et Email) Templates() map[string]string {
-	return templates
+	return emailTemplates
 }
 
 func (et Email) Scripts() map[string][]string {
-	return scripts
+	return emailScripts
 }
 
 func (et EmailTarget) Validate() (errs []string) {
