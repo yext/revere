@@ -92,3 +92,15 @@ CREATE TABLE label_triggers (
   FOREIGN KEY (`trigger_id`) REFERENCES triggers(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`label_id`) REFERENCES labels(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
+
+CREATE TABLE data_sources (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  sourceType SMALLINT NOT NULL,
+  source TEXT NOT NULL
+) ENGINE = InnoDB;
+
+CREATE TABLE settings (
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  settingType SMALLINT NOT NULL,
+  setting TEXT NOT NULL
+) ENGINE = InnoDB;
