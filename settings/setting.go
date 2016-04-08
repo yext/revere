@@ -6,61 +6,55 @@
 */
 package settings
 
-import (
-	"fmt"
-	"html/template"
+import "fmt"
 
-	"github.com/yext/revere/web/tmpl"
-)
+type SettingTypeId int
+
+type SettingType interface {
+	Id() SettingTypeId
+	Name() string
+	Template() string
+	Scripts() []string
+	Load(string) (Setting, error)
+	LoadDefault() Setting
+}
 
 type Setting interface {
-	Id() int
-	Load() error
-	Save(jsonObject string) error
-	Render() (template.HTML, error)
+	Validate() []string
+	SettingType() SettingType
 }
-
-const settingTemplateDir = "web/views/settings/"
 
 var (
-	settingTemplates map[string]*template.Template
-	settings         map[int]Setting = make(map[int]Setting)
+	defaultSettingTypeId = OutgoingEmail{}.Id()
+	settingTypes         = make(map[SettingTypeId]SettingType)
 )
 
-func init() {
-	funcMap := template.FuncMap{}
-	// Fetch all setting templates
-	settingTemplates = tmpl.InitTemplates(settingTemplateDir, funcMap)
+func SettingTypeById(settingType SettingTypeId) (SettingType, error) {
+	if s, ok := settingTypes[settingType]; !ok {
+		return nil, fmt.Errorf("Invalid setting type with id: %d", settingType)
+	} else {
+		return s, nil
+	}
 }
 
-func registerSetting(s Setting) {
-	_, exists := settings[s.Id()]
-	if exists {
+func addSettingType(s SettingType) {
+	if _, exists := settingTypes[s.Id()]; !exists {
+		settingTypes[s.Id()] = s
+	} else {
 		panic(fmt.Sprintf("A setting with id %d already exists", s.Id()))
 	}
-	settings[s.Id()] = s
 }
 
-// GetSetting returns setting with the provided
-// id and a boolean for if it's found or not
-func GetSetting(id int) (Setting, bool) {
-	setting, ok := settings[id]
-	return setting, ok
-}
-
-// Returns all the settings after calling Load() on each
-func GetAllLoadedSettings() (loadedSettings []Setting) {
-	for _, v := range settings {
-		v.Load()
-		loadedSettings = append(loadedSettings, v)
+func AllSettingTypes() (types []*SettingType) {
+	types = make([]*SettingType, len(settingTypes))
+	i := 0
+	for _, s := range settingTypes {
+		types[i] = &s
+		i++
 	}
 	return
 }
 
-// Returns all the settings which may or may not be loaded.
-func GetAllUnloadedSettings() (unloadedSettings []Setting) {
-	for _, v := range settings {
-		unloadedSettings = append(unloadedSettings, v)
-	}
-	return
+func DefaultSettingType() SettingType {
+	return settingTypes[defaultSettingTypeId]
 }

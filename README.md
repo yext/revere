@@ -17,7 +17,7 @@ This file should implement DataSourceType - see graphite.go for an example. the 
 function should return the name of the go template file you create, and the Scripts function should
 return an array containing the names of the js files you create.
 
-The LoadInfo function should parse the JSON string stored in the string passed to it into a struct representation that can be accessed by a custom Probe.
+The LoadDefault function should parse the JSON string stored in the string passed to it into a struct representation that can be accessed by a custom Probe.
 
 #### Go template
 

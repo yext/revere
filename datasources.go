@@ -8,13 +8,26 @@ import (
 )
 
 type DataSource struct {
-	Id               uint                         `json:"id"`
-	DataSourceTypeId datasources.DataSourceTypeId `json:"sourceTypeId"`
-	Source           string                       `json:"source"`
-	Delete           bool                         `json:"delete,omitempty"`
+	Id         uint                         `json:"id"`
+	SourceType datasources.DataSourceTypeId `json:"sourceTypeId"`
+	Source     string                       `json:"source"`
+	Delete     bool                         `json:"delete,omitempty"`
 }
 
 const dataSourceFields = `id, sourceTypeId, source`
+
+func (ds *DataSource) Validate() (errs []string) {
+	dataSourceType, err := datasources.DataSourceTypeById(ds.SourceType)
+	if err != nil {
+		errs = append(errs, err.Error())
+	}
+	dataSource, err := dataSourceType.Load(ds.Source)
+	if err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid data source: %s", ds.Source))
+	}
+	errs = append(errs, dataSource.Validate()...)
+	return
+}
 
 func LoadDataSourcesOfType(db *sql.DB, dataSourceTypeId datasources.DataSourceTypeId) ([]*DataSource, error) {
 	return LoadDataSources(db, fmt.Sprintf("WHERE sourceTypeId = %d", dataSourceTypeId))
@@ -61,28 +74,16 @@ func LoadDataSources(db *sql.DB, condition string) (dataSources []*DataSource, e
 }
 
 func (ds *DataSource) Save(db *sql.DB) (err error) {
-	var tx *sql.Tx
-	tx, err = db.Begin()
-	if err != nil {
-		return
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-			return
+	return Transact(db, func(tx *sql.Tx) error {
+		if ds.isCreate() {
+			_, err = ds.create(tx)
+		} else if ds.Delete {
+			err = ds.delete(tx)
+		} else {
+			err = ds.update(tx)
 		}
-		err = tx.Commit()
-	}()
-
-	if ds.isCreate() {
-		_, err = ds.create(tx)
-	} else if ds.Delete {
-		err = ds.delete(tx)
-	} else {
-		err = ds.update(tx)
-	}
-
-	return
+		return err
+	})
 }
 
 func (ds *DataSource) isCreate() bool {
@@ -96,7 +97,7 @@ func (ds *DataSource) create(tx *sql.Tx) (uint, error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(ds.DataSourceTypeId, ds.Source)
+	res, err := stmt.Exec(ds.SourceType, ds.Source)
 	if err != nil {
 		return 0, err
 	}
@@ -111,7 +112,7 @@ func (ds *DataSource) update(tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(ds.DataSourceTypeId, ds.Source, ds.Id)
+	_, err = stmt.Exec(ds.SourceType, ds.Source, ds.Id)
 	return err
 }
 
@@ -134,10 +135,8 @@ func (ds *DataSource) delete(tx *sql.Tx) error {
 
 func loadDataSourceFromRow(rows *sql.Rows) (*DataSource, error) {
 	var ds DataSource
-
-	if err := rows.Scan(&ds.Id, &ds.DataSourceTypeId, &ds.Source); err != nil {
+	if err := rows.Scan(&ds.Id, &ds.SourceType, &ds.Source); err != nil {
 		return nil, err
 	}
-
 	return &ds, nil
 }

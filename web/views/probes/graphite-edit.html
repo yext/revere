@@ -23,7 +23,7 @@
     <label class="col-sm-1 control-label" for="url">Graphite</label>
     <div class="col-sm-3">
       <select class="form-control" name="url">
-        {{range $.DataSourceInfo.Graphite}}
+        {{range $.DataSources.Graphite}}
           <option value="{{.Url}}" {{if strEq $.Probe.Url .Url}}selected{{end}}>{{.Url}}</option>
         {{end}}
       </select>

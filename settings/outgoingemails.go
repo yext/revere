@@ -1,11 +1,8 @@
 package settings
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"html/template"
-)
+import "encoding/json"
+
+type OutgoingEmail struct{}
 
 type OutgoingEmailSetting struct {
 	FromName          string `json:"fromName,omitempty"`
@@ -14,40 +11,63 @@ type OutgoingEmailSetting struct {
 	SmtpServer        string `json:"smtpServer,omitempty"`
 }
 
-var outgoingEmailTemplateName = "_outgoing-email.html"
-
 func init() {
-	registerSetting(&OutgoingEmailSetting{})
+	addSettingType(OutgoingEmail{})
 }
 
-func (m OutgoingEmailSetting) Id() int {
+func (o OutgoingEmail) Id() SettingTypeId {
 	return 0
 }
 
-func (m *OutgoingEmailSetting) Load() error {
-	// Unimplemented
-	return nil
+func (o OutgoingEmail) Name() string {
+	return "Outgoing Email Configuration"
 }
 
-func (m OutgoingEmailSetting) Save(jsonString string) error {
-	// Unimplemented
-	fmt.Println(jsonString)
-	var testSetting OutgoingEmailSetting
-	err := json.Unmarshal([]byte(jsonString), &testSetting)
+func (o OutgoingEmail) Template() string {
+	return "_outgoing-email.html"
+}
+
+func (o OutgoingEmail) Scripts() []string {
+	return []string{
+		"outgoing-emails.js",
+	}
+}
+
+func (o OutgoingEmail) Load(settingJson string) (Setting, error) {
+	setting := new(OutgoingEmailSetting)
+	err := json.Unmarshal([]byte(settingJson), &setting)
 	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Printf("%+v\n", testSetting)
+		return nil, err
 	}
-	return nil
+	return setting, err
 }
 
-func (m OutgoingEmailSetting) Render() (template.HTML, error) {
-	t, ok := settingTemplates[outgoingEmailTemplateName]
-	if !ok {
-		return template.HTML(""), fmt.Errorf("Unable to find %s template", outgoingEmailTemplateName)
+func (o OutgoingEmail) LoadDefault() Setting {
+	return &OutgoingEmailSetting{}
+}
+
+func (os *OutgoingEmailSetting) Validate() []string {
+	var errs []string
+
+	if os.FromName == "" {
+		errs = append(errs, "Name is required")
 	}
-	b := bytes.Buffer{}
-	t.Execute(&b, m)
-	return template.HTML(b.String()), nil
+
+	if os.FromEmail == "" {
+		errs = append(errs, "Email is required")
+	}
+
+	if os.SubjectLinePrefix == "" {
+		errs = append(errs, "Subject line is required")
+	}
+
+	if os.SmtpServer == "" {
+		errs = append(errs, "SMTP server is required")
+	}
+
+	return errs
+}
+
+func (os *OutgoingEmailSetting) SettingType() SettingType {
+	return OutgoingEmail{}
 }

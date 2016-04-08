@@ -13,6 +13,7 @@ import (
 
 	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
+	"github.com/yext/revere/settings"
 	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
@@ -36,6 +37,7 @@ func init() {
 	tmpl.AddDefaultFunc("hasField", tmpl.HasField)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("probes", probes.AllProbes)
+	tmpl.AddDefaultFunc("settings", settings.AllSettingTypes)
 	tmpl.SetPartialsLocation(partials)
 
 	functions["isLastBc"] = vm.IsLastBc
@@ -44,11 +46,12 @@ func init() {
 	functions["hasField"] = tmpl.HasField
 	functions["targets"] = targets.AllTargets
 	functions["probes"] = probes.AllProbes
+	functions["settings"] = settings.AllSettingTypes
 }
 
 func LoadTemplates() {
-	templateInfo, err := ioutil.ReadDir("web/views")
-	for _, t := range templateInfo {
+	templateFiles, err := ioutil.ReadDir("web/views")
+	for _, t := range templateFiles {
 		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
 			continue
 		}

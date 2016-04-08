@@ -23,16 +23,6 @@ type EmailAddress struct {
 const emailTargetTemplate = "email-edit.html"
 
 var (
-	emailTemplates = map[string]string{
-		"edit": "email-edit.html",
-		"view": "email-view.html",
-	}
-	emailScripts = map[string][]string{
-		"edit": []string{
-			"email.js",
-		},
-	}
-
 	emailRegex = regexp.MustCompile(`^[\w\.\-\+\_]+@[\w\.\-]+\.[a-zA-Z]+$`)
 )
 
@@ -58,11 +48,18 @@ func (e Email) Load(target string) (Target, error) {
 }
 
 func (et Email) Templates() map[string]string {
-	return emailTemplates
+	return map[string]string{
+		"edit": "email-edit.html",
+		"view": "email-view.html",
+	}
 }
 
 func (et Email) Scripts() map[string][]string {
-	return emailScripts
+	return map[string][]string{
+		"edit": []string{
+			"email.js",
+		},
+	}
 }
 
 func (et EmailTarget) Validate() (errs []string) {

@@ -7,7 +7,7 @@ import (
 
 type DataSource struct {
 	*revere.DataSource
-	Info           interface{}
+	Attributes     datasources.DataSource
 	DataSourceType datasources.DataSourceType
 }
 
@@ -16,11 +16,11 @@ func NewDataSourceViewModel(ds *revere.DataSource) (*DataSource, error) {
 
 	viewmodel.DataSource = ds
 
-	dataSourceType, err := datasources.DataSourceTypeById(ds.DataSourceTypeId)
+	dataSourceType, err := datasources.DataSourceTypeById(ds.SourceType)
 	if err != nil {
 		return nil, err
 	}
-	viewmodel.Info, err = dataSourceType.LoadInfo(ds.Source)
+	viewmodel.Attributes, err = dataSourceType.Load(ds.Source)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func BlankDataSourceViewModelWithType(typeId datasources.DataSourceTypeId) (view
 		viewmodel = nil
 		return
 	}
-	viewmodel.Info = viewmodel.DataSourceType
+	viewmodel.Attributes = viewmodel.DataSourceType.LoadDefault()
 
 	return
 }

@@ -29,7 +29,6 @@ var datasources = function() {
         method: 'POST',
         data: JSON.stringify(formData),
         contentType: 'application/json; charset=UTF-8'
-
       }).success(function(response) {
         if (response.errors) {
           var $error = $('.js-error').first().empty();

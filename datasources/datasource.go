@@ -11,18 +11,23 @@ type DataSourceType interface {
 	Name() string
 	Template() string
 	Scripts() []string
-	LoadInfo(source string) (interface{}, error)
-	DefaultInfo() interface{}
+	Load(source string) (DataSource, error)
+	LoadDefault() DataSource
+}
+
+type DataSource interface {
+	Validate() []string
+	DataSourceType() DataSourceType
 }
 
 var (
-	defaultDataSourceTypeId = GraphiteDataSource{}.Id()
+	defaultDataSourceTypeId = Graphite{}.Id()
 	dataSourceTypes         = make(map[DataSourceTypeId]DataSourceType)
 )
 
 func DataSourceTypeById(dataSourceTypeId DataSourceTypeId) (DataSourceType, error) {
 	if dst, ok := dataSourceTypes[dataSourceTypeId]; !ok {
-		return dst, fmt.Errorf("Invalid data source type with id: %d", dataSourceTypeId)
+		return nil, fmt.Errorf("Invalid data source type with id: %d", dataSourceTypeId)
 	} else {
 		return dst, nil
 	}
@@ -36,11 +41,14 @@ func addDataSourceType(dataSourceType DataSourceType) {
 	}
 }
 
-func GetDataSourceTypes() (types []*DataSourceType) {
+func GetDataSourceTypes() []*DataSourceType {
+	types := make([]*DataSourceType, len(dataSourceTypes))
+	i := 0
 	for _, dst := range dataSourceTypes {
-		types = append(types, &dst)
+		types[i] = &dst
+		i++
 	}
-	return
+	return types
 }
 
 func DefaultDataSourceType() DataSourceType {

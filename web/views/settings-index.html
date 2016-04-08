@@ -1,21 +1,19 @@
 {{template "_header.html" setTitle . "Settings"}}
-<div class="settings-index-headers">
-  <h1 class="settings-index-header">Settings</h1>
+<div class="index-headers">
+  <h1 class="index-header">Settings</h1>
 </div>
 <hr/>
-<div id="errors">
-  <div class="error alert alert-danger hidden"></div>
+<div id="js-errors">
+  <div class="js-error alert alert-danger hidden"></div>
 </div>
-{{range .Settings}}
-    {{.}}
-{{end}}
-{{define "MoreScripts"}}
-  <script type="text/javascript" src="/static/js/revere.js"></script>
-  <script type="text/javascript" src="/static/js/settings.js"></script>
-  <script type="text/javascript">
-    $(document).ready(function() {
-        outgoingEmails.init();
-    });
-  </script>
-{{end}}
+<form id="js-settings-form" class="form-horizontal" action="/settings" method="POST">
+  {{range ._Array}}
+    <div class="js-setting">
+      {{._Render}}
+    </div>
+  {{end}}
+  <div class="form-group">
+    <input type="submit" class="btn-lg btn-success" value="Save">
+  </div>
+</form>
 {{template "_footer.html" .}}

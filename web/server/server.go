@@ -44,8 +44,9 @@ func main() {
 	router.GET("/labels/:id", web.LabelsView(db))
 	router.GET("/labels/:id/edit", web.LabelsEdit(db))
 	router.POST("/labels/:id/edit", web.LabelsSave(db))
-	router.GET("/settings", web.SettingsIndex)
-	router.POST("/settings/:id/save", web.SaveSetting)
+	router.GET("/settings", web.SettingsIndex(db))
+	router.GET("/settings/template/:settingType", web.LoadSettingTemplate)
+	router.POST("/settings", web.SettingsSave(db))
 	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
 	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))
 	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {

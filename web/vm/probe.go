@@ -11,7 +11,7 @@ import (
 
 type Probe struct {
 	probes.Probe
-	DataSourceInfo map[string][]interface{}
+	DataSources map[string][]interface{}
 }
 
 var (
@@ -25,22 +25,22 @@ const (
 func NewProbe(db *sql.DB, p probes.Probe) (*Probe, error) {
 	viewmodel := new(Probe)
 	viewmodel.Probe = p
-	viewmodel.DataSourceInfo = make(map[string][]interface{})
+	viewmodel.DataSources = make(map[string][]interface{})
 	for _, id := range p.ProbeType().AcceptedDataSourceTypeIds() {
 		dst, _ := datasources.DataSourceTypeById(id)
-		dataSourceInfosOfType := make([]interface{}, 0)
+		dataSourcesOfType := make([]interface{}, 0)
 		sourceContent, err := revere.LoadSourceContentOfType(db, id)
 		if err != nil {
 			return nil, err
 		}
 		for _, s := range sourceContent {
-			info, err := dst.LoadInfo(s)
+			info, err := dst.Load(s)
 			if err != nil {
 				return nil, err
 			}
-			dataSourceInfosOfType = append(dataSourceInfosOfType, info)
+			dataSourcesOfType = append(dataSourcesOfType, info)
 		}
-		viewmodel.DataSourceInfo[dst.Name()] = dataSourceInfosOfType
+		viewmodel.DataSources[dst.Name()] = dataSourcesOfType
 	}
 
 	return viewmodel, nil

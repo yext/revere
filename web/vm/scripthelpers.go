@@ -19,11 +19,11 @@ const (
 //TODO(fchen): code cleanup
 
 func getScripts(dir string, servingPath string) (scripts []string, err error) {
-	scriptInfo, err := ioutil.ReadDir(dir)
+	scriptFiles, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	for _, s := range scriptInfo {
+	for _, s := range scriptFiles {
 		if s.IsDir() || !strings.HasSuffix(s.Name(), ".js") {
 			continue
 		}

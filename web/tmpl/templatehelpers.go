@@ -70,11 +70,11 @@ func InitTemplates(dir string, funcs template.FuncMap) (templates map[string]*te
 	}
 
 	templates = make(map[string]*template.Template)
-	templateInfo, err := ioutil.ReadDir(dir)
+	templateFiles, err := ioutil.ReadDir(dir)
 	if err != nil {
 		panic(fmt.Sprintf("Got error initializing templates: %v", err))
 	}
-	for _, t := range templateInfo {
+	for _, t := range templateFiles {
 		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
 			continue
 		}

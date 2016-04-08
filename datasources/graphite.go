@@ -4,40 +4,55 @@ import (
 	"encoding/json"
 )
 
+type Graphite struct{}
+
 type GraphiteDataSource struct {
 	Url string `json:"url"`
 }
 
 func init() {
-	addDataSourceType(GraphiteDataSource{})
+	addDataSourceType(Graphite{})
 }
 
-func (gs GraphiteDataSource) Id() DataSourceTypeId {
+func (gs Graphite) Id() DataSourceTypeId {
 	return 0
 }
 
-func (gs GraphiteDataSource) Template() string {
+func (gs Graphite) Template() string {
 	return "graphite-datasource.html"
 }
 
-func (gs GraphiteDataSource) Name() string {
+func (gs Graphite) Name() string {
 	return "Graphite"
 }
 
-func (gs GraphiteDataSource) Scripts() []string {
+func (gs Graphite) Scripts() []string {
 	return []string{
 		"graphite-datasource.js",
 	}
 }
 
-func (gs GraphiteDataSource) LoadInfo(dataSourceInfo string) (parsedInfo interface{}, err error) {
-	parsedInfo = new(GraphiteDataSource)
-	err = json.Unmarshal([]byte(dataSourceInfo), &parsedInfo)
+func (gs Graphite) Load(dataSourceJson string) (dataSource DataSource, err error) {
+	dataSource = new(GraphiteDataSource)
+	err = json.Unmarshal([]byte(dataSourceJson), &dataSource)
 	return
 }
 
-func (gs GraphiteDataSource) DefaultInfo() interface{} {
+func (gs Graphite) LoadDefault() DataSource {
 	newSource := new(GraphiteDataSource)
 	newSource.Url = ""
 	return newSource
+}
+
+func (g *GraphiteDataSource) Validate() []string {
+	var errs []string
+	if g.Url == "" {
+		errs = append(errs, "Url is required")
+	}
+
+	return errs
+}
+
+func (g *GraphiteDataSource) DataSourceType() DataSourceType {
+	return Graphite{}
 }

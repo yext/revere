@@ -28,18 +28,6 @@ type Threshold struct {
 }
 
 var (
-	graphiteThresholdTemplates = map[string]string{
-		"edit": "graphite-edit.html",
-		"view": "graphite-view.html",
-	}
-	graphiteThresholdScripts = map[string][]string{
-		"edit": []string{
-			"graphite-preview.js",
-		},
-	}
-	graphiteThresholdDataSources = []datasources.DataSourceTypeId{
-		datasources.GraphiteDataSource{}.Id(),
-	}
 	validGraphitePeriodTypes = []string{
 		"day",
 		"hour",
@@ -64,21 +52,30 @@ func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
 	var g GraphiteThresholdProbe
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
-		return g, err
+		return nil, err
 	}
 	return g, nil
 }
 
 func (gt GraphiteThreshold) Templates() map[string]string {
-	return graphiteThresholdTemplates
+	return map[string]string{
+		"edit": "graphite-edit.html",
+		"view": "graphite-view.html",
+	}
 }
 
 func (gt GraphiteThreshold) Scripts() map[string][]string {
-	return graphiteThresholdScripts
+	return map[string][]string{
+		"edit": []string{
+			"graphite-preview.js",
+		},
+	}
 }
 
 func (g GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
-	return graphiteThresholdDataSources
+	return []datasources.DataSourceTypeId{
+		datasources.Graphite{}.Id(),
+	}
 }
 
 func (g GraphiteThresholdProbe) ProbeType() ProbeType {

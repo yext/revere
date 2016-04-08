@@ -1,20 +1,32 @@
-<div class="js-setting-section" data-endpoint="/settings/{{.Id}}/save">
-  <h4 class="setting-section-title">Outgoing Email Configuration</h4>
-  <div class="revere-row">
-    <div class="col-md-6 setting-label">"From" Name:</div>
-    <div class="col-md-6"><input type="text" class="js-setting-input" name="fromName" value="{{.FromName}}"/></div>
-  </div>
-  <div class="revere-row">
-    <div class="col-md-6 setting-label">"From" Email:</div>
-    <div class="col-md-6"><input type="text" class="js-setting-input" name="fromEmail" value="{{.FromEmail}}"/></div>
-  </div>
-  <div class="revere-row">
-    <div class="col-md-6 setting-label">Subject Line Prefix:</div>
-    <div class="col-md-6"><input type="text" class="js-setting-input" name="subjectLinePrefix" value="{{.SubjectLinePrefix}}"/></div>
-  </div>
-  <div class="revere-row">
-    <div class="col-md-6 setting-label">SMTP Server:</div>
-    <div class="col-md-6"><input type="text" class="js-setting-input" name="smtpServer" value="{{.SmtpServer}}"/></div>
-    <hr/>
-    <button class="btn btn-primary pull-right submit-settings-button" type="submit">Save</button>
+<div class="js-outgoing-email">
+  <h4 class="setting-title">Outgoing Email Configuration</h4>
+  <input type="checkbox" class="form-control hide required" name="delete" data-json-type="Boolean">
+  <input type="hidden" class="form-control required" name="id" data-json-type="Number" value="{{.Setting.Id}}">
+  <input type="hidden" class="form-control required" name="settingType" data-json-type="Number" value="{{.SettingType.Id}}">
+  {{with .Attributes}}
+    <div class="revere-row">
+      <label class="col-md-2 control-label">"From" Name:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="fromName" value="{{.FromName}}"/>
+      </div>
+    </div>
+    <div class="revere-row">
+      <label class="col-md-2 control-label">"From" Email:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="fromEmail" value="{{.FromEmail}}"/>
+      </div>
+    </div>
+    <div class="revere-row">
+      <label class="col-md-2 control-label">Subject Line Prefix:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="subjectLinePrefix" value="{{.SubjectLinePrefix}}"/>
+      </div>
+    </div>
+    <div class="revere-row">
+      <label class="col-md-2 control-label">SMTP Server:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="smtpServer" value="{{.SmtpServer}}"/>
+      </div>
+    </div>
+  {{end}}
 </div>

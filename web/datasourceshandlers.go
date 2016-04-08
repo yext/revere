@@ -41,13 +41,30 @@ func DataSourcesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, 
 			return
 		}
 
+		var errs []string
 		for _, dataSource := range dataSources {
-			err = dataSource.Save(db)
+			errs = append(errs, dataSource.Validate()...)
+			if errs == nil {
+				err = dataSource.Save(db)
+				if err != nil {
+					http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
+						http.StatusInternalServerError)
+					return
+				}
+			}
+		}
+
+		if errs != nil {
+			errors, err := json.Marshal(map[string][]string{"errors": errs})
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
 					http.StatusInternalServerError)
 				return
 			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(errors)
+			return
 		}
 
 		http.Redirect(w, req, "/datasources", http.StatusMovedPermanently)
