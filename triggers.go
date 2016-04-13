@@ -3,22 +3,19 @@ package revere
 import (
 	"database/sql"
 	"fmt"
-	"html/template"
 
 	"github.com/yext/revere/targets"
 	"github.com/yext/revere/util"
 )
 
 type Trigger struct {
-	Id             uint                 `json:"id,omitempty"`
-	Level          string               `json:"level"`
-	Period         int64                `json:"period"`
-	PeriodType     string               `json:"periodType"`
-	Target         targets.Target       `json:"-"`
-	TargetJson     string               `json:"target"`
-	TargetType     targets.TargetTypeId `json:"targetType"`
-	TargetTemplate template.HTML        `json:"-"`
-	TriggerOnExit  bool                 `json:"triggerOnExit"`
+	Id            uint                 `json:"id,omitempty"`
+	Level         string               `json:"level"`
+	Period        int64                `json:"period"`
+	PeriodType    string               `json:"periodType"`
+	TargetJson    string               `json:"target"`
+	TargetType    targets.TargetTypeId `json:"targetType"`
+	TriggerOnExit bool                 `json:"triggerOnExit"`
 }
 
 const (
@@ -109,11 +106,6 @@ func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 		return nil, err
 	}
 
-	t.TargetTemplate, err = t.Target.Render()
-	if err != nil {
-		return nil, err
-	}
-
 	return &t, nil
 }
 
@@ -162,11 +154,6 @@ func loadLabelTriggerFromRow(rows *sql.Rows) (*LabelTrigger, error) {
 	}
 
 	t.Target, err = targetType.Load(t.TargetJson)
-	if err != nil {
-		return nil, err
-	}
-
-	t.TargetTemplate, err = t.Target.Render()
 	if err != nil {
 		return nil, err
 	}

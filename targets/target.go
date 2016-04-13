@@ -1,11 +1,6 @@
 package targets
 
-import (
-	"fmt"
-	"html/template"
-
-	"github.com/yext/revere/web/tmpl"
-)
+import "fmt"
 
 type TargetTypeId int
 
@@ -20,22 +15,11 @@ type TargetType interface {
 type Target interface {
 	TargetType() TargetType
 	Validate() (errs []string)
-
-	//TODO(fchen): code cleanup
-	Render() (template.HTML, error)
 }
 
 var (
 	targetTypes map[TargetTypeId]TargetType = make(map[TargetTypeId]TargetType)
-
-	//TODO(fchen): code cleanup
-	targetTemplates = map[string]*template.Template{}
 )
-
-func init() {
-	//TODO(fchen): code cleanup
-	targetTemplates = tmpl.InitTemplates("web/views/targets", template.FuncMap{"strEq": tmpl.StrEq})
-}
 
 func TargetTypeById(targetType TargetTypeId) (TargetType, error) {
 	if tt, ok := targetTypes[targetType]; !ok {

@@ -1,10 +1,7 @@
 package targets
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"html/template"
 	"regexp"
 )
 
@@ -80,14 +77,4 @@ func (et EmailTarget) Validate() (errs []string) {
 
 func (et EmailTarget) TargetType() TargetType {
 	return Email{}
-}
-
-func (et EmailTarget) Render() (template.HTML, error) {
-	if t, ok := targetTemplates[emailTargetTemplate]; !ok {
-		return template.HTML(""), fmt.Errorf("Unable to find email target template: %s", emailTargetTemplate)
-	} else {
-		b := bytes.Buffer{}
-		t.Execute(&b, et)
-		return template.HTML(b.String()), nil
-	}
 }

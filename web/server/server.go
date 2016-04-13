@@ -53,8 +53,6 @@ func main() {
 		http.ServeFile(w, r, "web/favicon.ico")
 	})
 
-	web.LoadTemplates()
-
 	port := strconv.Itoa(env.Port())
 	fmt.Printf("Listening on :%s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

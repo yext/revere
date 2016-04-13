@@ -1,14 +1,9 @@
 package tmpl
 
 import (
-	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
-	"os"
 	"path"
-	"reflect"
-	"strings"
 )
 
 type Template struct {
@@ -58,31 +53,6 @@ func SetPartialsLocation(location string) {
 	partials = location
 }
 
-func InitTemplates(dir string, funcs template.FuncMap) (templates map[string]*template.Template) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		panic(fmt.Sprintf("Cannot get the rooted path name of the current directory"))
-	}
-
-	// When running packages for testing
-	if _, err = ioutil.ReadDir(path.Join(pwd, "web")); err != nil {
-		dir = fmt.Sprintf("../%s", dir)
-	}
-
-	templates = make(map[string]*template.Template)
-	templateFiles, err := ioutil.ReadDir(dir)
-	if err != nil {
-		panic(fmt.Sprintf("Got error initializing templates: %v", err))
-	}
-	for _, t := range templateFiles {
-		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
-			continue
-		}
-		templates[t.Name()] = template.Must(template.New(t.Name()).Funcs(funcs).ParseFiles(path.Join(dir, t.Name())))
-	}
-	return
-}
-
 func NewTemplateDir(dir string, name string) *Template {
 	return newTemplate(path.Join(templatesDir, dir, name))
 }
@@ -116,15 +86,4 @@ func StrEq(a, b interface{}) bool {
 		return true
 	}
 	return false
-}
-
-func HasField(v interface{}, name string) bool {
-	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-	if rv.Kind() != reflect.Struct {
-		return false
-	}
-	return rv.FieldByName(name).IsValid()
 }

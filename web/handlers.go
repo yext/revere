@@ -4,14 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/settings"
 	"github.com/yext/revere/targets"
@@ -22,48 +18,16 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var (
-	templates map[string]*template.Template = make(map[string]*template.Template)
-	functions template.FuncMap              = make(template.FuncMap)
-	baseName  string                        = "base.html"
-	baseDir   string                        = "web/views/"
-	partials  string                        = "web/views/partials/*.html"
-)
+var partials = "web/views/partials/*.html"
 
 func init() {
 	tmpl.AddDefaultFunc("isLastBc", vm.IsLastBc)
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
-	tmpl.AddDefaultFunc("hasField", tmpl.HasField)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("probes", probes.AllProbes)
 	tmpl.AddDefaultFunc("settings", settings.AllSettingTypes)
 	tmpl.SetPartialsLocation(partials)
-
-	functions["isLastBc"] = vm.IsLastBc
-	functions["setTitle"] = tmpl.SetTitle
-	functions["strEq"] = tmpl.StrEq
-	functions["hasField"] = tmpl.HasField
-	functions["targets"] = targets.AllTargets
-	functions["probes"] = probes.AllProbes
-	functions["settings"] = settings.AllSettingTypes
-}
-
-func LoadTemplates() {
-	templateFiles, err := ioutil.ReadDir("web/views")
-	for _, t := range templateFiles {
-		if t.IsDir() || !strings.HasSuffix(t.Name(), ".html") {
-			continue
-		}
-		templates[t.Name()], err = template.New(t.Name()).Funcs(functions).ParseGlob("web/views/partials/*.html")
-		if err != nil {
-			panic(fmt.Sprintf("Got error initializing templates: %v", err))
-		}
-		templates[t.Name()], err = templates[t.Name()].ParseFiles("web/views/" + t.Name())
-		if err != nil {
-			panic(fmt.Sprintf("Got error initializing templates: %v", err))
-		}
-	}
 }
 
 func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -123,11 +87,4 @@ func writeJsonResponse(w http.ResponseWriter, action string, data map[string]int
 
 func render(w io.Writer, r renderables.Renderable) error {
 	return renderables.Render(w, r)
-}
-
-func executeTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
-	if _, ok := data["States"]; !ok {
-		data["States"] = revere.ReverseStates
-	}
-	return templates[name].ExecuteTemplate(w, name, data)
 }
