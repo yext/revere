@@ -18,7 +18,7 @@ type Monitor struct {
 	Description string
 	Response    string
 	ProbeType   ProbeType
-	Probe       types.JsonText
+	Probe       types.JSONText
 	Changed     time.Time
 	Version     int32
 	Archived    *time.Time
