@@ -47,7 +47,7 @@ func NewProbe(db *sql.DB, p probes.Probe) (*Probe, error) {
 }
 
 func DefaultProbe(db *sql.DB) *Probe {
-	probe, err := BlankProbe(db, int(defaultProbeTypeId))
+	probe, err := BlankProbe(db, defaultProbeTypeId)
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +55,7 @@ func DefaultProbe(db *sql.DB) *Probe {
 	return probe
 }
 
-func BlankProbe(db *sql.DB, pt int) (*Probe, error) {
+func BlankProbe(db *sql.DB, pt probes.ProbeTypeId) (*Probe, error) {
 	probeType, err := probes.ProbeTypeById(probes.ProbeTypeId(pt))
 	if err != nil {
 		return nil, fmt.Errorf("Probe type not found: %d", pt)

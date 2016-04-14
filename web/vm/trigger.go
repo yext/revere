@@ -7,13 +7,17 @@ import (
 
 type Trigger struct {
 	*revere.Trigger
-	Target    *Target
-	Subprobes string
+	Target   *Target
+	Subprobe string
 }
 
 type modelTrigger struct {
-	Trigger   *revere.Trigger
-	Subprobes string
+	Trigger  *revere.Trigger
+	Subprobe string
+}
+
+func (t *Trigger) Id() int64 {
+	return int64(t.Trigger.TriggerId)
 }
 
 func NewTriggersFromLabelTriggers(lts []*revere.LabelTrigger) ([]*Trigger, error) {
@@ -28,7 +32,7 @@ func NewTriggersFromLabelTriggers(lts []*revere.LabelTrigger) ([]*Trigger, error
 func NewTriggersFromMonitorTriggers(mts []*revere.MonitorTrigger) ([]*Trigger, error) {
 	triggers := make([]*modelTrigger, len(mts))
 	for i, monitorTrigger := range mts {
-		triggers[i] = &modelTrigger{&monitorTrigger.Trigger, monitorTrigger.Subprobes}
+		triggers[i] = &modelTrigger{&monitorTrigger.Trigger, monitorTrigger.Subprobe}
 	}
 
 	return newTriggers(triggers)
@@ -38,7 +42,7 @@ func newTrigger(t *revere.Trigger, s string) (*Trigger, error) {
 	viewmodel := new(Trigger)
 
 	viewmodel.Trigger = t
-	viewmodel.Subprobes = s
+	viewmodel.Subprobe = s
 
 	targetType, err := targets.TargetTypeById(t.TargetType)
 	if err != nil {
@@ -57,7 +61,7 @@ func newTrigger(t *revere.Trigger, s string) (*Trigger, error) {
 func newTriggers(mts []*modelTrigger) ([]*Trigger, error) {
 	triggers := make([]*Trigger, len(mts))
 	for i, modelTrigger := range mts {
-		trigger, err := newTrigger(modelTrigger.Trigger, modelTrigger.Subprobes)
+		trigger, err := newTrigger(modelTrigger.Trigger, modelTrigger.Subprobe)
 		if err != nil {
 			return nil, err
 		}

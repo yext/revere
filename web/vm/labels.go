@@ -9,12 +9,24 @@ import (
 
 type Label struct {
 	*revere.Label
-	Monitors *LabelMonitors
+	Monitors []*LabelMonitor
 	Triggers []*Trigger
 }
 
-func NewLabel(db *sql.DB, id int) (*Label, error) {
-	l, err := revere.LoadLabel(db, uint(id))
+func (l *Label) Id() int64 {
+	return int64(l.Label.LabelId)
+}
+
+func (l *Label) Name() string {
+	return l.Label.Name
+}
+
+func (l *Label) Description() string {
+	return l.Label.Description
+}
+
+func NewLabel(db *sql.DB, id revere.LabelID) (*Label, error) {
+	l, err := revere.LoadLabel(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +45,7 @@ func newLabelFromModel(db *sql.DB, l *revere.Label) (*Label, error) {
 	if err != nil {
 		return nil, err
 	}
-	viewmodel.Monitors, err = NewLabelMonitors(db, l.Monitors)
+	viewmodel.Monitors = NewLabelMonitors(l.Monitors)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +68,7 @@ func BlankLabel(db *sql.DB) (*Label, error) {
 	viewmodel.Triggers = []*Trigger{
 		BlankTrigger(),
 	}
-	viewmodel.Monitors, err = BlankLabelMonitors(db)
+	viewmodel.Monitors = BlankLabelMonitors()
 	if err != nil {
 		return nil, err
 	}

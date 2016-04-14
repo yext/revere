@@ -15,8 +15,12 @@ type Silence struct {
 	*revere.Silence
 }
 
-func NewSilence(db *sql.DB, id int) (*Silence, error) {
-	silence, err := revere.LoadSilence(db, uint(id))
+func (s *Silence) Id() int64 {
+	return int64(s.Silence.SilenceId)
+}
+
+func NewSilence(db *sql.DB, id revere.SilenceID) (*Silence, error) {
+	silence, err := revere.LoadSilence(db, id)
 	if err != nil {
 		return nil, err
 	}

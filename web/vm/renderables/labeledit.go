@@ -9,12 +9,12 @@ type LabelEdit struct {
 	subs      []Renderable
 }
 
-func NewLabelEdit(l *vm.Label) *LabelEdit {
+func NewLabelEdit(l *vm.Label, ms []*vm.Monitor) *LabelEdit {
 	le := LabelEdit{}
 	le.viewmodel = l
 	le.subs = []Renderable{
 		NewTriggersEdit(l.Triggers),
-		NewLabelMonitorsEdit(l.Monitors),
+		NewLabelMonitorsEdit(l.Monitors, ms),
 	}
 	return &le
 }

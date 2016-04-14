@@ -3,12 +3,12 @@ CREATE DATABASE revere DEFAULT CHARACTER SET = utf8mb4;
 use revere;
 
 CREATE TABLE monitors (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  monitorid INTEGER AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(30) NOT NULL,
   owner VARCHAR(60) NOT NULL DEFAULT '',
-  description TEXT NOT NULL DEFAULT '',
-  response TEXT NOT NULL DEFAULT '',
-  probeType SMALLINT NOT NULL,
+  description TEXT NOT NULL,
+  response TEXT NOT NULL,
+  probetype SMALLINT NOT NULL,
   probe TEXT NOT NULL,
   changed DATETIME NOT NULL,
   version INTEGER NOT NULL DEFAULT 0,
@@ -16,91 +16,91 @@ CREATE TABLE monitors (
 ) ENGINE = InnoDB;
 
 CREATE TABLE triggers (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  triggerid INTEGER AUTO_INCREMENT PRIMARY KEY,
   level TINYINT NOT NULL DEFAULT 2,
-  triggerOnExit BOOLEAN NOT NULL DEFAULT TRUE,
-  periodMs INTEGER NOT NULL DEFAULT 0,
-  targetType SMALLINT NOT NULL,
+  triggeronexit BOOLEAN NOT NULL DEFAULT TRUE,
+  periodms INTEGER NOT NULL DEFAULT 0,
+  targettype SMALLINT NOT NULL,
   target TEXT NOT NULL
 ) ENGINE = InnoDB;
 
 CREATE TABLE monitor_triggers (
-  monitor_id INTEGER NOT NULL,
-  subprobe TEXT NOT NULL DEFAULT '',
-  trigger_id INTEGER NOT NULL,
-  PRIMARY KEY (`monitor_id`, `trigger_id`),
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`trigger_id`) REFERENCES triggers(`id`) ON DELETE CASCADE
+  monitorid INTEGER NOT NULL,
+  subprobe TEXT NOT NULL,
+  triggerid INTEGER NOT NULL,
+  PRIMARY KEY (`monitorid`, `triggerid`),
+  FOREIGN KEY (`monitorid`) REFERENCES monitors(`monitorid`) ON DELETE CASCADE,
+  FOREIGN KEY (`triggerid`) REFERENCES triggers(`triggerid`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE subprobes (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
-  monitor_id INTEGER NOT NULL,
+  subprobeid INTEGER AUTO_INCREMENT PRIMARY KEY,
+  monitorid INTEGER NOT NULL,
   name VARCHAR(150) NOT NULL,
   archived DATETIME DEFAULT NULL,
-  CONSTRAINT UNIQUE (monitor_id,name),
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE
+  CONSTRAINT UNIQUE (monitorid,name),
+  FOREIGN KEY (`monitorid`) REFERENCES monitors(`monitorid`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE subprobe_statuses (
-  subprobe_id INTEGER NOT NULL,
+  subprobeid INTEGER NOT NULL,
   recorded DATETIME NOT NULL,
   state TINYINT NOT NULL,
   silenced BOOLEAN NOT NULL DEFAULT FALSE,
-  enteredState DATETIME NOT NULL,
-  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(`id`) ON DELETE CASCADE,
-  INDEX (`state`, `silenced`, `enteredState`, `recorded`, `subprobe_id`)
+  enteredstate DATETIME NOT NULL,
+  FOREIGN KEY (`subprobeid`) REFERENCES subprobes(`subprobeid`) ON DELETE CASCADE,
+  INDEX (`state`, `silenced`, `enteredstate`, `recorded`, `subprobeid`)
 ) ENGINE = InnoDB;
 
 CREATE TABLE readings2 (
-  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  subprobe_id INTEGER NOT NULL,
+  readingid BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  subprobeid INTEGER NOT NULL,
   recorded DATETIME NOT NULL,
   state TINYINT NOT NULL,
-  FOREIGN KEY (`subprobe_id`) REFERENCES subprobes(`id`) ON DELETE CASCADE,
-  INDEX (subprobe_id, recorded, id)
+  FOREIGN KEY (`subprobeid`) REFERENCES subprobes(`subprobeid`) ON DELETE CASCADE,
+  INDEX (subprobeid, recorded, readingid)
 ) ENGINE = InnoDB;
 
 CREATE TABLE silences (
-  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  monitor_id INTEGER NOT NULL,
-  subprobes TEXT NOT NULL DEFAULT '',
+  silenceid BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  monitorid INTEGER NOT NULL,
+  subprobe TEXT NOT NULL,
   start DATETIME NOT NULL,
   end DATETIME NOT NULL,
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`monitorid`) REFERENCES monitors(`monitorid`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE labels (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  labelid INTEGER AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(30) NOT NULL,
-  description TEXT NOT NULL DEFAULT ''
+  description TEXT NOT NULL
 ) ENGINE = InnoDB;
 
 CREATE TABLE labels_monitors (
-  label_id INTEGER NOT NULL,
-  monitor_id INTEGER NOT NULL,
-  subprobes TEXT NOT NULL DEFAULT '',
-  PRIMARY KEY (`monitor_id`, `label_id`),
-  FOREIGN KEY (`monitor_id`) REFERENCES monitors(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`label_id`) REFERENCES labels(`id`) ON DELETE CASCADE
+  labelid INTEGER NOT NULL,
+  monitorid INTEGER NOT NULL,
+  subprobe TEXT NOT NULL,
+  PRIMARY KEY (`monitorid`, `labelid`),
+  FOREIGN KEY (`monitorid`) REFERENCES monitors(`monitorid`) ON DELETE CASCADE,
+  FOREIGN KEY (`labelid`) REFERENCES labels(`labelid`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE label_triggers (
-  label_id INTEGER NOT NULL,
-  trigger_id INTEGER NOT NULL,
-  PRIMARY KEY (`trigger_id`, `label_id`),
-  FOREIGN KEY (`trigger_id`) REFERENCES triggers(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`label_id`) REFERENCES labels(`id`) ON DELETE CASCADE
+  labelid INTEGER NOT NULL,
+  triggerid INTEGER NOT NULL,
+  PRIMARY KEY (`triggerid`, `labelid`),
+  FOREIGN KEY (`triggerid`) REFERENCES triggers(`triggerid`) ON DELETE CASCADE,
+  FOREIGN KEY (`labelid`) REFERENCES labels(`labelid`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE data_sources (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
-  sourceType SMALLINT NOT NULL,
+  sourceid INTEGER AUTO_INCREMENT PRIMARY KEY,
+  sourcetype SMALLINT NOT NULL,
   source TEXT NOT NULL
 ) ENGINE = InnoDB;
 
 CREATE TABLE settings (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
-  settingType SMALLINT NOT NULL,
+  settingid INTEGER AUTO_INCREMENT PRIMARY KEY,
+  settingtype SMALLINT NOT NULL,
   setting TEXT NOT NULL
 ) ENGINE = InnoDB;

@@ -29,17 +29,15 @@
           <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorId}}">{{.MonitorName}}</a>
         </div>
         <div class="col-md-2">
-          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorId}}/subprobes/{{.Id}}">{{.Name}}</a>
+          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorId}}/subprobes/{{.SubprobeId}}">{{.Name}}</a>
         </div>
         <div class="col-md-2">{{.Status.StateStr}}</div>
         <div class="col-md-2">
           <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
         </div>
         <div class="col-md-3">
-          {{with index $._.MonitorLabels $monitorId}}
-            {{range .Components}}
-              <span class="label label-primary">{{.Name}}</span>
-            {{end}}
+          {{range index $._.MonitorLabels $monitorId}}
+            <span class="label label-primary">{{.Name}}</span>
           {{end}}
         </div>
       </div>

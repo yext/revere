@@ -12,7 +12,7 @@
     <div class="col-sm-3 name">
       <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="id">
         <option></option>
-        {{range .AllMonitors}}
+        {{range .AllLabels}}
           <option value="{{.Id}}" data-description="{{.Description}}">{{.Name}}</option>
         {{end}}
       </select>
@@ -24,7 +24,7 @@
       <p class="description"></p>
     </div>
   </div>
-  {{range .LabelMonitors}}
+  {{range .MonitorLabels}}
     <div class="form-group js-label-monitor">
       <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.Id}}">
       <div class="col-sm-1">
@@ -42,7 +42,7 @@
       </div>
     </div>
   {{else}}
-    <h4 class="js-empty-label-monitor">There are no monitors associated with this component</h4>
+    <h4 class="js-empty-label-monitor">There are no labels associated with this component</h4>
   {{end}}
   <div class="form-group">
     <button id="js-add-label-monitor" class="btn btn-default">+ Add</button>

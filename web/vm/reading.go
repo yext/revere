@@ -11,8 +11,12 @@ type Reading struct {
 	*revere.Reading
 }
 
-func AllReadingsFromSubprobe(db *sql.DB, id int) ([]*Reading, error) {
-	rs, err := revere.LoadReadings(db, uint(id))
+func (r *Reading) Id() int64 {
+	return int64(r.ReadingId)
+}
+
+func AllReadingsFromSubprobe(db *sql.DB, id revere.SubprobeID) ([]*Reading, error) {
+	rs, err := revere.LoadReadings(db, id)
 	if err != nil {
 		return nil, err
 	}

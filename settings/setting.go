@@ -8,7 +8,7 @@ package settings
 
 import "fmt"
 
-type SettingTypeId int
+type SettingTypeId int16
 
 type SettingType interface {
 	Id() SettingTypeId
@@ -45,11 +45,11 @@ func addSettingType(s SettingType) {
 	}
 }
 
-func AllSettingTypes() (types []*SettingType) {
-	types = make([]*SettingType, len(settingTypes))
+func AllSettingTypes() (types []SettingType) {
+	types = make([]SettingType, len(settingTypes))
 	i := 0
 	for _, s := range settingTypes {
-		types[i] = &s
+		types[i] = s
 		i++
 	}
 	return

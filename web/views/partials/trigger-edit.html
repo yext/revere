@@ -1,7 +1,7 @@
 {{with ._}}
   <div class="js-trigger hidden">
     <div class="js-trigger-options">
-      <input type="hidden" class="form-control" name="id" data-json-type="Number" value={{.Id}}>
+      <input type="hidden" class="form-control" name="id" data-json-type="Number" value={{.TriggerId}}>
       <div class="form-group">
         <div class="col-sm-1">
           <input type="checkbox" class="form-control hide" name="delete" data-json-type="Boolean">
@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="form-group">
-        {{block "subprobes" .Subprobes}}{{end}}
+        {{block "subprobe" .Subprobe}}{{end}}
         <label class="col-sm-2 control-label" for="triggerOnExit">Notify on de-escalation</label>
         <div class="checkbox col-sm-1">
           <input type="checkbox" name="triggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}>

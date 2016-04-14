@@ -9,6 +9,8 @@ import (
 	"strconv"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/probes"
+	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 
@@ -27,7 +29,7 @@ func MonitorsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 		if err != nil {
 			monitors, err = vm.AllMonitors(db)
 		} else {
-			monitors, err = vm.AllMonitorsForLabel(db, labelId)
+			monitors, err = vm.AllMonitorsForLabel(db, revere.LabelID(labelId))
 		}
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
@@ -101,7 +103,14 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		renderable := renderables.NewMonitorEdit(viewmodel)
+		labels, err := vm.AllLabels(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve labels for monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		renderable := renderables.NewMonitorEdit(viewmodel, labels)
 		err = render(w, renderable)
 
 		if err != nil {
@@ -141,7 +150,7 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/monitors/%d", m.Id)})
+		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/monitors/%d", m.MonitorId)})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -167,7 +176,7 @@ func loadMonitorViewModel(db *sql.DB, unparsedId string) (*vm.Monitor, error) {
 		return nil, err
 	}
 
-	viewmodel, err := vm.NewMonitor(db, id)
+	viewmodel, err := vm.NewMonitor(db, revere.MonitorID(id))
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +193,7 @@ func LoadProbeTemplate(db *sql.DB) func(w http.ResponseWriter, req *http.Request
 			return
 		}
 
-		probe, err := vm.BlankProbe(db, pt)
+		probe, err := vm.BlankProbe(db, probes.ProbeTypeId(pt))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -218,7 +227,7 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 		return
 	}
 
-	target, err := vm.BlankTarget(tt)
+	target, err := vm.BlankTarget(targets.TargetTypeId(tt))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)

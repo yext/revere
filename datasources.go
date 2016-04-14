@@ -7,14 +7,16 @@ import (
 	"github.com/yext/revere/datasources"
 )
 
+type DataSourceID int32
+
 type DataSource struct {
-	Id         uint                         `json:"id"`
+	SourceId   DataSourceID                 `json:"id"`
 	SourceType datasources.DataSourceTypeId `json:"sourceTypeId"`
 	Source     string                       `json:"source"`
 	Delete     bool                         `json:"delete,omitempty"`
 }
 
-const dataSourceFields = `id, sourceTypeId, source`
+const dataSourceFields = `sourceid, sourcetype, source`
 
 func (ds *DataSource) Validate() (errs []string) {
 	dataSourceType, err := datasources.DataSourceTypeById(ds.SourceType)
@@ -30,11 +32,11 @@ func (ds *DataSource) Validate() (errs []string) {
 }
 
 func LoadDataSourcesOfType(db *sql.DB, dataSourceTypeId datasources.DataSourceTypeId) ([]*DataSource, error) {
-	return LoadDataSources(db, fmt.Sprintf("WHERE sourceTypeId = %d", dataSourceTypeId))
+	return LoadDataSources(db, fmt.Sprintf("WHERE sourcetype = %d", dataSourceTypeId))
 }
 
-func LoadDataSourceById(db *sql.DB, id uint) (*DataSource, error) {
-	results, err := LoadDataSources(db, fmt.Sprintf("WHERE id = %d", id))
+func LoadDataSourceById(db *sql.DB, id DataSourceID) (*DataSource, error) {
+	results, err := LoadDataSources(db, fmt.Sprintf("WHERE sourceid = %d", id))
 	if len(results) == 0 {
 		return nil, fmt.Errorf("Data source not found: %d", id)
 	}
@@ -87,11 +89,11 @@ func (ds *DataSource) Save(db *sql.DB) (err error) {
 }
 
 func (ds *DataSource) isCreate() bool {
-	return ds.Id == 0
+	return ds.SourceId == 0
 }
 
-func (ds *DataSource) create(tx *sql.Tx) (uint, error) {
-	stmt, err := tx.Prepare(`INSERT INTO data_sources (sourceTypeId, source) VALUES (?, ?)`)
+func (ds *DataSource) create(tx *sql.Tx) (DataSourceID, error) {
+	stmt, err := tx.Prepare(`INSERT INTO data_sources (sourcetype, source) VALUES (?, ?)`)
 	if err != nil {
 		return 0, err
 	}
@@ -102,17 +104,17 @@ func (ds *DataSource) create(tx *sql.Tx) (uint, error) {
 		return 0, err
 	}
 	id, err := res.LastInsertId()
-	return uint(id), err
+	return DataSourceID(id), err
 }
 
 func (ds *DataSource) update(tx *sql.Tx) error {
-	stmt, err := tx.Prepare(`UPDATE data_sources SET sourceTypeId = ?, source = ? WHERE id = ?`)
+	stmt, err := tx.Prepare(`UPDATE data_sources SET sourcetype = ?, source = ? WHERE sourceid = ?`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(ds.SourceType, ds.Source, ds.Id)
+	_, err = stmt.Exec(ds.SourceType, ds.Source, ds.SourceId)
 	return err
 }
 
@@ -120,13 +122,13 @@ func (ds *DataSource) delete(tx *sql.Tx) error {
 	var stmt *sql.Stmt
 	stmt, err := tx.Prepare(`
 		DELETE FROM data_sources
-		WHERE id = ?
+		WHERE sourceid = ?
 	`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(ds.Id)
+	_, err = stmt.Exec(ds.SourceId)
 	if err != nil {
 		return err
 	}
@@ -135,7 +137,7 @@ func (ds *DataSource) delete(tx *sql.Tx) error {
 
 func loadDataSourceFromRow(rows *sql.Rows) (*DataSource, error) {
 	var ds DataSource
-	if err := rows.Scan(&ds.Id, &ds.SourceType, &ds.Source); err != nil {
+	if err := rows.Scan(&ds.SourceId, &ds.SourceType, &ds.Source); err != nil {
 		return nil, err
 	}
 	return &ds, nil

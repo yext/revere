@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/yext/revere"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 
@@ -21,14 +22,14 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 			return
 		}
 
-		subprobes, err := vm.AllSubprobesFromMonitor(db, id)
+		subprobes, err := vm.AllSubprobesFromMonitor(db, revere.MonitorID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		monitor, err := vm.NewMonitor(db, id)
+		monitor, err := vm.NewMonitor(db, revere.MonitorID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -61,20 +62,20 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 
-		subprobe, err := vm.NewSubprobe(db, id)
+		subprobe, err := vm.NewSubprobe(db, revere.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		if subprobe.MonitorId != uint(mId) {
+		if subprobe.MonitorId != revere.MonitorID(mId) {
 			http.Error(w, fmt.Sprintf("Subprobe %d does not exist for monitor: %d", id, mId),
 				http.StatusNotFound)
 			return
 		}
 
-		readings, err := vm.AllReadingsFromSubprobe(db, id)
+		readings, err := vm.AllReadingsFromSubprobe(db, revere.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve readings: %s", err.Error()), http.StatusInternalServerError)
 			return

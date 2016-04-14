@@ -8,11 +8,11 @@ import (
 type ActiveIssues struct {
 	labels        []*vm.Label
 	subprobes     []*vm.Subprobe
-	monitorLabels map[uint]*vm.MonitorLabels
+	monitorLabels map[revere.MonitorID][]*vm.MonitorLabel
 	subs          []Renderable
 }
 
-func NewActiveIssues(ss []*vm.Subprobe, ls []*vm.Label, mls map[uint]*vm.MonitorLabels) *ActiveIssues {
+func NewActiveIssues(ss []*vm.Subprobe, ls []*vm.Label, mls map[revere.MonitorID][]*vm.MonitorLabel) *ActiveIssues {
 	return &ActiveIssues{ls, ss, mls, nil}
 }
 

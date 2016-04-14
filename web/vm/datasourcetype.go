@@ -25,14 +25,14 @@ func NewDataSourceTypeViewModel(db *sql.DB, dst *datasources.DataSourceType) (*D
 	}
 	arr := make([]*DataSource, 0)
 	for _, ds := range dataSources {
-		new, err := NewDataSourceViewModel(ds)
+		new, err := NewDataSource(ds)
 		if err != nil {
 			return nil, err
 		}
 		arr = append(arr, new)
 	}
 	if len(arr) == 0 {
-		new, err := BlankDataSourceViewModelWithType(dstvm.Type.Id())
+		new, err := BlankDataSource(dstvm.Type.Id())
 		if err != nil {
 			return nil, err
 		}

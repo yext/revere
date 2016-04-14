@@ -45,7 +45,6 @@ func main() {
 	router.GET("/labels/:id/edit", web.LabelsEdit(db))
 	router.POST("/labels/:id/edit", web.LabelsSave(db))
 	router.GET("/settings", web.SettingsIndex(db))
-	router.GET("/settings/template/:settingType", web.LoadSettingTemplate)
 	router.POST("/settings", web.SettingsSave(db))
 	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
 	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))

@@ -14,8 +14,8 @@ var (
 func presentSilence() *Silence {
 	now := time.Now()
 	s := new(Silence)
-	s.Id = 1
-	s.Subprobes = "test.*.example"
+	s.SilenceId = 1
+	s.Subprobe = "test.*.example"
 	s.MonitorId = 1
 	s.MonitorName = "test monitor"
 	s.Start = now.AddDate(0, 0, -1)
@@ -95,7 +95,7 @@ func TestEditSilenceInvalidMonitorId(t *testing.T) {
 
 func TestEditSilenceInvalidSubprobes(t *testing.T) {
 	s := presentSilence()
-	s.Subprobes = ""
+	s.Subprobe = ""
 	errs := s.ValidateAgainstOld(futureSilence())
 	if errs == nil {
 		t.Error("Expected error trying to edit a silence with a different subprobe")

@@ -74,7 +74,14 @@ func LabelsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 			return
 		}
 
-		renderable := renderables.NewLabelEdit(viewmodel)
+		monitors, err := vm.AllMonitors(db)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to retrieve monitors for label: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		renderable := renderables.NewLabelEdit(viewmodel, monitors)
 		err = render(w, renderable)
 
 		if err != nil {
@@ -114,7 +121,7 @@ func LabelsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 			return
 		}
 
-		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/labels/%d", l.Id)})
+		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/labels/%d", l.LabelId)})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -140,7 +147,7 @@ func loadLabelViewModel(db *sql.DB, unparsedId string) (*vm.Label, error) {
 		return nil, err
 	}
 
-	viewmodel, err := vm.NewLabel(db, id)
+	viewmodel, err := vm.NewLabel(db, revere.LabelID(id))
 	if err != nil {
 		return nil, err
 	}

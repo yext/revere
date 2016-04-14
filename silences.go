@@ -8,22 +8,24 @@ import (
 	"github.com/yext/revere/util"
 )
 
+type SilenceID int64
+
 type Silence struct {
-	Id          uint      `json:"-"`
-	MonitorId   uint      `json:"monitor"`
+	SilenceId   SilenceID `json:"id",omitempty`
+	MonitorId   MonitorID `json:"monitor"`
 	MonitorName string    `json:"-"`
-	Subprobes   string    `json:"subprobes"`
+	Subprobe    string    `json:"subprobe"`
 	Start       time.Time `json:"start"`
 	End         time.Time `json:"end"`
 }
 
 const silenceEndLimit = 14 * 24 * time.Hour
 
-const loadSilenceFields = "s.id, s.monitor_id, s.subprobes, s.start, s.end, m.name"
-const createSilenceFields = "id, monitor_id, subprobes, start, end"
+const loadSilenceFields = "s.silenceid, s.monitorid, s.subprobe, s.start, s.end, m.name"
+const createSilenceFields = "silenceid, monitorid, subprobe, start, end"
 
 func LoadSilences(db *sql.DB) ([]*Silence, error) {
-	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM silences s JOIN monitors m ON s.monitor_id = m.id", loadSilenceFields))
+	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM silences s JOIN monitors m ON s.monitorid = m.monitorid", loadSilenceFields))
 	if err != nil {
 		return nil, err
 	}
@@ -44,9 +46,9 @@ func LoadSilences(db *sql.DB) ([]*Silence, error) {
 	return allSilences, nil
 }
 
-func LoadSilence(db *sql.DB, id uint) (s *Silence, err error) {
+func LoadSilence(db *sql.DB, id SilenceID) (s *Silence, err error) {
 	rows, err := db.Query(fmt.Sprintf(`
-		SELECT %s FROM silences s JOIN monitors m ON s.monitor_id = m.id WHERE s.id = %d
+		SELECT %s FROM silences s JOIN monitors m ON s.monitorid = m.monitorid WHERE s.silenceid = %d
 		`, loadSilenceFields, id))
 	if err != nil {
 		return nil, err
@@ -66,19 +68,19 @@ func LoadSilence(db *sql.DB, id uint) (s *Silence, err error) {
 
 func loadSilenceFromRow(rows *sql.Rows) (*Silence, error) {
 	var s Silence
-	if err := rows.Scan(&s.Id, &s.MonitorId, &s.Subprobes, &s.Start, &s.End, &s.MonitorName); err != nil {
+	if err := rows.Scan(&s.SilenceId, &s.MonitorId, &s.Subprobe, &s.Start, &s.End, &s.MonitorName); err != nil {
 		return nil, err
 	}
 	return &s, nil
 }
 
 func (s *Silence) Save(db *sql.DB) error {
-	if s.IsNew() {
+	if s.IsCreate() {
 		id, err := s.create(db)
 		if err != nil {
 			return err
 		}
-		s.Id = id
+		s.SilenceId = id
 		return err
 	}
 
@@ -87,21 +89,21 @@ func (s *Silence) Save(db *sql.DB) error {
 }
 
 func (s *Silence) update(db *sql.DB) error {
-	_, err := db.Exec("UPDATE silences SET monitor_id=?, subprobes=?, start=?, end=? WHERE id=?",
-		s.MonitorId, s.Subprobes, s.Start, s.End, s.Id)
+	_, err := db.Exec("UPDATE silences SET monitorid=?, subprobe=?, start=?, end=? WHERE silenceid=?",
+		s.MonitorId, s.Subprobe, s.Start, s.End, s.SilenceId)
 	return err
 }
 
-func (s *Silence) create(db *sql.DB) (uint, error) {
+func (s *Silence) create(db *sql.DB) (SilenceID, error) {
 	res, err := db.Exec(fmt.Sprintf(`
 		INSERT INTO silences(%s) VALUES (?, ?, ?, ?, ?)
 		`, createSilenceFields),
-		nil, s.MonitorId, s.Subprobes, s.Start, s.End)
+		nil, s.MonitorId, s.Subprobe, s.Start, s.End)
 	if err != nil {
 		return 0, err
 	}
 	id, err := res.LastInsertId()
-	return uint(id), err
+	return SilenceID(id), err
 }
 
 func (s *Silence) ValidateAgainstOld(oldS *Silence) (errs []string) {
@@ -110,11 +112,11 @@ func (s *Silence) ValidateAgainstOld(oldS *Silence) (errs []string) {
 	}
 
 	now := time.Now()
-	if !oldS.IsNew() && oldS.IsPast(now) {
+	if !oldS.IsCreate() && oldS.IsPast(now) {
 		return []string{"Silences from the past cannot be edited."}
 	}
 
-	if oldS.IsNew() {
+	if oldS.IsCreate() {
 		errs = append(errs, s.validateNewParams(now)...)
 	} else {
 		errs = append(errs, s.validateUpdateParams(oldS)...)
@@ -152,38 +154,15 @@ func (updateS *Silence) validateUpdateParams(oldS *Silence) (errs []string) {
 	if oldS.MonitorId != updateS.MonitorId {
 		errs = append(errs, "Monitor name cannot be changed. Create a new silence instead.")
 	}
-	if oldS.Subprobes != updateS.Subprobes {
-		errs = append(errs, "Subprobes cannot be changed. Create a new silence instead.")
+	if oldS.Subprobe != updateS.Subprobe {
+		errs = append(errs, "Subprobe cannot be changed. Create a new silence instead.")
 	}
 
 	return
 }
 
-// SplitSilences takes a slice of silences and returns slices of silences that have passed,
-// silences that are currently in effect, and silences that will occur in the future
-func SplitSilences(silences []*Silence) (past []*Silence, curr []*Silence, future []*Silence) {
-	past = make([]*Silence, 0)
-	curr = make([]*Silence, 0)
-	future = make([]*Silence, 0)
-
-	now := time.Now()
-	for _, s := range silences {
-		if s.IsPast(now) {
-			past = append(past, s)
-			continue
-		}
-		if s.IsPresent(now) {
-			curr = append(curr, s)
-			continue
-		}
-		// now.Before(start) && now.Before(end)
-		future = append(future, s)
-	}
-	return
-}
-
-func (s Silence) IsNew() bool {
-	return s.Id == 0
+func (s Silence) IsCreate() bool {
+	return s.SilenceId == 0
 }
 
 func (s Silence) IsPast(now time.Time) bool {

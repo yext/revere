@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/settings"
 	"github.com/yext/revere/targets"
@@ -42,7 +43,7 @@ func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ h
 		if err != nil {
 			subprobes, err = vm.AllAbnormalSubprobes(db)
 		} else {
-			subprobes, err = vm.AllAbnormalSubprobesForLabel(db, labelId)
+			subprobes, err = vm.AllAbnormalSubprobesForLabel(db, revere.LabelID(labelId))
 		}
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),

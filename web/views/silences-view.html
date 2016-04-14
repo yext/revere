@@ -3,11 +3,11 @@
   <div class="silences-headers">
     <h1 class="silences-header">
       silence for <a href="/monitors/{{.Silence.MonitorId}}">{{.Silence.MonitorName}}</a>
-      <span><a class="btn btn-primary" href="/silences/{{.Silence.Id}}/edit" role="button">Edit</a></span>
+      <span><a class="btn btn-primary" href="/silences/{{.Silence.SilenceId}}/edit" role="button">Edit</a></span>
     </h1>
   </div>
-  <h4 class="silence-subheader">Subprobes: {{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</h4>
-  
+  <h4 class="silence-subheader">Subprobe: {{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</h4>
+
   <h4>silence time:</h4>
   <span>{{.Silence.Start}}</span>
   <span style="font-weight: bold;">to</span>

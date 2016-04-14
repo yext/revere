@@ -5,8 +5,10 @@ import (
 	"fmt"
 )
 
+type LabelID int32
+
 type Label struct {
-	Id          uint            `json:"id,omitempty"`
+	LabelId     LabelID         `json:"id,omitempty"`
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
 	Triggers    []*LabelTrigger `json:"triggers,omitempty"`
@@ -15,9 +17,9 @@ type Label struct {
 
 type LabelMonitor struct {
 	Monitor
-	Subprobes string `json:"subprobes"`
-	Create    bool   `json:"create,omitempty"`
-	Delete    bool   `json:"delete,omitempty"`
+	Subprobe string `json:"subprobe"`
+	Create   bool   `json:"create,omitempty"`
+	Delete   bool   `json:"delete,omitempty"`
 }
 
 type LabelTrigger struct {
@@ -26,9 +28,9 @@ type LabelTrigger struct {
 }
 
 const (
-	allLabelFields        = "id, name, description"
-	allLabelMonitorFields = "m.Id, m.Name, m.Description, lm.Subprobes"
-	allLabelTriggerFields = "label_id, trigger_id"
+	allLabelFields        = "labelid, name, description"
+	allLabelMonitorFields = "m.monitorid, m.name, m.description, lm.subprobe"
+	allLabelTriggerFields = "labelid, triggerid"
 )
 
 func LoadLabels(db *sql.DB) (labels []*Label, err error) {
@@ -52,8 +54,8 @@ func LoadLabels(db *sql.DB) (labels []*Label, err error) {
 	return allLabels, nil
 }
 
-func LoadLabel(db *sql.DB, id uint) (l *Label, err error) {
-	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM labels WHERE id = %d", allLabelFields, id))
+func LoadLabel(db *sql.DB, id LabelID) (l *Label, err error) {
+	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM labels WHERE labelid = %d", allLabelFields, id))
 	if rows.Next() {
 		l, err = loadLabelFromRow(rows)
 		if err != nil {
@@ -79,18 +81,18 @@ func LoadLabel(db *sql.DB, id uint) (l *Label, err error) {
 
 func loadLabelFromRow(rows *sql.Rows) (*Label, error) {
 	var l Label
-	if err := rows.Scan(&l.Id, &l.Name, &l.Description); err != nil {
+	if err := rows.Scan(&l.LabelId, &l.Name, &l.Description); err != nil {
 		return nil, err
 	}
 
 	return &l, nil
 }
 
-func LoadLabelMonitors(db *sql.DB, labelId uint) ([]*LabelMonitor, error) {
+func LoadLabelMonitors(db *sql.DB, labelId LabelID) ([]*LabelMonitor, error) {
 	rows, err := db.Query(fmt.Sprintf(`
 		SELECT %s FROM monitors m
-		JOIN labels_monitors lm on m.id=lm.monitor_id
-		WHERE lm.label_id = %d
+		JOIN labels_monitors lm on m.monitorid=lm.monitorid
+		WHERE lm.labelid = %d
 	`, allLabelMonitorFields, labelId))
 	if err != nil {
 		return nil, err
@@ -99,7 +101,7 @@ func LoadLabelMonitors(db *sql.DB, labelId uint) ([]*LabelMonitor, error) {
 	labelMonitors := make([]*LabelMonitor, 0)
 	for rows.Next() {
 		var lm LabelMonitor
-		if err := rows.Scan(&lm.Id, &lm.Name, &lm.Description, &lm.Subprobes); err != nil {
+		if err := rows.Scan(&lm.MonitorId, &lm.Name, &lm.Description, &lm.Subprobe); err != nil {
 			return nil, err
 		}
 		labelMonitors = append(labelMonitors, &lm)
@@ -113,12 +115,12 @@ func LoadLabelMonitors(db *sql.DB, labelId uint) ([]*LabelMonitor, error) {
 
 // TODO(psingh): Perhaps we want to package these up into one function
 // and call with something that implements a "Model" interface which has a tableName()
-func isExistingLabel(db *sql.DB, id uint) (exists bool) {
+func isExistingLabel(db *sql.DB, id LabelID) (exists bool) {
 	if id == 0 {
 		return false
 	}
 
-	err := db.QueryRow("SELECT EXISTS (SELECT * FROM labels WHERE id = ?)", id).Scan(&exists)
+	err := db.QueryRow("SELECT EXISTS (SELECT * FROM labels WHERE labelid = ?)", id).Scan(&exists)
 	if err != nil {
 		return false
 	}
@@ -155,8 +157,8 @@ func (l *Label) Save(db *sql.DB) (err error) {
 		err = tx.Commit()
 	}()
 
-	if l.Id == 0 {
-		l.Id, err = l.create(tx)
+	if l.LabelId == 0 {
+		l.LabelId, err = l.create(tx)
 	} else {
 		err = l.update(tx)
 	}
@@ -165,14 +167,14 @@ func (l *Label) Save(db *sql.DB) (err error) {
 	}
 
 	for _, lt := range l.Triggers {
-		err = lt.save(tx, l.Id)
+		err = lt.save(tx, l.LabelId)
 		if err != nil {
 			return
 		}
 	}
 
 	for _, lm := range l.Monitors {
-		err = lm.save(tx, l.Id)
+		err = lm.save(tx, l.LabelId)
 		if err != nil {
 			return
 		}
@@ -180,7 +182,7 @@ func (l *Label) Save(db *sql.DB) (err error) {
 	return
 }
 
-func (l *Label) create(tx *sql.Tx) (uint, error) {
+func (l *Label) create(tx *sql.Tx) (LabelID, error) {
 	stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO labels(%s) VALUES (?, ?, ?)", allLabelFields))
 	if err != nil {
 		return 0, err
@@ -194,20 +196,20 @@ func (l *Label) create(tx *sql.Tx) (uint, error) {
 	if err != nil {
 		return 0, err
 	}
-	return uint(id), stmt.Close()
+	return LabelID(id), stmt.Close()
 }
 
 func (l *Label) update(tx *sql.Tx) error {
 	stmt, err := tx.Prepare(`
 		UPDATE labels
 		SET name=?, description=?
-		WHERE id=?
+		WHERE labelid=?
 	`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(l.Name, l.Description, l.Id)
+	_, err = stmt.Exec(l.Name, l.Description, l.LabelId)
 	if err != nil {
 		return err
 	}
@@ -215,17 +217,17 @@ func (l *Label) update(tx *sql.Tx) error {
 }
 
 func (lm *LabelMonitor) Validate(db *sql.DB) (errs []string) {
-	if err := validateSubprobes(lm.Subprobes); err != nil {
+	if err := validateSubprobe(lm.Subprobe); err != nil {
 		errs = append(errs, err.Error())
 	}
 
-	if !isExistingMonitor(db, lm.Id) {
-		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", lm.Id))
+	if !isExistingMonitor(db, lm.MonitorId) {
+		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", lm.MonitorId))
 	}
 	return
 }
 
-func (lm *LabelMonitor) save(tx *sql.Tx, labelId uint) (err error) {
+func (lm *LabelMonitor) save(tx *sql.Tx, labelId LabelID) (err error) {
 	if lm.Create {
 		return lm.create(tx, labelId)
 	}
@@ -235,54 +237,54 @@ func (lm *LabelMonitor) save(tx *sql.Tx, labelId uint) (err error) {
 	return lm.update(tx, labelId)
 }
 
-func (lm *LabelMonitor) create(tx *sql.Tx, labelId uint) error {
+func (lm *LabelMonitor) create(tx *sql.Tx, labelId LabelID) error {
 	stmt, err := tx.Prepare(
-		`INSERT INTO labels_monitors(label_id, monitor_id, subprobes) VALUES (?, ?, ?)`)
+		`INSERT INTO labels_monitors(labelid, monitorid, subprobe) VALUES (?, ?, ?)`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(labelId, lm.Id, lm.Subprobes)
+	_, err = stmt.Exec(labelId, lm.MonitorId, lm.Subprobe)
 	if err != nil {
 		return err
 	}
 	return stmt.Close()
 }
 
-func (lm *LabelMonitor) update(tx *sql.Tx, labelId uint) error {
+func (lm *LabelMonitor) update(tx *sql.Tx, labelId LabelID) error {
 	stmt, err := tx.Prepare(`
 		UPDATE labels_monitors
-		SET subprobes=?
-		WHERE label_id=? AND monitor_id=?
+		SET subprobe=?
+		WHERE labelid=? AND monitorid=?
 	`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(lm.Subprobes, labelId, lm.Id)
+	_, err = stmt.Exec(lm.Subprobe, labelId, lm.MonitorId)
 	if err != nil {
 		return err
 	}
 	return stmt.Close()
 }
 
-func (lm *LabelMonitor) delete(tx *sql.Tx, labelId uint) error {
+func (lm *LabelMonitor) delete(tx *sql.Tx, labelId LabelID) error {
 	stmt, err := tx.Prepare(`
 		DELETE FROM labels_monitors
-		WHERE label_id=? AND monitor_id=?
+		WHERE labelid=? AND monitorid=?
 	`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(labelId, lm.Id)
+	_, err = stmt.Exec(labelId, lm.MonitorId)
 	if err != nil {
 		return err
 	}
 	return stmt.Close()
 }
 
-func (lt *LabelTrigger) save(tx *sql.Tx, labelId uint) (err error) {
+func (lt *LabelTrigger) save(tx *sql.Tx, labelId LabelID) (err error) {
 	if lt.Delete {
 		return lt.delete(tx)
 	}
@@ -291,21 +293,21 @@ func (lt *LabelTrigger) save(tx *sql.Tx, labelId uint) (err error) {
 	if err != nil {
 		return err
 	}
-	if lt.Id == 0 {
-		lt.Id = newTriggerId
+	if lt.TriggerId == 0 {
+		lt.TriggerId = newTriggerId
 		err = lt.create(tx, labelId)
 	}
 	return
 }
 
-func (lt *LabelTrigger) create(tx *sql.Tx, labelId uint) error {
+func (lt *LabelTrigger) create(tx *sql.Tx, labelId LabelID) error {
 	stmt, err := tx.Prepare(
 		fmt.Sprintf("INSERT INTO label_triggers(%s) VALUES (?, ?)", allLabelTriggerFields))
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(labelId, lt.Id)
+	_, err = stmt.Exec(labelId, lt.TriggerId)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,7 @@ package targets
 
 import "fmt"
 
-type TargetTypeId int
+type TargetTypeId int16
 
 type TargetType interface {
 	Id() TargetTypeId

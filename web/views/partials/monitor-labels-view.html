@@ -4,13 +4,13 @@
     <div class="col-md-3">Subprobe</div>
     <div class="col-md-6">Description</div>
   </div>
-  {{range .LabelMonitors}}
+  {{range .MonitorLabels}}
     <div class="revere-row">
-      <div class="col-md-3"><a href="/monitors/{{.Id}}">{{.Name}}</a></div>
+      <div class="col-md-3"><a href="/labels/{{.Id}}">{{.Name}}</a></div>
       <div class="col-md-3">{{with .Subprobe}}{{.}}{{else}}&lt;all&gt;{{end}}</div>
       <div class="col-md-6">{{.Description}}</div>
     </div>
   {{else}}
-    <h4>There are no monitors associated with this component.</h4>
+    <h4>There are no labels associated with this component.</h4>
   {{end}}
 {{end}}

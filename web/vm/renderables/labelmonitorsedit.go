@@ -3,13 +3,15 @@ package renderables
 import "github.com/yext/revere/web/vm"
 
 type LabelMonitorsEdit struct {
-	viewmodel interface{}
-	subs      []Renderable
+	labelMonitors []*vm.LabelMonitor
+	allMonitors   []*vm.Monitor
+	subs          []Renderable
 }
 
-func NewLabelMonitorsEdit(lms interface{}) *LabelMonitorsEdit {
+func NewLabelMonitorsEdit(lms []*vm.LabelMonitor, ms []*vm.Monitor) *LabelMonitorsEdit {
 	lme := new(LabelMonitorsEdit)
-	lme.viewmodel = lms
+	lme.labelMonitors = lms
+	lme.allMonitors = ms
 	return lme
 }
 
@@ -22,7 +24,10 @@ func (lme *LabelMonitorsEdit) template() string {
 }
 
 func (lme *LabelMonitorsEdit) data() interface{} {
-	return lme.viewmodel
+	return map[string]interface{}{
+		"LabelMonitors": lme.labelMonitors,
+		"AllMonitors":   lme.allMonitors,
+	}
 }
 
 func (lme *LabelMonitorsEdit) scripts() []string {

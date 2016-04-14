@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type DataSourceTypeId uint
+type DataSourceTypeId int16
 
 type DataSourceType interface {
 	Id() DataSourceTypeId

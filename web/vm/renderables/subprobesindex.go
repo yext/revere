@@ -43,7 +43,7 @@ func (ssi *SubprobesIndex) scripts() []string {
 }
 
 func (ssi *SubprobesIndex) breadcrumbs() []vm.Breadcrumb {
-	return vm.SubprobeIndexBcs(ssi.monitor.Name, ssi.monitor.Id)
+	return vm.SubprobeIndexBcs(ssi.monitor.Name(), ssi.monitor.Id())
 }
 
 func (ssi *SubprobesIndex) subRenderables() []Renderable {

@@ -11,8 +11,16 @@ type Subprobe struct {
 	*revere.Subprobe
 }
 
-func NewSubprobe(db *sql.DB, id int) (*Subprobe, error) {
-	s, err := revere.LoadSubprobe(db, uint(id))
+func (s *Subprobe) Id() int64 {
+	return int64(s.Subprobe.SubprobeId)
+}
+
+func (s *Subprobe) Name() string {
+	return s.Subprobe.Name
+}
+
+func NewSubprobe(db *sql.DB, id revere.SubprobeID) (*Subprobe, error) {
+	s, err := revere.LoadSubprobe(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +53,8 @@ func BlankSubprobe(db *sql.DB) *Subprobe {
 	return viewmodel
 }
 
-func AllSubprobesFromMonitor(db *sql.DB, id int) ([]*Subprobe, error) {
-	ss, err := revere.LoadSubprobesByName(db, uint(id))
+func AllSubprobesFromMonitor(db *sql.DB, id revere.MonitorID) ([]*Subprobe, error) {
+	ss, err := revere.LoadSubprobesByName(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +71,8 @@ func AllAbnormalSubprobes(db *sql.DB) ([]*Subprobe, error) {
 	return newSubprobesFromModel(db, ss), nil
 }
 
-func AllAbnormalSubprobesForLabel(db *sql.DB, id int) ([]*Subprobe, error) {
-	ss, err := revere.LoadSubprobesBySeverityForLabel(db, uint(id))
+func AllAbnormalSubprobesForLabel(db *sql.DB, id revere.LabelID) ([]*Subprobe, error) {
+	ss, err := revere.LoadSubprobesBySeverityForLabel(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +80,8 @@ func AllAbnormalSubprobesForLabel(db *sql.DB, id int) ([]*Subprobe, error) {
 	return newSubprobesFromModel(db, ss), nil
 }
 
-func AllMonitorLabelsForSubprobes(db *sql.DB, subprobes []*Subprobe) (map[uint]*MonitorLabels, error) {
-	mIds := make([]uint, len(subprobes))
+func AllMonitorLabelsForSubprobes(db *sql.DB, subprobes []*Subprobe) (map[revere.MonitorID][]*MonitorLabel, error) {
+	mIds := make([]revere.MonitorID, len(subprobes))
 	for i, subprobe := range subprobes {
 		mIds[i] = subprobe.MonitorId
 	}

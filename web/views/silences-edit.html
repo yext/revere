@@ -2,11 +2,11 @@
 {{with ._}}
   {{$monitors := .monitors}}
   {{with .silence}}
-    {{$new := eq .Id 0}}
+    {{$new := eq .SilenceId 0}}
     <h1>{{if not $new}}Edit Silence{{else}}New Silence{{end}}</h1>
     <form id="js-silence-form" class="form-horizontal">
       <div id="js-silence-info">
-        <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.Id}}">
+        <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.SilenceId}}">
         <div class="js-invalid-input alert alert-danger hidden"></div>
         <div class="js-server-error alert alert-warning hidden"></div>
         <div class="js-valid-input alert alert-success hidden"></div>
@@ -20,24 +20,24 @@
               <div class="silence-form">
                 <select id="monitor" name="monitor" class="form-control" data-json-type="Number">
                   {{range $monitors}}
-                    <option value="{{.Id}}">{{.Name}}</option>
+                    <option value="{{.MonitorId}}">{{.Name}}</option>
                   {{end}}
                 </select>
               </div>
             {{end}}
           </h2>
         </div>
-        <h4 class="silence-subheader">Subprobes: 
+        <h4 class="silence-subheader">Subprobe: 
           {{if $new}}
             <div class="silence-form">
-              <input type="text" name="subprobes" class="form-control" placeholder="Subprobes">
+              <input type="text" name="subprobe" class="form-control" placeholder="Subprobe">
             </div>
-          {{else if .Subprobes}}
-            {{.Subprobes}}
-            <input id="subprobes" name="subprobes" class="form-control" value="{{.Subprobes}}" type="hidden">
+          {{else if .Subprobe}}
+            {{.Subprobe}}
+            <input id="subprobe" name="subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
           {{else}}
             &lt;all&gt;
-            <input id="subprobes" name="subprobes" class="form-control" value="{{.Subprobes}}" type="hidden">
+            <input id="subprobe" name="subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
           {{end}}
         </h4>
         <div id="silence-bounds">

@@ -5,13 +5,13 @@ import (
 )
 
 type LabelMonitorsView struct {
-	viewmodel interface{}
-	subs      []Renderable
+	labelMonitors []*vm.LabelMonitor
+	subs          []Renderable
 }
 
-func NewLabelMonitorsView(lms interface{}) *LabelMonitorsView {
+func NewLabelMonitorsView(lms []*vm.LabelMonitor) *LabelMonitorsView {
 	lmv := new(LabelMonitorsView)
-	lmv.viewmodel = lms
+	lmv.labelMonitors = lms
 	return lmv
 }
 
@@ -24,7 +24,9 @@ func (lmv *LabelMonitorsView) template() string {
 }
 
 func (lmv *LabelMonitorsView) data() interface{} {
-	return lmv.viewmodel
+	return map[string]interface{}{
+		"LabelMonitors": lmv.labelMonitors,
+	}
 }
 
 func (lmv *LabelMonitorsView) scripts() []string {

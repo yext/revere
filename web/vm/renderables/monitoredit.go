@@ -9,13 +9,13 @@ type MonitorEdit struct {
 	subs      []Renderable
 }
 
-func NewMonitorEdit(m *vm.Monitor) *MonitorEdit {
+func NewMonitorEdit(m *vm.Monitor, ls []*vm.Label) *MonitorEdit {
 	me := MonitorEdit{}
 	me.viewmodel = m
 	me.subs = []Renderable{
 		NewProbeEdit(m.Probe),
 		NewTriggersEdit(m.Triggers),
-		NewLabelMonitorsEdit(m.Labels),
+		NewMonitorLabelsEdit(m.Labels, ls),
 	}
 	return &me
 }

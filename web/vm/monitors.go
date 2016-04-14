@@ -12,11 +12,23 @@ type Monitor struct {
 	*revere.Monitor
 	Probe    *Probe
 	Triggers []*Trigger
-	Labels   *MonitorLabels
+	Labels   []*MonitorLabel
 }
 
-func NewMonitor(db *sql.DB, id int) (*Monitor, error) {
-	m, err := revere.LoadMonitor(db, uint(id))
+func (m *Monitor) Id() int64 {
+	return int64(m.Monitor.MonitorId)
+}
+
+func (m *Monitor) Name() string {
+	return m.Monitor.Name
+}
+
+func (m *Monitor) Description() string {
+	return m.Monitor.Description
+}
+
+func NewMonitor(db *sql.DB, id revere.MonitorID) (*Monitor, error) {
+	m, err := revere.LoadMonitor(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +48,7 @@ func newMonitorFromModel(db *sql.DB, m *revere.Monitor) (*Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	viewmodel.Labels, err = NewMonitorLabels(db, m.Labels)
+	viewmodel.Labels = NewMonitorLabels(m.Labels)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +86,7 @@ func BlankMonitor(db *sql.DB) (*Monitor, error) {
 	viewmodel.Triggers = []*Trigger{
 		BlankTrigger(),
 	}
-	viewmodel.Labels, err = BlankMonitorLabels(db)
+	viewmodel.Labels = BlankMonitorLabels()
 	if err != nil {
 		return nil, err
 	}
@@ -92,8 +104,8 @@ func AllMonitors(db *sql.DB) ([]*Monitor, error) {
 	return newMonitorsFromModels(rms), nil
 }
 
-func AllMonitorsForLabel(db *sql.DB, labelId int) ([]*Monitor, error) {
-	rms, err := revere.LoadMonitorsForLabel(db, uint(labelId))
+func AllMonitorsForLabel(db *sql.DB, labelId revere.LabelID) ([]*Monitor, error) {
+	rms, err := revere.LoadMonitorsForLabel(db, labelId)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +114,9 @@ func AllMonitorsForLabel(db *sql.DB, labelId int) ([]*Monitor, error) {
 }
 
 func PopulateLabelsForMonitors(db *sql.DB, monitors []*Monitor) error {
-	mIds := make([]uint, len(monitors))
+	mIds := make([]revere.MonitorID, len(monitors))
 	for i, m := range monitors {
-		mIds[i] = m.Id
+		mIds[i] = m.MonitorId
 	}
 
 	mls, err := allMonitorLabels(db, mIds)
@@ -113,7 +125,7 @@ func PopulateLabelsForMonitors(db *sql.DB, monitors []*Monitor) error {
 	}
 
 	for _, m := range monitors {
-		m.Labels = mls[m.Id]
+		m.Labels = mls[m.MonitorId]
 	}
 	return nil
 }

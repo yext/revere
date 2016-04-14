@@ -24,7 +24,7 @@
         bg-unknown
       {{end}}">
         <div class="col-md-6">
-          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.Id}}">{{.Name}}</a>
+          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.SubprobeId}}">{{.Name}}</a>
         </div>
         <div class="col-md-3">{{.Status.StateStr}}</div>
         <div class="col-md-3">

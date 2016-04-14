@@ -11,7 +11,11 @@ type DataSource struct {
 	DataSourceType datasources.DataSourceType
 }
 
-func NewDataSourceViewModel(ds *revere.DataSource) (*DataSource, error) {
+func (ds *DataSource) Id() int64 {
+	return int64(ds.DataSource.SourceId)
+}
+
+func NewDataSource(ds *revere.DataSource) (*DataSource, error) {
 	viewmodel := new(DataSource)
 
 	viewmodel.DataSource = ds
@@ -29,7 +33,7 @@ func NewDataSourceViewModel(ds *revere.DataSource) (*DataSource, error) {
 	return viewmodel, nil
 }
 
-func BlankDataSourceViewModelWithType(typeId datasources.DataSourceTypeId) (viewmodel *DataSource, err error) {
+func BlankDataSource(typeId datasources.DataSourceTypeId) (viewmodel *DataSource, err error) {
 	viewmodel = new(DataSource)
 	viewmodel.DataSource = new(revere.DataSource)
 	viewmodel.DataSourceType, err = datasources.DataSourceTypeById(typeId)

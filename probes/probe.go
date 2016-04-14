@@ -6,7 +6,7 @@ import (
 	"github.com/yext/revere/datasources"
 )
 
-type ProbeTypeId int
+type ProbeTypeId int16
 
 type ProbeType interface {
 	Id() ProbeTypeId

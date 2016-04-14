@@ -1,7 +1,7 @@
 <div class="js-outgoing-email">
   <h4 class="setting-title">Outgoing Email Configuration</h4>
   <input type="checkbox" class="form-control hide required" name="delete" data-json-type="Boolean">
-  <input type="hidden" class="form-control required" name="id" data-json-type="Number" value="{{.Setting.Id}}">
+  <input type="hidden" class="form-control required" name="id" data-json-type="Number" value="{{.Setting.SettingId}}">
   <input type="hidden" class="form-control required" name="settingType" data-json-type="Number" value="{{.SettingType.Id}}">
   {{with .Attributes}}
     <div class="revere-row">

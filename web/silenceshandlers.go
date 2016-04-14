@@ -94,23 +94,15 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		id, err := getSilenceId(p.ByName("id"))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load silence: %s", err.Error()),
-				http.StatusNotFound)
-			return
-		}
-
 		var s *revere.Silence
-		err = json.NewDecoder(req.Body).Decode(&s)
+		err := json.NewDecoder(req.Body).Decode(&s)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
-		s.Id = id
 
-		oldS, err := revere.LoadSilence(db, s.Id)
+		oldS, err := revere.LoadSilence(db, s.SilenceId)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()), http.StatusInternalServerError)
 			return
@@ -128,7 +120,7 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		writeJsonResponse(w, "save silence", map[string]interface{}{"id": s.Id})
+		writeJsonResponse(w, "save silence", map[string]interface{}{"id": s.SilenceId})
 	}
 }
 
@@ -147,19 +139,10 @@ func loadSilenceViewModel(db *sql.DB, unparsedId string) (*vm.Silence, error) {
 		return nil, err
 	}
 
-	viewmodel, err := vm.NewSilence(db, id)
+	viewmodel, err := vm.NewSilence(db, revere.SilenceID(id))
 	if err != nil {
 		return nil, err
 	}
 
 	return viewmodel, nil
-}
-
-func getSilenceId(idStr string) (uint, error) {
-	if idStr == "new" {
-		return 0, nil
-	}
-
-	id, err := strconv.Atoi(idStr)
-	return uint(id), err
 }

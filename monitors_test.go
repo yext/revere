@@ -34,7 +34,7 @@ func validMonitor() *Monitor {
 func validMonitorTrigger() *MonitorTrigger {
 	mt := new(MonitorTrigger)
 	mt.Trigger = *validTrigger()
-	mt.Subprobes = "test.*examples"
+	mt.Subprobe = "test.*examples"
 	mt.Delete = false
 	return mt
 }
@@ -52,7 +52,7 @@ func TestInvalidMonitorName(t *testing.T) {
 
 func TestInvalidMonitorTriggerSubprobe(t *testing.T) {
 	trigger := validMonitorTrigger()
-	trigger.Subprobes = "a["
+	trigger.Subprobe = "a["
 	if errs := trigger.Validate(); errs == nil {
 		t.Error("Expected error for invalid subprobe")
 	}
@@ -61,7 +61,7 @@ func TestInvalidMonitorTriggerSubprobe(t *testing.T) {
 func TestValidTriggerSubprobe(t *testing.T) {
 	trigger := validMonitorTrigger()
 	for _, s := range subprobes {
-		trigger.Subprobes = s
+		trigger.Subprobe = s
 		if errs := trigger.Validate(); errs != nil {
 			t.Errorf("Unexpected error for subprobe: %s\n", s)
 		}

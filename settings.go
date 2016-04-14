@@ -7,14 +7,16 @@ import (
 	"github.com/yext/revere/settings"
 )
 
+type SettingID int32
+
 type Setting struct {
-	Id          uint                   `json:"id"`
+	SettingId   SettingID              `json:"id"`
 	SettingType settings.SettingTypeId `json:"settingType"`
 	Setting     string                 `json:"setting"`
 	Delete      bool                   `json:"delete,omitempty"`
 }
 
-const allSettingFields = `id, settingType, setting`
+const allSettingFields = `settingid, settingtype, setting`
 
 func (s *Setting) Validate() (errs []string) {
 	settingType, err := settings.SettingTypeById(s.SettingType)
@@ -30,11 +32,11 @@ func (s *Setting) Validate() (errs []string) {
 }
 
 func LoadSettingsOfType(db *sql.DB, settingType settings.SettingTypeId) ([]*Setting, error) {
-	return LoadSettings(db, fmt.Sprintf("WHERE settingType = %d", settingType))
+	return LoadSettings(db, fmt.Sprintf("WHERE settingtype = %d", settingType))
 }
 
-func LoadSettingById(db *sql.DB, id uint) (*Setting, error) {
-	results, err := LoadSettings(db, fmt.Sprintf("WHERE id = %d", id))
+func LoadSettingById(db *sql.DB, id SettingID) (*Setting, error) {
+	results, err := LoadSettings(db, fmt.Sprintf("WHERE settingid = %d", id))
 	if len(results) == 0 {
 		return nil, fmt.Errorf("Setting source not found: %d", id)
 	}
@@ -79,32 +81,32 @@ func (s *Setting) Save(db *sql.DB) (err error) {
 }
 
 func (s *Setting) isCreate() bool {
-	return s.Id == 0
+	return s.SettingId == 0
 }
 
-func (s *Setting) create(tx *sql.Tx) (uint, error) {
+func (s *Setting) create(tx *sql.Tx) (SettingID, error) {
 	stmt, err := tx.Prepare(fmt.Sprintf(`INSERT INTO settings (%s) VALUES (?, ?, ?)`, allSettingFields))
 	if err != nil {
 		return 0, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(s.SettingType, s.Setting)
+	res, err := stmt.Exec(nil, s.SettingType, s.Setting)
 	if err != nil {
 		return 0, err
 	}
 	id, err := res.LastInsertId()
-	return uint(id), err
+	return SettingID(id), err
 }
 
 func (s *Setting) update(tx *sql.Tx) error {
-	stmt, err := tx.Prepare(`UPDATE settings SET settingType = ?, setting = ? WHERE id = ?`)
+	stmt, err := tx.Prepare(`UPDATE settings SET settingtype = ?, setting = ? WHERE settingid = ?`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(s.SettingType, s.Setting, s.Id)
+	_, err = stmt.Exec(s.SettingType, s.Setting, s.SettingId)
 	return err
 }
 
@@ -112,13 +114,13 @@ func (s *Setting) delete(tx *sql.Tx) error {
 	var stmt *sql.Stmt
 	stmt, err := tx.Prepare(`
 		DELETE FROM settings
-		WHERE id = ?
+		WHERE settingid = ?
 	`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(s.Id)
+	_, err = stmt.Exec(s.SettingId)
 	if err != nil {
 		return err
 	}
@@ -127,7 +129,7 @@ func (s *Setting) delete(tx *sql.Tx) error {
 
 func loadSettingFromRow(rows *sql.Rows) (*Setting, error) {
 	var s Setting
-	if err := rows.Scan(&s.Id, &s.SettingType, &s.Setting); err != nil {
+	if err := rows.Scan(&s.SettingId, &s.SettingType, &s.Setting); err != nil {
 		return nil, err
 	}
 	return &s, nil

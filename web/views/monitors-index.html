@@ -14,14 +14,12 @@
     {{range .Monitors}}
       <div class="revere-row">
         <div class="col-md-3">
-          <a href="/monitors/{{.Id}}">{{.Name}}</a>
+          <a href="/monitors/{{.MonitorId}}">{{.Name}}</a>
         </div>
         <div class="col-md-5">{{.Description}}</div>
         <div class="col-md-4">
-          {{with .Labels}}
-            {{range .Components}}
-              <span class="label label-primary">{{.Name}}</span>
-            {{end}}
+          {{range .Labels}}
+            <span class="label label-primary">{{.Name}}</span>
           {{end}}
         </div>
       </div>

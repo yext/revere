@@ -8,8 +8,10 @@ import (
 	"github.com/yext/revere/util"
 )
 
+type TriggerID int32
+
 type Trigger struct {
-	Id            uint                 `json:"id,omitempty"`
+	TriggerId     TriggerID            `json:"id,omitempty"`
 	Level         string               `json:"level"`
 	Period        int64                `json:"period"`
 	PeriodType    string               `json:"periodType"`
@@ -19,11 +21,11 @@ type Trigger struct {
 }
 
 const (
-	allTriggerLoadFields = "t.id, t.level, t.triggerOnExit, t.periodMs, t.targetType, t.target"
-	allTriggerSaveFields = "id, level, triggerOnExit, periodMs, targetType, target"
+	allTriggerLoadFields = "t.triggerid, t.level, t.triggeronexit, t.periodms, t.targettype, t.target"
+	allTriggerSaveFields = "triggerid, level, triggeronexit, periodms, targettype, target"
 )
 
-type State int
+type State int16
 
 const (
 	NORMAL State = iota
@@ -57,11 +59,11 @@ func init() {
 	}
 }
 
-func LoadMonitorTriggers(db *sql.DB, monitorId uint) (triggers []*MonitorTrigger, err error) {
+func LoadMonitorTriggers(db *sql.DB, monitorId MonitorID) (triggers []*MonitorTrigger, err error) {
 	rows, err := db.Query(
 		fmt.Sprintf(`
-			SELECT %s, mt.subprobe FROM triggers t JOIN monitor_triggers mt ON t.id = mt.trigger_id
-				WHERE mt.monitor_id = %d
+			SELECT %s, mt.subprobe FROM triggers t JOIN monitor_triggers mt ON t.triggerid = mt.triggerid
+				WHERE mt.monitorid = %d
 			`, allTriggerLoadFields, monitorId))
 	if err != nil {
 		return nil, err
@@ -88,7 +90,7 @@ func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 		level    State
 		periodMs int64
 	)
-	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson, &t.Subprobes); err != nil {
+	if err = rows.Scan(&t.TriggerId, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson, &t.Subprobe); err != nil {
 		return nil, err
 	}
 	//TODO(psingh): Move into view monitor
@@ -98,11 +100,11 @@ func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 	return &t, nil
 }
 
-func LoadLabelTriggers(db *sql.DB, labelId uint) (triggers []*LabelTrigger, err error) {
+func LoadLabelTriggers(db *sql.DB, labelId LabelID) (triggers []*LabelTrigger, err error) {
 	rows, err := db.Query(
 		fmt.Sprintf(`
-			SELECT %s FROM triggers t JOIN label_triggers lt ON t.id = lt.trigger_id
-				WHERE lt.label_id = %d
+			SELECT %s FROM triggers t JOIN label_triggers lt ON t.triggerid = lt.triggerid
+				WHERE lt.labelid = %d
 			`, allTriggerLoadFields, labelId))
 	if err != nil {
 		return nil, err
@@ -129,7 +131,7 @@ func loadLabelTriggerFromRow(rows *sql.Rows) (*LabelTrigger, error) {
 		level    State
 		periodMs int64
 	)
-	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson); err != nil {
+	if err = rows.Scan(&t.TriggerId, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson); err != nil {
 		return nil, err
 	}
 	//TODO(psingh): Move into view monitor
@@ -162,9 +164,9 @@ func (t *Trigger) Validate() (errs []string) {
 	return
 }
 
-func (t *Trigger) save(tx *sql.Tx) (newId uint, err error) {
+func (t *Trigger) save(tx *sql.Tx) (newId TriggerID, err error) {
 	// Create/Update Trigger
-	if t.Id == 0 {
+	if t.TriggerId == 0 {
 		newId, err = t.create(tx)
 	} else {
 		err = t.update(tx)
@@ -173,7 +175,7 @@ func (t *Trigger) save(tx *sql.Tx) (newId uint, err error) {
 	return newId, err
 }
 
-func (t *Trigger) create(tx *sql.Tx) (uint, error) {
+func (t *Trigger) create(tx *sql.Tx) (TriggerID, error) {
 	var stmt *sql.Stmt
 	stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO triggers (%s) VALUES (?, ?, ?, ?, ?, ?)", allTriggerSaveFields))
 	if err != nil {
@@ -193,15 +195,15 @@ func (t *Trigger) create(tx *sql.Tx) (uint, error) {
 	if err != nil {
 		return 0, err
 	}
-	return uint(id), stmt.Close()
+	return TriggerID(id), stmt.Close()
 }
 
 func (t *Trigger) update(tx *sql.Tx) (err error) {
 	var stmt *sql.Stmt
 	stmt, err = tx.Prepare(`
 		UPDATE triggers
-		SET level=?, triggerOnExit=?, periodMS=?, targetType=?, target=?
-		WHERE id=?
+		SET level=?, triggeronexit=?, periodms=?, targettype=?, target=?
+		WHERE triggerid=?
 	`)
 	if err != nil {
 		return
@@ -212,7 +214,7 @@ func (t *Trigger) update(tx *sql.Tx) (err error) {
 		return
 	}
 
-	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), targetType.Id(), t.TargetJson, t.Id)
+	_, err = stmt.Exec(ReverseStates[t.Level], t.TriggerOnExit, util.GetMs(t.Period, t.PeriodType), targetType.Id(), t.TargetJson, t.TriggerId)
 	if err != nil {
 		return
 	}
@@ -223,13 +225,13 @@ func (t *Trigger) delete(tx *sql.Tx) (err error) {
 	var stmt *sql.Stmt
 	stmt, err = tx.Prepare(`
 		DELETE FROM triggers
-		WHERE id=?
+		WHERE triggerid=?
 	`)
 	if err != nil {
 		return
 	}
 
-	_, err = stmt.Exec(t.Id)
+	_, err = stmt.Exec(t.TriggerId)
 	if err != nil {
 		return
 	}
