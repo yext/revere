@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/juju/errors"
 
@@ -11,20 +12,56 @@ import (
 
 type monitor struct {
 	*db.Monitor
+
+	triggers []*monitorTrigger
+
 	*env.Env
 }
 
+type monitorTrigger struct {
+	subprobes *regexp.Regexp
+	trigger
+}
+
 func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
-	m, err := env.DB.LoadMonitor(id)
+	tx, err := env.DB.Beginx()
+	if err != nil {
+		return nil, errors.Mask(err)
+	}
+	defer tx.Rollback()
+
+	m, err := tx.LoadMonitor(id)
 	if err != nil {
 		return nil, errors.Maskf(err, "load monitor %d", id)
 	}
-
 	if m == nil {
 		return nil, errors.Errorf("no monitor with ID %d", id)
 	}
 
-	return &monitor{Monitor: m, Env: env}, nil
+	dbMTs, err := tx.LoadTriggersForMonitor(id)
+	if err != nil {
+		return nil, errors.Maskf(err, "load triggers for monitor %d", id)
+	}
+
+	mts := make([]*monitorTrigger, 0, len(dbMTs))
+	for _, dbMT := range dbMTs {
+		r, err := regexp.Compile(dbMT.Subprobes)
+		if err != nil {
+			// TODO(eefi): Log the problem.
+			continue
+		}
+
+		mt := &monitorTrigger{
+			subprobes: r,
+			trigger: trigger{
+				Trigger: dbMT.Trigger,
+				Env:     env,
+			},
+		}
+		mts = append(mts, mt)
+	}
+
+	return &monitor{Monitor: m, triggers: mts, Env: env}, nil
 }
 
 // Start starts running a monitor.

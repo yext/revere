@@ -24,6 +24,12 @@ type Monitor struct {
 	Archived    *time.Time
 }
 
+type MonitorTrigger struct {
+	MonitorID MonitorID
+	Subprobes string
+	*Trigger
+}
+
 func (db *DB) LoadAllMonitorIDs() ([]MonitorID, error) {
 	return loadAllMonitorIDs(db)
 }
@@ -61,4 +67,27 @@ func loadMonitor(dt dbOrTx, id MonitorID) (*Monitor, error) {
 		return nil, errors.Trace(err)
 	}
 	return &m, nil
+}
+
+func (db *DB) LoadTriggersForMonitor(id MonitorID) ([]*MonitorTrigger, error) {
+	return loadTriggersForMonitor(db, id)
+}
+
+func (tx *Tx) LoadTriggersForMonitor(id MonitorID) ([]*MonitorTrigger, error) {
+	return loadTriggersForMonitor(tx, id)
+}
+
+func loadTriggersForMonitor(dt dbOrTx, id MonitorID) ([]*MonitorTrigger, error) {
+	dt = unsafe(dt)
+
+	var mts []*MonitorTrigger
+	q := `SELECT *
+	      FROM pfx_monitor_triggers
+	      JOIN pfx_triggers USING (triggerid)
+	      WHERE pfx_monitor_triggers.monitorid = ?`
+	err := dt.Select(&mts, cq(dt, q), id)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	return mts, nil
 }
