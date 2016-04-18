@@ -83,11 +83,10 @@ func LoadMonitorTriggers(db *sql.DB, monitorId uint) (triggers []*MonitorTrigger
 
 func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 	var (
-		t          MonitorTrigger
-		err        error
-		level      State
-		targetType targets.TargetType
-		periodMs   int64
+		t        MonitorTrigger
+		err      error
+		level    State
+		periodMs int64
 	)
 	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson, &t.Subprobes); err != nil {
 		return nil, err
@@ -95,16 +94,6 @@ func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 	//TODO(psingh): Move into view monitor
 	t.Level = States(level)
 	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
-
-	targetType, err = targets.TargetTypeById(t.TargetType)
-	if err != nil {
-		return nil, err
-	}
-
-	t.Target, err = targetType.Load(t.TargetJson)
-	if err != nil {
-		return nil, err
-	}
 
 	return &t, nil
 }
@@ -135,11 +124,10 @@ func LoadLabelTriggers(db *sql.DB, labelId uint) (triggers []*LabelTrigger, err 
 
 func loadLabelTriggerFromRow(rows *sql.Rows) (*LabelTrigger, error) {
 	var (
-		t          LabelTrigger
-		err        error
-		level      State
-		targetType targets.TargetType
-		periodMs   int64
+		t        LabelTrigger
+		err      error
+		level    State
+		periodMs int64
 	)
 	if err = rows.Scan(&t.Id, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson); err != nil {
 		return nil, err
@@ -147,16 +135,6 @@ func loadLabelTriggerFromRow(rows *sql.Rows) (*LabelTrigger, error) {
 	//TODO(psingh): Move into view monitor
 	t.Level = States(level)
 	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
-
-	targetType, err = targets.TargetTypeById(t.TargetType)
-	if err != nil {
-		return nil, err
-	}
-
-	t.Target, err = targetType.Load(t.TargetJson)
-	if err != nil {
-		return nil, err
-	}
 
 	return &t, nil
 }
