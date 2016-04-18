@@ -8,10 +8,14 @@ import (
 
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/env"
+	"github.com/yext/revere/probe"
 )
 
 type monitor struct {
 	*db.Monitor
+
+	probe          probe.Probe
+	readingsSource <-chan probe.Readings
 
 	triggers []*monitorTrigger
 
@@ -38,6 +42,13 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		return nil, errors.Errorf("no monitor with ID %d", id)
 	}
 
+	c := make(chan probe.Readings)
+
+	p, err := probe.New(m.ProbeType, m.Probe, c)
+	if err != nil {
+		return nil, errors.Maskf(err, "make probe for monitor %d", id)
+	}
+
 	dbMTs, err := tx.LoadTriggersForMonitor(id)
 	if err != nil {
 		return nil, errors.Maskf(err, "load triggers for monitor %d", id)
@@ -61,17 +72,25 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		mts = append(mts, mt)
 	}
 
-	return &monitor{Monitor: m, triggers: mts, Env: env}, nil
+	return &monitor{
+		Monitor:        m,
+		probe:          p,
+		readingsSource: c,
+		triggers:       mts,
+		Env:            env,
+	}, nil
 }
 
-// Start starts running a monitor.
-func (m *monitor) Start() {
+func (m *monitor) start() {
 	// TODO(eefi): Implement.
 	fmt.Printf("starting monitor %d\n", m.MonitorID)
+
+	m.probe.Start()
 }
 
-// Stop gracefully stops a monitor.
-func (m *monitor) Stop() {
+func (m *monitor) stop() {
 	// TODO(eefi): Implement.
 	fmt.Printf("stopping monitor %d\n", m.MonitorID)
+
+	m.probe.Stop()
 }

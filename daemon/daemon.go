@@ -36,7 +36,7 @@ func (d *Daemon) Start() {
 		}
 
 		d.monitors[id] = monitor
-		monitor.Start()
+		monitor.start()
 	}
 }
 
@@ -44,6 +44,6 @@ func (d *Daemon) Start() {
 // alerts to finish before returning.
 func (d *Daemon) Stop() {
 	for _, m := range d.monitors {
-		m.Stop()
+		m.stop()
 	}
 }
