@@ -43,7 +43,7 @@ type Details interface {
 
 // New makes a Probe of the given type and settings. The Probe will send
 // its readings to the provided channel.
-func New(typeID db.ProbeType, config types.JSONText, readingsSink chan<- Readings) (Probe, error) {
+func New(typeID db.ProbeType, config types.JSONText, readingsSink chan<- *Readings) (Probe, error) {
 	// TODO(eefi): Implement Type dictionary system.
 	if typeID != 1 {
 		return nil, errors.Errorf("unknown probe type %d", typeID)

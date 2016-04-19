@@ -15,7 +15,7 @@ type monitor struct {
 	*db.Monitor
 
 	probe          probe.Probe
-	readingsSource <-chan probe.Readings
+	readingsSource <-chan *probe.Readings
 
 	triggers []*monitorTrigger
 
@@ -42,7 +42,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		return nil, errors.Errorf("no monitor with ID %d", id)
 	}
 
-	c := make(chan probe.Readings)
+	c := make(chan *probe.Readings)
 
 	p, err := probe.New(m.ProbeType, m.Probe, c)
 	if err != nil {

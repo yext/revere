@@ -10,10 +10,10 @@ import (
 type GraphiteThreshold struct {
 	*GraphiteThresholdDBModel
 
-	readingsSink chan<- Readings
+	readingsSink chan<- *Readings
 }
 
-func newGraphiteThreshold(config types.JSONText, readingsSink chan<- Readings) (Probe, error) {
+func newGraphiteThreshold(config types.JSONText, readingsSink chan<- *Readings) (Probe, error) {
 	var json GraphiteThresholdDBModel
 	err := config.Unmarshal(&json)
 	if err != nil {
