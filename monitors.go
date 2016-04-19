@@ -165,6 +165,10 @@ func LoadMonitorLabels(db *sql.DB, monitorId uint) ([]*MonitorLabel, error) {
 }
 
 func BatchLoadMonitorLabels(db *sql.DB, mIds []uint) (map[uint][]*MonitorLabel, error) {
+	if len(mIds) == 0 {
+		return nil, nil
+	}
+
 	monitors := make([]interface{}, len(mIds))
 	for i, m := range mIds {
 		monitors[i] = m
