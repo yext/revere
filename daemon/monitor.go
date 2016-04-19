@@ -15,7 +15,7 @@ type monitor struct {
 	*db.Monitor
 
 	probe          probe.Probe
-	readingsSource <-chan *probe.Readings
+	readingsSource chan *probe.Readings
 
 	triggers []*monitorTrigger
 
@@ -86,6 +86,17 @@ func (m *monitor) start() {
 	fmt.Printf("starting monitor %d\n", m.MonitorID)
 
 	m.probe.Start()
+	go func() {
+		for {
+			select {
+			case r, ok := <-m.readingsSource:
+				if !ok {
+					break
+				}
+				fmt.Printf("monitor %d got Readings %s\n", m.MonitorID, r)
+			}
+		}
+	}()
 }
 
 func (m *monitor) stop() {
@@ -93,4 +104,5 @@ func (m *monitor) stop() {
 	fmt.Printf("stopping monitor %d\n", m.MonitorID)
 
 	m.probe.Stop()
+	close(m.readingsSource)
 }
