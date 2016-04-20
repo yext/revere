@@ -29,12 +29,12 @@ var graphitePreview = function() {
     $untilDtp.on('dp.change', function(e) {
       $fromDtp.data('DateTimePicker').maxDate(e.date);
     });
-  }
+  };
 
   var initEventHandlers = function() {
     previewGraphite();
     disableUnusedPreviewPeriod();
-  }
+  };
 
   var previewGraphite = function() {
     $('#js-preview-btn').click(function(e) {
@@ -70,20 +70,34 @@ var graphitePreview = function() {
 
   var getGraphiteBaseUrl = function(gtFields) {
     return gtFields['url'];
-  }
+  };
 
   var getGraphiteTargets = function(gtFields) {
     return [
-      gtFields['expression'],
-      getThresholdTargetExpression(gtFields['warningThreshold'], 'warning', 'green'),
-      getThresholdTargetExpression(gtFields['errorThreshold'], 'error', 'orange'),
-      getThresholdTargetExpression(gtFields['criticalThreshold'], 'critical', 'red')
+      getDataTargetExpression(gtFields['expression'], gtFields['triggerIf']),
+      getThresholdTargetExpression(gtFields['warningThreshold'], 'warning', 'orange'),
+      getThresholdTargetExpression(gtFields['errorThreshold'], 'error', 'red'),
+      getThresholdTargetExpression(gtFields['criticalThreshold'], 'critical', 'black')
     ];
-  }
+  };
+
+  var getDataTargetExpression = function(expression, triggerIf) {
+    var numSeries = 3;
+    if (triggerIf == '>' || triggerIf == '>=') {
+      return 'highestMax(' + expression + ',' + numSeries + ')';
+    } else if (triggerIf == '<' || triggerIf == '<=') {
+      // XXX: lowestMin does not exist in graphite
+      // Scale by -1 use highest max and then scale back. Also alias out scale funcs
+      return 'aliasSub(scale(highestMax(scale(' +
+        expression + ',-1),' + numSeries + '),-1),"^(?:scale\\(){2}(.+)(?:,-1\\)){2}$","\\1")';
+    } else {
+      return expression;
+    }
+  };
 
   var getThresholdTargetExpression = function(threshold, label, color) {
     return 'threshold(' + threshold + ',"' + label + '","' + color + '")';
-  }
+  };
 
   var getGraphitePreviewPeriod = function(previewFields) {
     var previewPeriod = {};
@@ -97,7 +111,7 @@ var graphitePreview = function() {
       previewPeriod['until'] = moment(untilDate).format('HH:mm_YYYYMMDD');
     }
     return previewPeriod;
-  }
+  };
 
   var getGraphitePreviewUrl = function(baseUrl, targets, previewPeriod) {
     params = {
@@ -109,7 +123,7 @@ var graphitePreview = function() {
     }
     params = $.extend(params, previewPeriod);
     return '//' + baseUrl + '/render/?' + $.param(params);
-  }
+  };
 
   return gp;
 }();
