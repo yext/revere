@@ -62,8 +62,6 @@ var triggersEdit = function() {
     });
 
     $('.js-targetType').change(function() {
-      var $error = $('.js-error').first().empty();
-      $error.addClass('hidden');
       $that = $(this);
       $.ajax({
         url: '/monitors/new/target/edit/' + encodeURIComponent($that.val()),
@@ -75,8 +73,7 @@ var triggersEdit = function() {
             .html(response.template);
         }
       }).fail(function(jqXHR, textStatus, errorThrown) {
-        $('#js-errors').html($error);
-        $error.append(jqXHR.responseText).removeClass('hidden');
+        revere.showErrors([jqXHR.responseText || textStatus]);
       });
     });
   };

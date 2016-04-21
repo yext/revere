@@ -26,6 +26,15 @@ var revere = function() {
     return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
   };
 
+  r.showErrors = function(errors) {
+    var $error = $('.js-error').first().empty();
+    $('#js-errors').html($error);
+    $.each(errors, function() {
+      $error.append(this + '<br/>').removeClass('hidden');
+    });
+    $('html, body').animate({ scrollTop: 0 }, 'fast');
+  };
+
   return r;
 }();
 
