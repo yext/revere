@@ -14,10 +14,11 @@ import (
 type monitor struct {
 	*db.Monitor
 
-	probe          probe.Probe
-	readingsSource chan *probe.Readings
-
+	probe    probe.Probe
 	triggers []*monitorTrigger
+
+	readingsSource chan *probe.Readings
+	stopped        chan struct{}
 
 	*env.Env
 }
@@ -75,34 +76,33 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	return &monitor{
 		Monitor:        m,
 		probe:          p,
-		readingsSource: c,
 		triggers:       mts,
+		readingsSource: c,
+		stopped:        make(chan struct{}),
 		Env:            env,
 	}, nil
 }
 
 func (m *monitor) start() {
-	// TODO(eefi): Implement.
-	fmt.Printf("starting monitor %d\n", m.MonitorID)
-
 	m.probe.Start()
 	go func() {
+		defer close(m.stopped)
 		for {
-			select {
-			case r, ok := <-m.readingsSource:
-				if !ok {
-					break
-				}
-				fmt.Printf("monitor %d got Readings %s\n", m.MonitorID, r)
+			r, ok := <-m.readingsSource
+			if !ok {
+				return
 			}
+			m.process(r)
 		}
 	}()
 }
 
-func (m *monitor) stop() {
-	// TODO(eefi): Implement.
-	fmt.Printf("stopping monitor %d\n", m.MonitorID)
+func (m *monitor) process(readings *probe.Readings) {
+	fmt.Printf("monitor %d got Readings %s\n", m.MonitorID, readings)
+}
 
+func (m *monitor) stop() {
 	m.probe.Stop()
 	close(m.readingsSource)
+	<-m.stopped
 }
