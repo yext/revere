@@ -39,6 +39,7 @@ var graphitePreview = function() {
   var previewGraphite = function() {
     $('#js-preview-btn').click(function(e) {
       e.preventDefault();
+      $(this).button('loading');
       var gtFields = $('#js-graphite-threshold').find(':input').serializeObject();
       var previewFields = $('#js-preview').find(':input').serializeObject();
       url = getGraphitePreviewUrl(
@@ -53,6 +54,10 @@ var graphitePreview = function() {
         $('#js-preview-img').addClass('hidden');
       }).removeClass('hidden')
       .attr('src', url);
+    });
+
+    $('#js-preview-img').on('load', function() {
+      $('#js-preview-btn').button('reset');
     });
   };
 
