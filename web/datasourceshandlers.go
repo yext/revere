@@ -44,14 +44,6 @@ func DataSourcesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, 
 		var errs []string
 		for _, dataSource := range dataSources {
 			errs = append(errs, dataSource.Validate()...)
-			if errs == nil {
-				err = dataSource.Save(db)
-				if err != nil {
-					http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
-						http.StatusInternalServerError)
-					return
-				}
-			}
 		}
 
 		if errs != nil {
@@ -67,12 +59,20 @@ func DataSourcesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, 
 			return
 		}
 
+		for _, dataSource := range dataSources {
+			err = dataSource.Save(db)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
+					http.StatusInternalServerError)
+				return
+			}
+		}
 		http.Redirect(w, req, "/datasources", http.StatusMovedPermanently)
 		return
 	}
 }
 
-func loadAllDataSourceTypeViewModels(db *sql.DB) (models []*vm.DataSourceTypeViewModel, err error) {
+func loadAllDataSourceTypeViewModels(db *sql.DB) (models []*vm.DataSourceType, err error) {
 	for _, dst := range datasources.GetDataSourceTypes() {
 		dstvm, err := vm.NewDataSourceTypeViewModel(db, dst)
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 	"github.com/yext/revere/datasources"
 )
 
-type DataSourceTypeViewModel struct {
+type DataSourceType struct {
 	Type        datasources.DataSourceType
 	DataSources []*DataSource
 }
@@ -15,8 +15,8 @@ const (
 	DataSourceDir = "datasources"
 )
 
-func NewDataSourceTypeViewModel(db *sql.DB, dst *datasources.DataSourceType) (*DataSourceTypeViewModel, error) {
-	dstvm := new(DataSourceTypeViewModel)
+func NewDataSourceTypeViewModel(db *sql.DB, dst *datasources.DataSourceType) (*DataSourceType, error) {
+	dstvm := new(DataSourceType)
 	dstvm.Type = *dst
 
 	dataSources, err := revere.LoadDataSourcesOfType(db, dstvm.Type.Id())

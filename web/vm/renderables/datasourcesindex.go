@@ -5,11 +5,11 @@ import (
 )
 
 type DataSourceIndex struct {
-	viewmodels []*vm.DataSourceTypeViewModel
+	viewmodels []*vm.DataSourceType
 	subs       []Renderable
 }
 
-func NewDataSourceIndex(dstvms []*vm.DataSourceTypeViewModel) *DataSourceIndex {
+func NewDataSourceIndex(dstvms []*vm.DataSourceType) *DataSourceIndex {
 	dsi := DataSourceIndex{}
 	dsi.viewmodels = dstvms
 	dsi.subs = make([]Renderable, 0)

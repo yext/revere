@@ -7,12 +7,12 @@ import (
 )
 
 type DataSourceTypeView struct {
-	*vm.DataSourceTypeViewModel
+	*vm.DataSourceType
 }
 
-func NewDataSourceTypeView(dst *vm.DataSourceTypeViewModel) *DataSourceTypeView {
+func NewDataSourceTypeView(dst *vm.DataSourceType) *DataSourceTypeView {
 	dstv := DataSourceTypeView{}
-	dstv.DataSourceTypeViewModel = dst
+	dstv.DataSourceType = dst
 	return &dstv
 }
 
@@ -25,7 +25,7 @@ func (dst *DataSourceTypeView) template() string {
 }
 
 func (dst *DataSourceTypeView) data() interface{} {
-	return dst.DataSourceTypeViewModel
+	return dst.DataSourceType
 }
 
 func (dst *DataSourceTypeView) scripts() []string {
