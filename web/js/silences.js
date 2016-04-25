@@ -74,8 +74,8 @@ var silencesEdit = function() {
         endDtpMoment = $endDtp.date();
       var data = getSilenceData();
       var id = data['id'];
-      data.start = localTimeToUtc(startDtpMoment);
-      data.end = localTimeToUtc(endDtpMoment);
+      data.Start = localTimeToUtc(startDtpMoment);
+      data.End = localTimeToUtc(endDtpMoment);
       $.ajax({
         method: 'POST',
         url: '/silences/'+ id + '/edit',

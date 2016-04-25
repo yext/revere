@@ -6,7 +6,7 @@
     <h1>{{if not $new}}Edit Silence{{else}}New Silence{{end}}</h1>
     <form id="js-silence-form" class="form-horizontal">
       <div id="js-silence-info">
-        <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.SilenceId}}">
+        <input type="hidden" class="form-control" data-json-type="Number" name="SilenceId" value="{{.SilenceId}}">
         <div class="js-invalid-input alert alert-danger hidden"></div>
         <div class="js-server-error alert alert-warning hidden"></div>
         <div class="js-valid-input alert alert-success hidden"></div>
@@ -15,10 +15,10 @@
             Silence for 
             {{if not $new}}
               <a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a>
-              <input id="monitor" name="monitor" class="form-control" value="{{.MonitorId}}" type="hidden" data-json-type="Number">
+              <input id="monitor" name="MonitorId" class="form-control" value="{{.MonitorId}}" type="hidden" data-json-type="Number">
             {{else}}
               <div class="silence-form">
-                <select id="monitor" name="monitor" class="form-control" data-json-type="Number">
+                <select id="monitor" name="MonitorId" class="form-control" data-json-type="Number">
                   {{range $monitors}}
                     <option value="{{.MonitorId}}">{{.Name}}</option>
                   {{end}}
@@ -30,28 +30,28 @@
         <h4 class="silence-subheader">Subprobe: 
           {{if $new}}
             <div class="silence-form">
-              <input type="text" name="subprobe" class="form-control" placeholder="Subprobe">
+              <input type="text" name="Subprobe" class="form-control" placeholder="Subprobe">
             </div>
           {{else if .Subprobe}}
             {{.Subprobe}}
-            <input id="subprobe" name="subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
+            <input id="subprobe" name="Subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
           {{else}}
             &lt;all&gt;
-            <input id="subprobe" name="subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
+            <input id="subprobe" name="Subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
           {{end}}
         </h4>
         <div id="silence-bounds">
           <div class="form-group">
-            <label class="col-sm-2 control-label" for="start">Start</label>
+            <label class="col-sm-2 control-label" for="Start">Start</label>
             <div class="col-sm-4 input-group date js-datetimepicker-start" data-time="{{.Start.Unix}}">
-              <input id="start" type="text" class="form-control" name="start">
+              <input id="start" type="text" class="form-control" name="Start">
               <span class="input-group-addon">
                 <span class="glyphicon glyphicon-calendar"></span>
               </span>
             </div>
-            <label class="col-sm-2 control-label" for="end">End</label>
+            <label class="col-sm-2 control-label" for="End">End</label>
             <div class="col-sm-4 input-group date js-datetimepicker-end" data-time="{{.End.Unix}}">
-              <input id="end" type="text" class="form-control" name="end">
+              <input id="end" type="text" class="form-control" name="End">
               <span class="input-group-addon">
                 <span class="glyphicon glyphicon-calendar"></span>
               </span>

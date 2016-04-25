@@ -11,12 +11,12 @@ import (
 type SilenceID int64
 
 type Silence struct {
-	SilenceId   SilenceID `json:"id",omitempty`
-	MonitorId   MonitorID `json:"monitor"`
-	MonitorName string    `json:"-"`
-	Subprobe    string    `json:"subprobe"`
-	Start       time.Time `json:"start"`
-	End         time.Time `json:"end"`
+	SilenceId   SilenceID
+	MonitorId   MonitorID
+	MonitorName string
+	Subprobe    string
+	Start       time.Time
+	End         time.Time
 }
 
 const silenceEndLimit = 14 * 24 * time.Hour
