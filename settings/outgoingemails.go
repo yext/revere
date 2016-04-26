@@ -5,10 +5,10 @@ import "encoding/json"
 type OutgoingEmail struct{}
 
 type OutgoingEmailSetting struct {
-	FromName          string `json:"fromName,omitempty"`
-	FromEmail         string `json:"fromEmail,omitempty"`
-	SubjectLinePrefix string `json:"subjectLinePrefix,omitempty"`
-	SmtpServer        string `json:"smtpServer,omitempty"`
+	FromName          string
+	FromEmail         string
+	SubjectLinePrefix string
+	SmtpServer        string
 }
 
 func init() {

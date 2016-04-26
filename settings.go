@@ -10,10 +10,10 @@ import (
 type SettingID int32
 
 type Setting struct {
-	SettingId   SettingID              `json:"id"`
-	SettingType settings.SettingTypeId `json:"settingType"`
-	Setting     string                 `json:"setting"`
-	Delete      bool                   `json:"delete,omitempty"`
+	SettingId   SettingID
+	SettingType settings.SettingTypeId
+	Setting     string
+	Delete      bool
 }
 
 const allSettingFields = `settingid, settingtype, setting`

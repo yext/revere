@@ -11,7 +11,7 @@ var outgoingEmails = function() {
     $.each($('.js-outgoing-email'), function() {
       var serialized = $(this).find(':input.required').serializeObject();
       var json = $(this).find(':input.json').serializeObject();
-      $.extend(serialized, {'setting': JSON.stringify(json)});
+      $.extend(serialized, {'Setting': JSON.stringify(json)});
       data.push(serialized);
     });
     return data;

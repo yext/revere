@@ -1,31 +1,31 @@
 <div class="js-outgoing-email">
   <h4 class="setting-title">Outgoing Email Configuration</h4>
-  <input type="checkbox" class="form-control hide required" name="delete" data-json-type="Boolean">
-  <input type="hidden" class="form-control required" name="id" data-json-type="Number" value="{{.Setting.SettingId}}">
-  <input type="hidden" class="form-control required" name="settingType" data-json-type="Number" value="{{.SettingType.Id}}">
+  <input type="checkbox" class="form-control hide required" name="Delete" data-json-type="Boolean">
+  <input type="hidden" class="form-control required" name="SettingId" data-json-type="Number" value="{{.Setting.SettingId}}">
+  <input type="hidden" class="form-control required" name="SettingType" data-json-type="Number" value="{{.SettingType.Id}}">
   {{with .Attributes}}
     <div class="revere-row">
       <label class="col-md-2 control-label">"From" Name:</label>
       <div class="col-md-6">
-        <input type="text" class="form-control json" name="fromName" value="{{.FromName}}"/>
+        <input type="text" class="form-control json" name="FromName" value="{{.FromName}}"/>
       </div>
     </div>
     <div class="revere-row">
       <label class="col-md-2 control-label">"From" Email:</label>
       <div class="col-md-6">
-        <input type="text" class="form-control json" name="fromEmail" value="{{.FromEmail}}"/>
+        <input type="text" class="form-control json" name="FromEmail" value="{{.FromEmail}}"/>
       </div>
     </div>
     <div class="revere-row">
       <label class="col-md-2 control-label">Subject Line Prefix:</label>
       <div class="col-md-6">
-        <input type="text" class="form-control json" name="subjectLinePrefix" value="{{.SubjectLinePrefix}}"/>
+        <input type="text" class="form-control json" name="SubjectLinePrefix" value="{{.SubjectLinePrefix}}"/>
       </div>
     </div>
     <div class="revere-row">
       <label class="col-md-2 control-label">SMTP Server:</label>
       <div class="col-md-6">
-        <input type="text" class="form-control json" name="smtpServer" value="{{.SmtpServer}}"/>
+        <input type="text" class="form-control json" name="SmtpServer" value="{{.SmtpServer}}"/>
       </div>
     </div>
   {{end}}
