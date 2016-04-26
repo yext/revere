@@ -12,13 +12,13 @@ import (
 type Polling struct {
 	period       time.Duration
 	checker      Checker
-	readingsSink chan<- *Readings
+	readingsSink chan<- []Reading
 
 	stop    chan struct{}
 	stopped chan struct{}
 }
 
-func NewPolling(period time.Duration, checker Checker, readingsSink chan<- *Readings) (*Polling, error) {
+func NewPolling(period time.Duration, checker Checker, readingsSink chan<- []Reading) (*Polling, error) {
 	if period <= 0 {
 		return nil, errors.Errorf("cannot poll with nonpositive period %s", period)
 	}
@@ -59,5 +59,5 @@ func (p *Polling) poll() {
 
 // Checker is used by Polling to actually check the thing being monitored.
 type Checker interface {
-	Check() *Readings
+	Check() []Reading
 }

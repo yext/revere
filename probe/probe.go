@@ -22,17 +22,11 @@ type Probe interface {
 	Stop()
 }
 
-// Readings is a group of readings from all a probe's subprobes taken at a
-// specific time.
-type Readings struct {
-	Recorded time.Time
-	Readings []Reading
-}
-
-// Reading is a specific reading from a particular subprobe.
+// Reading is a reading from a particular subprobe taken at a specific time.
 type Reading struct {
 	Subprobe string
 	State    state.State
+	Recorded time.Time
 	Details  Details
 }
 
@@ -43,7 +37,7 @@ type Details interface {
 
 // New makes a Probe of the given type and settings. The Probe will send
 // its readings to the provided channel.
-func New(typeID db.ProbeType, config types.JSONText, readingsSink chan<- *Readings) (Probe, error) {
+func New(typeID db.ProbeType, config types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
 	// TODO(eefi): Implement Type dictionary system.
 	if typeID != 1 {
 		return nil, errors.Errorf("unknown probe type %d", typeID)

@@ -15,7 +15,7 @@ type GraphiteThreshold struct {
 	*Polling
 }
 
-func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- *Readings) (Probe, error) {
+func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
 	gt := GraphiteThreshold{}
 
 	var config GraphiteThresholdDBModel
@@ -33,15 +33,13 @@ func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- *Readin
 	return &gt, nil
 }
 
-func (gt *GraphiteThreshold) Check() *Readings {
+func (gt *GraphiteThreshold) Check() []Reading {
 	// TODO(eefi): Implement.
-	return &Readings{
-		Recorded: time.Now(),
-		Readings: []Reading{
-			{
-				Subprobe: "_",
-				State:    state.Unknown,
-			},
+	return []Reading{
+		{
+			Subprobe: "_",
+			State:    state.Unknown,
+			Recorded: time.Now(),
 		},
 	}
 }
