@@ -12,14 +12,14 @@ type Label struct {
 	Name        string
 	Description string
 	Triggers    []*LabelTrigger
-	Monitors    []*LabelMonitor `json:"monitors,omitempty"`
+	Monitors    []*LabelMonitor
 }
 
 type LabelMonitor struct {
 	Monitor
-	Subprobe string `json:"subprobe"`
-	Create   bool   `json:"create,omitempty"`
-	Delete   bool   `json:"delete,omitempty"`
+	Subprobe string
+	Create   bool
+	Delete   bool
 }
 
 type LabelTrigger struct {

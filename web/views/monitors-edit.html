@@ -13,35 +13,35 @@
   <form id="js-monitor-form" action="/monitors/new/edit" class="form-horizontal" method="POST">
     {{/* Basic Monitor Info */}}
     <div id="js-monitor-info">
-      <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.MonitorId}}">
+      <input type="hidden" class="form-control" data-json-type="Number" name="MonitorId" value="{{.MonitorId}}">
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="name">Name</label>
+        <label class="col-sm-2 control-label" for="Name">Name</label>
         <div class="col-sm-10">
-          <input id="name" type="text" class="form-control" name="name" value="{{.Name}}">
+          <input id="name" type="text" class="form-control" name="Name" value="{{.Name}}">
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="owner">Owner</label>
+        <label class="col-sm-2 control-label" for="Owner">Owner</label>
         <div class="col-sm-10">
-          <input id="owner" type="text" class="form-control" name="owner" value="{{.Owner}}">
+          <input id="owner" type="text" class="form-control" name="Owner" value="{{.Owner}}">
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="description">Description</label>
+        <label class="col-sm-2 control-label" for="Description">Description</label>
         <div class="col-sm-10">
-          <textarea id="description" class="form-control" rows="4" name="description">{{.Description}}</textarea>
+          <textarea id="description" class="form-control" rows="4" name="Description">{{.Description}}</textarea>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="response">Alert response</label>
+        <label class="col-sm-2 control-label" for="Response">Alert response</label>
         <div class="col-sm-10">
-          <textarea id="response" class="form-control" rows="4" name="response">{{.Response}}</textarea>
+          <textarea id="response" class="form-control" rows="4" name="Response">{{.Response}}</textarea>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="probeType">Probe</label>
+        <label class="col-sm-2 control-label" for="ProbeType">Probe</label>
         <div class="col-sm-10">
-          <select id="#js-probe-type" class="form-control" data-json-type="Number" name="probeType">
+          <select id="#js-probe-type" class="form-control" data-json-type="Number" name="ProbeType">
             {{range probes}}
               <option value="{{.Id}}" {{if eq $._.GetProbeType.Id .Id}}selected{{end}}>{{.Name}}</option>
             {{end}}

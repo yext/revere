@@ -23,7 +23,7 @@ var labelsEdit = function() {
 
       data = $.extend(
         getLabelData(),
-        {'monitors': labelMonitors.getData()},
+        {'Monitors': labelMonitors.getData()},
         {'Triggers': triggersEdit.getData()}
       );
 
@@ -39,7 +39,7 @@ var labelsEdit = function() {
         if (response.redirect) {
           window.location.replace(response.redirect);
         } else {
-          window.location.replace('/labels/' + data['id']);
+          window.location.replace('/labels/' + data['LabelId']);
         }
       }).fail(function(jqXHR, textStatus, errorThrown) {
         revere.showErrors([jqXHR.responseText || textStatus]);

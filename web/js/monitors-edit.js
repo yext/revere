@@ -40,7 +40,7 @@ var monitorsEdit = function() {
           getMonitorData(),
           {'probe': JSON.stringify(getProbeData())},
           {'Triggers': triggersEdit.getData()},
-          {'labels': labelMonitors.getData()}
+          {'Labels': labelMonitors.getData()}
         );
       $.ajax({
         url: url,

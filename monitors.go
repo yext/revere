@@ -12,18 +12,18 @@ import (
 type MonitorID int32
 
 type Monitor struct {
-	MonitorId   MonitorID          `json:"id,omitempty"`
-	Name        string             `json:"name"`
-	Owner       string             `json:"owner"`
-	Description string             `json:"description"`
-	Response    string             `json:"response"`
-	ProbeType   probes.ProbeTypeId `json:"probeType"`
-	ProbeJson   string             `json:"probe"`
-	Changed     time.Time          `json:"-"`
-	Version     int                `json:"-"`
-	Archived    *time.Time         `json:"-"` // nullable
+	MonitorId   MonitorID
+	Name        string
+	Owner       string
+	Description string
+	Response    string
+	ProbeType   probes.ProbeTypeId
+	ProbeJson   string `json:"probe"`
+	Changed     time.Time
+	Version     int
+	Archived    *time.Time
 	Triggers    []*MonitorTrigger
-	Labels      []*MonitorLabel `json:"labels,omitempty"`
+	Labels      []*MonitorLabel
 }
 
 type MonitorTrigger struct {
@@ -34,9 +34,9 @@ type MonitorTrigger struct {
 
 type MonitorLabel struct {
 	Label
-	Subprobe string `json:"subprobe"`
-	Create   bool   `json:"create,omitempty"`
-	Delete   bool   `json:"delete,omitempty"`
+	Subprobe string
+	Create   bool
+	Delete   bool
 }
 
 const (

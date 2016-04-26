@@ -33,7 +33,7 @@ var labelMonitors = function() {
     var $baseAddLabelMonitor = $('.js-new-label-monitor').first();
 
     $.each($('.js-label-monitor'), function() {
-      var id = $(this).find('input[name="id"]').val();
+      var id = $(this).find('input.js-id').val();
       hideOption(id, $('.js-label-monitor-name'));
     });
 
@@ -56,8 +56,8 @@ var labelMonitors = function() {
       e.preventDefault();
       $monitor = $(this).parents('.js-label-monitor');
       $monitor.hide();
-      $monitor.find('input[name="delete"]').prop('checked', true);
-      showOption($monitor.find('input[name="id"]').val(), $('.js-label-monitor-name'));
+      $monitor.find('input[name="Delete"]').prop('checked', true);
+      showOption($monitor.find('input.js-id').val(), $('.js-label-monitor-name'));
     });
 
     $(document.body).on('click', '.js-remove-new-label-monitor', function(e) {
