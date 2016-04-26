@@ -1,15 +1,15 @@
 {{with ._}}
   <div class="js-trigger hidden">
     <div class="js-trigger-options">
-      <input type="hidden" class="form-control" name="id" data-json-type="Number" value={{.TriggerId}}>
+      <input type="hidden" class="form-control" name="TriggerId" data-json-type="Number" value={{.TriggerId}}>
       <div class="form-group">
         <div class="col-sm-1">
-          <input type="checkbox" class="form-control hide" name="delete" data-json-type="Boolean">
+          <input type="checkbox" class="form-control hide" name="Delete" data-json-type="Boolean">
           <button class="js-remove-trigger btn btn-default btn-block">x</button>
         </div>
-        <label class="col-sm-1 control-label" for="level">Alert on</label>
+        <label class="col-sm-1 control-label" for="Level">Alert on</label>
         <div class="col-sm-4">
-          <select class="form-control" name="level">
+          <select class="form-control" name="Level">
             <option value="ERROR" {{if strEq .Level "ERROR"}}selected{{end}}>ERROR</option>
             <option value="CRITICAL" {{if strEq .Level "CRITICAL"}}selected{{end}}>CRITICAL</option>
             <option value="WARNING" {{if strEq .Level "WARNING"}}selected{{end}}>WARNING</option>
@@ -18,10 +18,10 @@
         </div>
         <label class="col-sm-2">no more than once every</label>
         <div class="col-sm-2">
-          <input type="number" min="1" class="form-control" name="period" data-json-type="Number" value="{{if .Period}}{{.Period}}{{else}}5{{end}}">
+          <input type="number" min="1" class="form-control" name="Period" data-json-type="Number" value="{{if .Period}}{{.Period}}{{else}}5{{end}}">
         </div>
         <div class="col-sm-2">
-          <select class="form-control" name="periodType">
+          <select class="form-control" name="PeriodType">
             <option value="second" {{if strEq .PeriodType "second"}}selected{{end}}>Second(s)</option>
             <option value="minute" {{if strEq .PeriodType "minute"}}selected{{end}}>Minute(s)</option>
             <option value="hour" {{if strEq .PeriodType "hour"}}selected{{end}}>Hour(s)</option>
@@ -31,15 +31,15 @@
       </div>
       <div class="form-group">
         {{block "subprobe" .Subprobe}}{{end}}
-        <label class="col-sm-2 control-label" for="triggerOnExit">Notify on de-escalation</label>
+        <label class="col-sm-2 control-label" for="TriggerOnExit">Notify on de-escalation</label>
         <div class="checkbox col-sm-1">
-          <input type="checkbox" name="triggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}>
+          <input type="checkbox" name="TriggerOnExit" data-json-type="Boolean" {{if .TriggerOnExit}}checked{{end}}>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="targetType">Target</label>
+        <label class="col-sm-2 control-label" for="TargetType">Target</label>
         <div class="col-sm-4">
-          <select class="form-control js-targetType" data-json-type="Number" name="targetType">
+          <select class="form-control js-targetType" data-json-type="Number" name="TargetType">
             {{range targets}}
               <option value="{{.Id}}" {{if strEq $.TargetType "{{.Id}}"}}selected{{end}}>{{.Name}}</option>
             {{end}}

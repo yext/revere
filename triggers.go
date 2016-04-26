@@ -11,13 +11,13 @@ import (
 type TriggerID int32
 
 type Trigger struct {
-	TriggerId     TriggerID            `json:"id,omitempty"`
-	Level         string               `json:"level"`
-	Period        int64                `json:"period"`
-	PeriodType    string               `json:"periodType"`
-	TargetJson    string               `json:"target"`
-	TargetType    targets.TargetTypeId `json:"targetType"`
-	TriggerOnExit bool                 `json:"triggerOnExit"`
+	TriggerId     TriggerID
+	Level         string
+	Period        int64
+	PeriodType    string
+	TargetJson    string
+	TargetType    targets.TargetTypeId
+	TriggerOnExit bool
 }
 
 const (

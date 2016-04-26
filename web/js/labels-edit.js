@@ -24,7 +24,7 @@ var labelsEdit = function() {
       data = $.extend(
         getLabelData(),
         {'monitors': labelMonitors.getData()},
-        {'triggers': triggersEdit.getData()}
+        {'Triggers': triggersEdit.getData()}
       );
 
       $.ajax({

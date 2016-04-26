@@ -11,7 +11,7 @@ type Label struct {
 	LabelId     LabelID
 	Name        string
 	Description string
-	Triggers    []*LabelTrigger `json:"triggers,omitempty"`
+	Triggers    []*LabelTrigger
 	Monitors    []*LabelMonitor `json:"monitors,omitempty"`
 }
 
@@ -24,7 +24,7 @@ type LabelMonitor struct {
 
 type LabelTrigger struct {
 	Trigger
-	Delete bool `json:"delete,omitempty"`
+	Delete bool
 }
 
 const (

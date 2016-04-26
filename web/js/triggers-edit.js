@@ -82,7 +82,7 @@ var triggersEdit = function() {
     var data = []
     $.each($('.js-trigger').not(':first'), function() {
       var triggerOptions = $(this).find('.js-trigger-options :input').serializeObject(),
-        targetFn = targets.getSerializeFn(triggerOptions['targetType']),
+        targetFn = targets.getSerializeFn(triggerOptions['TargetType']),
         target;
       if (targetFn !== undefined) {
         target = targetFn($(this).find('.js-target'));
@@ -91,7 +91,7 @@ var triggersEdit = function() {
       if (target === undefined) {
         target = JSON.stringify($(this).find('.js-target :input').serializeObject());
       }
-      data.push($.extend(triggerOptions, {'target':target}));
+      data.push($.extend(triggerOptions, {'TargetJson':target}));
     });
     return data;
   };

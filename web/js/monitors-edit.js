@@ -39,7 +39,7 @@ var monitorsEdit = function() {
         data = $.extend(
           getMonitorData(),
           {'probe': JSON.stringify(getProbeData())},
-          {'triggers': triggersEdit.getData()},
+          {'Triggers': triggersEdit.getData()},
           {'labels': labelMonitors.getData()}
         );
       $.ajax({

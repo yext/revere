@@ -22,14 +22,14 @@ type Monitor struct {
 	Changed     time.Time          `json:"-"`
 	Version     int                `json:"-"`
 	Archived    *time.Time         `json:"-"` // nullable
-	Triggers    []*MonitorTrigger  `json:"triggers,omitempty"`
-	Labels      []*MonitorLabel    `json:"labels,omitempty"`
+	Triggers    []*MonitorTrigger
+	Labels      []*MonitorLabel `json:"labels,omitempty"`
 }
 
 type MonitorTrigger struct {
 	Trigger
-	Subprobe string `json:"subprobe"`
-	Delete   bool   `json:"delete,omitempty"`
+	Subprobe string
+	Delete   bool
 }
 
 type MonitorLabel struct {
