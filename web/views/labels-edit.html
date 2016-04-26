@@ -7,17 +7,17 @@
   <form id="js-label-form" action="/labels/new/edit" class="form-horizontal" method="POST">
     {{/* Label Info */}}
     <div id="js-label-info">
-      <input type="hidden" class="form-control" data-json-type="Number" name="id" value="{{.LabelId}}">
+      <input type="hidden" class="form-control" data-json-type="Number" name="LabelId" value="{{.LabelId}}">
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="name">Name</label>
+        <label class="col-sm-2 control-label" for="Name">Name</label>
         <div class="col-sm-10">
-          <input id="name" type="text" class="form-control" name="name" value="{{.Name}}">
+          <input id="name" type="text" class="form-control" name="Name" value="{{.Name}}">
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="description">Description</label>
+        <label class="col-sm-2 control-label" for="Description">Description</label>
         <div class="col-sm-10">
-          <textarea id="description" class="form-control" rows="4" name="description">{{.Description}}</textarea>
+          <textarea id="description" class="form-control" rows="4" name="Description">{{.Description}}</textarea>
         </div>
       </div>
     </div>

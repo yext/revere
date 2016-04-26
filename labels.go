@@ -8,9 +8,9 @@ import (
 type LabelID int32
 
 type Label struct {
-	LabelId     LabelID         `json:"id,omitempty"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
+	LabelId     LabelID
+	Name        string
+	Description string
 	Triggers    []*LabelTrigger `json:"triggers,omitempty"`
 	Monitors    []*LabelMonitor `json:"monitors,omitempty"`
 }
