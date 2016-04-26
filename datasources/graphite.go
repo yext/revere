@@ -7,7 +7,7 @@ import (
 type Graphite struct{}
 
 type GraphiteDataSource struct {
-	Url string `json:"url"`
+	Url string
 }
 
 func init() {

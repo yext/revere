@@ -42,8 +42,8 @@ var datasources = function() {
 
   var clearInputs = function(newField) {
     newField.find('input[type="text"]').val('');
-    newField.find('input[name="id"]').val(0);
-    newField.find('input[name="delete"]').val(false);
+    newField.find('input[name="SourceId"]').val(0);
+    newField.find('input[name="Delete"]').val(false);
   };
 
   var initAddButtons = function() {
@@ -61,13 +61,13 @@ var datasources = function() {
     $(document.body).on('click', '.js-remove-datasource', function(e) {
       e.preventDefault();
       $dataSource = $(this).parents('.js-datasource');
-      var id = $dataSource.find('input[name="id"]').val();
+      var id = $dataSource.find('input[name="SourceId"]').val();
       if(id == '0'){
         $dataSource.remove();
       } else if (datasourcesLeft === 1) {
         clearInputs($dataSource);
       } else {
-        $dataSource.find('input[name="delete"]').prop('checked', true);
+        $dataSource.find('input[name="Delete"]').prop('checked', true);
         $dataSource.addClass('hidden');
       }
     });

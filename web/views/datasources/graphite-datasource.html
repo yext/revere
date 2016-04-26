@@ -5,14 +5,14 @@
   <div class="js-datasource graphite">
     <div class="revere-row">
       <div class="col-sm-1">
-        <input type="checkbox" class="form-control hide required" name="delete" data-json-type="Boolean">
+        <input type="checkbox" class="form-control hide required" name="Delete" data-json-type="Boolean">
         <button class="js-remove-datasource btn btn-default btn-block">x</button>
       </div>
-      <input type="hidden" class="form-control required" name="id" data-json-type="Number" value="{{.DataSource.SourceId}}">
-      <input type="hidden" class="form-control required" name="sourceTypeId" data-json-type="Number" value="{{.DataSourceType.Id}}">
-      <label class="col-sm-1 control-label" for="url">Url</label>
+      <input type="hidden" class="form-control required" name="SourceId" data-json-type="Number" value="{{.DataSource.SourceId}}">
+      <input type="hidden" class="form-control required" name="SourceType" data-json-type="Number" value="{{.DataSourceType.Id}}">
+      <label class="col-sm-1 control-label" for="Url">Url</label>
       <div class="col-sm-4">
-        <input type="text" class="form-control source" name="url" value={{.Attributes.Url}}>
+        <input type="text" class="form-control source" name="Url" value={{.Attributes.Url}}>
       </div>
     </div>
   </div>

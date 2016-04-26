@@ -10,10 +10,10 @@ import (
 type DataSourceID int32
 
 type DataSource struct {
-	SourceId   DataSourceID                 `json:"id"`
-	SourceType datasources.DataSourceTypeId `json:"sourceTypeId"`
-	Source     string                       `json:"source"`
-	Delete     bool                         `json:"delete,omitempty"`
+	SourceId   DataSourceID
+	SourceType datasources.DataSourceTypeId
+	Source     string
+	Delete     bool
 }
 
 const dataSourceFields = `sourceid, sourcetype, source`
