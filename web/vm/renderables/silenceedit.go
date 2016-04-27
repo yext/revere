@@ -40,7 +40,7 @@ func (se *SilenceEdit) scripts() []string {
 }
 
 func (se *SilenceEdit) breadcrumbs() []vm.Breadcrumb {
-	return vm.SilencesViewBcs(se.silence.Id(), se.silence.MonitorName)
+	return vm.SilencesViewBcs(se.silence.GetId(), se.silence.MonitorName)
 }
 
 func (se *SilenceEdit) subRenderables() []Renderable {

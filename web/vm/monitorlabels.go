@@ -14,18 +14,6 @@ func (ml *MonitorLabel) Id() int64 {
 	return int64(ml.MonitorLabel.LabelId)
 }
 
-func (ml *MonitorLabel) Name() string {
-	return ml.MonitorLabel.Name
-}
-
-func (ml *MonitorLabel) Description() string {
-	return ml.MonitorLabel.Description
-}
-
-func (ml *MonitorLabel) Subprobe() string {
-	return ml.MonitorLabel.Subprobe
-}
-
 func NewMonitorLabels(monitorLabels []*revere.MonitorLabel) []*MonitorLabel {
 	viewmodels := make([]*MonitorLabel, len(monitorLabels))
 	for i, ml := range monitorLabels {

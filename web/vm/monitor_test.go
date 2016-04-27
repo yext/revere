@@ -1,10 +1,9 @@
-package revere_test
+package vm
 
 import (
 	"database/sql"
 	"testing"
 
-	. "github.com/yext/revere"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/test"
 )
@@ -27,13 +26,12 @@ func validMonitor() *Monitor {
 	m.Response = "Response"
 	m.ProbeType = probeType.Id()
 	m.ProbeJson = probeJson
-	m.Triggers = []*MonitorTrigger{validMonitorTrigger()}
+	m.Triggers = []*Trigger{validMonitorTrigger()}
 	return m
 }
 
-func validMonitorTrigger() *MonitorTrigger {
-	mt := new(MonitorTrigger)
-	mt.Trigger = *validTrigger()
+func validMonitorTrigger() *Trigger {
+	mt := *validTrigger()
 	mt.Subprobe = "test.*examples"
 	mt.Delete = false
 	return mt

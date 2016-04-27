@@ -4,14 +4,14 @@ type Component interface {
 	Id() int64
 }
 
-type NamedComponent interface {
-	Name() string
+type DeletableComponent interface {
+	Del() string
 }
 
-type DescriptiveComponent interface {
-	Description() string
+func isCreate(c Component) bool {
+	return c.Id() == 0
 }
 
-type SubprobeComponent interface {
-	Subprobe() string
+func isDelete(c DeletableComponent) bool {
+	return c.Del()
 }

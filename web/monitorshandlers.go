@@ -123,7 +123,7 @@ func MonitorsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		var m *revere.Monitor
+		var m *vm.Monitor
 		err := json.NewDecoder(req.Body).Decode(&m)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
@@ -143,7 +143,9 @@ func MonitorsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			w.Write(errors)
 			return
 		}
-		err = m.Save(db)
+		err = revere.Transact(db, func(tx *sql.Tx) error {
+			m.Save(tx)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
 				http.StatusInternalServerError)

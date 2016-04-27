@@ -37,7 +37,7 @@ func (mv *MonitorView) scripts() []string {
 }
 
 func (mv *MonitorView) breadcrumbs() []vm.Breadcrumb {
-	return vm.MonitorViewBcs(mv.viewmodel.Name(), mv.viewmodel.Id())
+	return vm.MonitorViewBcs(mv.viewmodel.GetName(), mv.viewmodel.GetId())
 }
 
 func (mv *MonitorView) subRenderables() []Renderable {

@@ -1,9 +1,8 @@
-package revere_test
+package vm
 
 import (
 	"testing"
 
-	. "github.com/yext/revere"
 	"github.com/yext/revere/targets"
 	"github.com/yext/revere/test"
 )

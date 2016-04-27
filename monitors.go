@@ -22,8 +22,6 @@ type Monitor struct {
 	Changed     time.Time
 	Version     int
 	Archived    *time.Time
-	Triggers    []*MonitorTrigger
-	Labels      []*MonitorLabel
 }
 
 type MonitorTrigger struct {
@@ -44,31 +42,6 @@ const (
 	allMonitorTriggerFields = "monitorid, subprobe, triggerid"
 	allMonitorLabelFields   = "l.labelid, l.name, l.description, lm.subprobe"
 )
-
-func (m *Monitor) Validate(db *sql.DB) (errs []string) {
-	if m.Name == "" {
-		errs = append(errs, fmt.Sprintf("Monitor name is required"))
-	}
-
-	probeType, err := probes.ProbeTypeById(m.ProbeType)
-	if err != nil {
-		errs = append(errs, err.Error())
-	}
-	probe, err := probeType.Load(m.ProbeJson)
-	if err != nil {
-		errs = append(errs, fmt.Sprintf("Invalid probe for monitor: %s", m.ProbeJson))
-	}
-	errs = append(errs, probe.Validate()...)
-
-	for _, mt := range m.Triggers {
-		errs = append(errs, mt.Validate()...)
-	}
-
-	for _, ml := range m.Labels {
-		errs = append(errs, ml.Validate(db)...)
-	}
-	return
-}
 
 func LoadMonitors(db *sql.DB) ([]*Monitor, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT %s FROM monitors ORDER BY name", allMonitorFields))
@@ -232,54 +205,6 @@ func isExistingMonitor(db *sql.DB, id MonitorID) (exists bool) {
 	err := db.QueryRow("SELECT EXISTS (SELECT * FROM monitors WHERE monitorid = ?)", id).Scan(&exists)
 	if err != nil {
 		return false
-	}
-	return
-}
-
-func (m *Monitor) Save(db *sql.DB) (err error) {
-	var tx *sql.Tx
-	tx, err = db.Begin()
-	if err != nil {
-		return
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-			return
-		}
-		err = tx.Commit()
-	}()
-
-	// Create/Update Monitor
-	if m.MonitorId == 0 {
-		m.MonitorId, err = m.create(tx)
-	} else {
-		err = m.update(tx)
-	}
-	if err != nil {
-		return
-	}
-
-	// Create/Update/Delete Monitor Triggers
-	for _, t := range m.Triggers {
-		if t.Delete {
-			err = t.delete(tx)
-			if err != nil {
-				return
-			}
-		} else {
-			err = t.save(tx, m.MonitorId)
-			if err != nil {
-				return
-			}
-		}
-	}
-
-	for _, ml := range m.Labels {
-		err = ml.save(tx, m.MonitorId)
-		if err != nil {
-			return
-		}
 	}
 	return
 }

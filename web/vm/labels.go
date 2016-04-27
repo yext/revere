@@ -17,14 +17,6 @@ func (l *Label) Id() int64 {
 	return int64(l.Label.LabelId)
 }
 
-func (l *Label) Name() string {
-	return l.Label.Name
-}
-
-func (l *Label) Description() string {
-	return l.Label.Description
-}
-
 func NewLabel(db *sql.DB, id revere.LabelID) (*Label, error) {
 	l, err := revere.LoadLabel(db, id)
 	if err != nil {

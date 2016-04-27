@@ -121,10 +121,6 @@ func (s *Silence) validateOld(old *Silence) (errs []string) {
 	return
 }
 
-func (s *Silence) isCreate() bool {
-	return s.SilenceId == 0
-}
-
 func (s *Silence) IsPast(moment time.Time) bool {
 	return s.Start.Before(moment) && s.End.Before(moment)
 }
@@ -139,7 +135,7 @@ func (s *Silence) Editable() bool {
 
 func (s *Silence) Save(tx *sql.Tx) error {
 	silence := &revere.Silence{s.SilenceId, s.MonitorId, s.MonitorName, s.Subprobe, s.Start, s.End}
-	if s.isCreate() {
+	if isCreate(s) {
 		id, err := silence.Create(tx)
 		s.SilenceId = id
 		return err

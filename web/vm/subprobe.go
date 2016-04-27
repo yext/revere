@@ -15,10 +15,6 @@ func (s *Subprobe) Id() int64 {
 	return int64(s.Subprobe.SubprobeId)
 }
 
-func (s *Subprobe) Name() string {
-	return s.Subprobe.Name
-}
-
 func NewSubprobe(db *sql.DB, id revere.SubprobeID) (*Subprobe, error) {
 	s, err := revere.LoadSubprobe(db, id)
 	if err != nil {

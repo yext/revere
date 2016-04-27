@@ -36,7 +36,7 @@ func (lv *LabelView) scripts() []string {
 }
 
 func (lv *LabelView) breadcrumbs() []vm.Breadcrumb {
-	return vm.LabelViewBcs(lv.viewmodel.Name(), lv.viewmodel.Id())
+	return vm.LabelViewBcs(lv.viewmodel.GetName(), lv.viewmodel.GetId())
 }
 
 func (lv *LabelView) subRenderables() []Renderable {
