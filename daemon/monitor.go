@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"fmt"
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
@@ -14,6 +13,8 @@ import (
 
 type monitor struct {
 	*db.Monitor
+
+	id db.MonitorID
 
 	probe    probe.Probe
 	triggers []monitorTrigger
@@ -73,6 +74,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 
 	monitor := &monitor{
 		Monitor:        dbMonitor,
+		id:             id,
 		probe:          probe,
 		triggers:       monitorTriggers,
 		subprobes:      make(map[string]*subprobe),
@@ -130,7 +132,15 @@ func (m *monitor) start() {
 }
 
 func (m *monitor) process(readings []probe.Reading) {
-	fmt.Printf("monitor %d got Readings %s\n", m.MonitorID, readings)
+	for _, r := range readings {
+		subprobe := m.subprobes[r.Subprobe]
+		if subprobe == nil {
+			// TODO(eefi): Implement creating new subprobes.
+			continue
+		}
+
+		subprobe.process(r)
+	}
 }
 
 func (m *monitor) stop() {

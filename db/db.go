@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/juju/errors"
@@ -54,6 +55,27 @@ func (db *DB) Beginx() (*Tx, error) {
 		return nil, errors.Trace(err)
 	}
 	return &Tx{Tx: tx, prefix: db.prefix}, nil
+}
+
+func (db *DB) Tx(f func(*Tx) error) (err error) {
+	tx, err := db.Beginx()
+	if err != nil {
+		return errors.Trace(err)
+	}
+	defer func() {
+		if err == nil {
+			err = errors.Trace(tx.Commit())
+		}
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				// Log but otherwise ignore.
+				log.WithError(err).Warn("Tx rollback failed.")
+			}
+		}
+	}()
+
+	return errors.Trace(f(tx))
 }
 
 type Tx struct {
