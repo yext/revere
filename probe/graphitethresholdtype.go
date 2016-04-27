@@ -6,6 +6,6 @@ import (
 
 type graphiteThresholdType struct{}
 
-func (t graphiteThresholdType) New(config types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
+func (_ graphiteThresholdType) New(config types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
 	return newGraphiteThreshold(config, readingsSink)
 }
