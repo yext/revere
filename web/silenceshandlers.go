@@ -94,7 +94,7 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 
 func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		var s *revere.Silence
+		var s *vm.Silence
 		err := json.NewDecoder(req.Body).Decode(&s)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()),
@@ -102,13 +102,7 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		oldS, err := revere.LoadSilence(db, s.SilenceId)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()), http.StatusInternalServerError)
-			return
-		}
-
-		errs := s.ValidateAgainstOld(oldS)
+		errs := s.Validate(db)
 		if len(errs) > 0 {
 			writeJsonResponse(w, "save silence", map[string]interface{}{"errors": errs})
 			return

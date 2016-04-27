@@ -28,8 +28,8 @@ func (se *SilenceEdit) template() string {
 
 func (se *SilenceEdit) data() interface{} {
 	return map[string]interface{}{
-		"silence":  se.silence,
-		"monitors": se.monitors,
+		"Silence":  se.silence,
+		"Monitors": se.monitors,
 	}
 }
 

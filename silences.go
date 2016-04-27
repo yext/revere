@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-
-	"github.com/yext/revere/util"
 )
 
 type SilenceID int64
@@ -18,8 +16,6 @@ type Silence struct {
 	Start       time.Time
 	End         time.Time
 }
-
-const silenceEndLimit = 14 * 24 * time.Hour
 
 const loadSilenceFields = "s.silenceid, s.monitorid, s.subprobe, s.start, s.end, m.name"
 const createSilenceFields = "silenceid, monitorid, subprobe, start, end"
@@ -74,27 +70,13 @@ func loadSilenceFromRow(rows *sql.Rows) (*Silence, error) {
 	return &s, nil
 }
 
-func (s *Silence) Save(db *sql.DB) error {
-	if s.IsCreate() {
-		id, err := s.create(db)
-		if err != nil {
-			return err
-		}
-		s.SilenceId = id
-		return err
-	}
-
-	err := s.update(db)
-	return err
-}
-
-func (s *Silence) update(db *sql.DB) error {
+func (s *Silence) Update(db *sql.DB) error {
 	_, err := db.Exec("UPDATE silences SET monitorid=?, subprobe=?, start=?, end=? WHERE silenceid=?",
 		s.MonitorId, s.Subprobe, s.Start, s.End, s.SilenceId)
 	return err
 }
 
-func (s *Silence) create(db *sql.DB) (SilenceID, error) {
+func (s *Silence) Create(db *sql.DB) (SilenceID, error) {
 	res, err := db.Exec(fmt.Sprintf(`
 		INSERT INTO silences(%s) VALUES (?, ?, ?, ?, ?)
 		`, createSilenceFields),
@@ -104,75 +86,4 @@ func (s *Silence) create(db *sql.DB) (SilenceID, error) {
 	}
 	id, err := res.LastInsertId()
 	return SilenceID(id), err
-}
-
-func (s *Silence) ValidateAgainstOld(oldS *Silence) (errs []string) {
-	if oldS == nil {
-		oldS = new(Silence)
-	}
-
-	now := time.Now()
-	if !oldS.IsCreate() && oldS.IsPast(now) {
-		return []string{"Silences from the past cannot be edited."}
-	}
-
-	if oldS.IsCreate() {
-		errs = append(errs, s.validateNewParams(now)...)
-	} else {
-		errs = append(errs, s.validateUpdateParams(oldS)...)
-	}
-
-	if s.End.Before(s.Start) {
-		errs = append(errs, "Start must be before end.")
-	}
-
-	if s.Start.Add(silenceEndLimit).Before(s.End) {
-		p, t := util.GetPeriodAndType(int64(silenceEndLimit))
-		errs = append(errs, fmt.Sprintf("End cannot be more than %d %s after start.", p, t))
-	}
-
-	if oldS.IsPresent(now) && !s.Start.Equal(oldS.Start) {
-		errs = append(errs, "Start cannot be set for currently running silences.")
-	}
-
-	return errs
-}
-
-func (newS *Silence) validateNewParams(now time.Time) (errs []string) {
-	if newS.MonitorId == 0 {
-		errs = append(errs, "Monitor id must be provided.")
-	}
-
-	if now.After(newS.Start) && now.After(newS.End) {
-		errs = append(errs, "Start and end must be in the future.")
-	}
-
-	return
-}
-
-func (updateS *Silence) validateUpdateParams(oldS *Silence) (errs []string) {
-	if oldS.MonitorId != updateS.MonitorId {
-		errs = append(errs, "Monitor name cannot be changed. Create a new silence instead.")
-	}
-	if oldS.Subprobe != updateS.Subprobe {
-		errs = append(errs, "Subprobe cannot be changed. Create a new silence instead.")
-	}
-
-	return
-}
-
-func (s Silence) IsCreate() bool {
-	return s.SilenceId == 0
-}
-
-func (s Silence) IsPast(now time.Time) bool {
-	return s.Start.Before(now) && s.End.Before(now)
-}
-
-func (s Silence) IsPresent(now time.Time) bool {
-	return s.Start.Before(now) && now.Before(s.End)
-}
-
-func (s Silence) Editable() bool {
-	return time.Now().Before(s.End)
 }
