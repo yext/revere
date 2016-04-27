@@ -69,18 +69,18 @@ func loadMonitor(dt dbOrTx, id MonitorID) (*Monitor, error) {
 	return &m, nil
 }
 
-func (db *DB) LoadTriggersForMonitor(id MonitorID) ([]*MonitorTrigger, error) {
+func (db *DB) LoadTriggersForMonitor(id MonitorID) ([]MonitorTrigger, error) {
 	return loadTriggersForMonitor(db, id)
 }
 
-func (tx *Tx) LoadTriggersForMonitor(id MonitorID) ([]*MonitorTrigger, error) {
+func (tx *Tx) LoadTriggersForMonitor(id MonitorID) ([]MonitorTrigger, error) {
 	return loadTriggersForMonitor(tx, id)
 }
 
-func loadTriggersForMonitor(dt dbOrTx, id MonitorID) ([]*MonitorTrigger, error) {
+func loadTriggersForMonitor(dt dbOrTx, id MonitorID) ([]MonitorTrigger, error) {
 	dt = unsafe(dt)
 
-	var mts []*MonitorTrigger
+	var mts []MonitorTrigger
 	q := `SELECT *
 	      FROM pfx_monitor_triggers
 	      JOIN pfx_triggers USING (triggerid)

@@ -1,15 +1,32 @@
 package daemon
 
 import (
+	"time"
+
+	"github.com/juju/errors"
+
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/env"
+	"github.com/yext/revere/state"
+	"github.com/yext/revere/target"
 )
 
 type trigger struct {
-	*db.Trigger
-	*env.Env
+	level         state.State
+	triggerOnExit bool
+	period        time.Duration
+	target        target.Target
 }
 
-func newTrigger(dbModel *db.Trigger, env *env.Env) *trigger {
-	return &trigger{Trigger: dbModel, Env: env}
+func newTrigger(dbModel *db.Trigger) (*trigger, error) {
+	target, err := target.New(dbModel.TargetType, dbModel.Target)
+	if err != nil {
+		return nil, errors.Maskf(err, "make target")
+	}
+
+	return &trigger{
+		level:         dbModel.Level,
+		triggerOnExit: dbModel.TriggerOnExit,
+		period:        time.Duration(dbModel.PeriodMilli) * time.Millisecond,
+		target:        target,
+	}, nil
 }

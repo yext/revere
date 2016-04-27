@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 
 	"github.com/yext/revere/db"
@@ -15,7 +16,7 @@ type monitor struct {
 	*db.Monitor
 
 	probe    probe.Probe
-	triggers []*monitorTrigger
+	triggers []monitorTrigger
 
 	readingsSource chan []probe.Reading
 	stopped        chan struct{}
@@ -25,7 +26,7 @@ type monitor struct {
 
 type monitorTrigger struct {
 	subprobes *regexp.Regexp
-	trigger
+	*trigger
 }
 
 func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
@@ -50,36 +51,48 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		return nil, errors.Maskf(err, "make probe for monitor %d", id)
 	}
 
-	dbTriggers, err := tx.LoadTriggersForMonitor(id)
+	dbMonitorTriggers, err := tx.LoadTriggersForMonitor(id)
 	if err != nil {
 		return nil, errors.Maskf(err, "load triggers for monitor %d", id)
 	}
 
-	triggers := make([]*monitorTrigger, 0, len(dbTriggers))
-	for _, dbTrigger := range dbTriggers {
-		r, err := regexp.Compile(dbTrigger.Subprobes)
+	monitorTriggers := make([]monitorTrigger, 0, len(dbMonitorTriggers))
+	for _, dbMonitorTrigger := range dbMonitorTriggers {
+		monitorTrigger, err := newMonitorTrigger(dbMonitorTrigger)
 		if err != nil {
-			// TODO(eefi): Log the problem.
+			log.WithError(err).WithFields(log.Fields{
+				"monitor": id,
+				"trigger": dbMonitorTrigger.TriggerID,
+			}).Error("Could not load monitor trigger. Discarding.")
 			continue
 		}
-
-		t := &monitorTrigger{
-			subprobes: r,
-			trigger: trigger{
-				Trigger: dbTrigger.Trigger,
-				Env:     env,
-			},
-		}
-		triggers = append(triggers, t)
+		monitorTriggers = append(monitorTriggers, *monitorTrigger)
 	}
 
 	return &monitor{
 		Monitor:        dbMonitor,
 		probe:          probe,
-		triggers:       triggers,
+		triggers:       monitorTriggers,
 		readingsSource: readingsChan,
 		stopped:        make(chan struct{}),
 		Env:            env,
+	}, nil
+}
+
+func newMonitorTrigger(dbMonitorTrigger db.MonitorTrigger) (*monitorTrigger, error) {
+	subprobesRegexp, err := regexp.Compile(dbMonitorTrigger.Subprobes)
+	if err != nil {
+		return nil, errors.Maskf(err, "compile regexp")
+	}
+
+	trigger, err := newTrigger(dbMonitorTrigger.Trigger)
+	if err != nil {
+		return nil, errors.Maskf(err, "make trigger")
+	}
+
+	return &monitorTrigger{
+		subprobes: subprobesRegexp,
+		trigger:   trigger,
 	}, nil
 }
 
