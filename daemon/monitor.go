@@ -18,6 +18,8 @@ type monitor struct {
 	probe    probe.Probe
 	triggers []monitorTrigger
 
+	subprobes map[string]*subprobe
+
 	readingsSource chan []probe.Reading
 	stopped        chan struct{}
 
@@ -69,14 +71,31 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		monitorTriggers = append(monitorTriggers, *monitorTrigger)
 	}
 
-	return &monitor{
+	monitor := &monitor{
 		Monitor:        dbMonitor,
 		probe:          probe,
 		triggers:       monitorTriggers,
+		subprobes:      make(map[string]*subprobe),
 		readingsSource: readingsChan,
 		stopped:        make(chan struct{}),
 		Env:            env,
-	}, nil
+	}
+
+	dbSubprobeStatuses, err := tx.LoadSubprobeStatusesForMonitor(id)
+	if err != nil {
+		// It's possible to still generate alerts even with brokenness
+		// in saving state to the DB, so log and stumble on.
+		log.WithError(err).WithFields(log.Fields{
+			"monitor": id,
+		}).Error("Could not load subprobe statuses. Alerts might have inaccurate historical data.")
+		return monitor, nil
+	}
+
+	for name, status := range dbSubprobeStatuses {
+		monitor.subprobes[name] = newSubprobe(name, status, monitor)
+	}
+
+	return monitor, nil
 }
 
 func newMonitorTrigger(dbMonitorTrigger db.MonitorTrigger) (*monitorTrigger, error) {

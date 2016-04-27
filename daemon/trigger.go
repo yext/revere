@@ -30,3 +30,11 @@ func newTrigger(dbModel *db.Trigger) (*trigger, error) {
 		target:        target,
 	}, nil
 }
+
+type sameTypeTriggerSet struct {
+	triggers []*trigger
+}
+
+func (s *sameTypeTriggerSet) add(t *trigger) {
+	s.triggers = append(s.triggers, t)
+}
