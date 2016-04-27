@@ -38,7 +38,7 @@ var monitorsEdit = function() {
       var url = $form.attr('action'),
         data = $.extend(
           getMonitorData(),
-          {'probe': JSON.stringify(getProbeData())},
+          {'ProbeJson': JSON.stringify(getProbeData())},
           {'Triggers': triggersEdit.getData()},
           {'Labels': labelMonitors.getData()}
         );

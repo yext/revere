@@ -8,13 +8,13 @@ import (
 type Email struct{}
 
 type EmailTarget struct {
-	Email          `json:"-"`
-	EmailAddresses []*EmailAddress `json:"emails"`
+	Email
+	EmailAddresses []*EmailAddress
 }
 
 type EmailAddress struct {
-	EmailTo string `json:"emailTo"`
-	ReplyTo string `json:"replyTo"`
+	EmailTo string
+	ReplyTo string
 }
 
 const emailTargetTemplate = "email-edit.html"

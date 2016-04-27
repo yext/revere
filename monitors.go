@@ -18,7 +18,7 @@ type Monitor struct {
 	Description string
 	Response    string
 	ProbeType   probes.ProbeTypeId
-	ProbeJson   string `json:"probe"`
+	ProbeJson   string
 	Changed     time.Time
 	Version     int
 	Archived    *time.Time

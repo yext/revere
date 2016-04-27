@@ -10,21 +10,21 @@ import (
 type GraphiteThreshold struct{}
 
 type GraphiteThresholdProbe struct {
-	Url        string `json:"url"`
-	Expression string `json:"expression"`
+	Url        string
+	Expression string
 	Threshold
-	AuditFunction   string `json:"auditFunction"`
-	CheckPeriod     int64  `json:"checkPeriod"`
-	CheckPeriodType string `json:"checkPeriodType"`
-	TriggerIf       string `json:"triggerIf"`
-	AuditPeriod     int64  `json:"auditPeriod"`
-	AuditPeriodType string `json:"auditPeriodType"`
+	AuditFunction   string
+	CheckPeriod     int64
+	CheckPeriodType string
+	TriggerIf       string
+	AuditPeriod     int64
+	AuditPeriodType string
 }
 
 type Threshold struct {
-	Warning  int64 `json:"warningThreshold"`
-	Error    int64 `json:"errorThreshold"`
-	Critical int64 `json:"criticalThreshold"`
+	Warning  int64
+	Error    int64
+	Critical int64
 }
 
 var (
