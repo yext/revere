@@ -35,49 +35,49 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	}
 	defer tx.Rollback()
 
-	m, err := tx.LoadMonitor(id)
+	dbMonitor, err := tx.LoadMonitor(id)
 	if err != nil {
 		return nil, errors.Maskf(err, "load monitor %d", id)
 	}
-	if m == nil {
+	if dbMonitor == nil {
 		return nil, errors.Errorf("no monitor with ID %d", id)
 	}
 
-	c := make(chan []probe.Reading)
+	readingsChan := make(chan []probe.Reading)
 
-	p, err := probe.New(m.ProbeType, m.Probe, c)
+	probe, err := probe.New(dbMonitor.ProbeType, dbMonitor.Probe, readingsChan)
 	if err != nil {
 		return nil, errors.Maskf(err, "make probe for monitor %d", id)
 	}
 
-	dbMTs, err := tx.LoadTriggersForMonitor(id)
+	dbTriggers, err := tx.LoadTriggersForMonitor(id)
 	if err != nil {
 		return nil, errors.Maskf(err, "load triggers for monitor %d", id)
 	}
 
-	mts := make([]*monitorTrigger, 0, len(dbMTs))
-	for _, dbMT := range dbMTs {
-		r, err := regexp.Compile(dbMT.Subprobes)
+	triggers := make([]*monitorTrigger, 0, len(dbTriggers))
+	for _, dbTrigger := range dbTriggers {
+		r, err := regexp.Compile(dbTrigger.Subprobes)
 		if err != nil {
 			// TODO(eefi): Log the problem.
 			continue
 		}
 
-		mt := &monitorTrigger{
+		t := &monitorTrigger{
 			subprobes: r,
 			trigger: trigger{
-				Trigger: dbMT.Trigger,
+				Trigger: dbTrigger.Trigger,
 				Env:     env,
 			},
 		}
-		mts = append(mts, mt)
+		triggers = append(triggers, t)
 	}
 
 	return &monitor{
-		Monitor:        m,
-		probe:          p,
-		triggers:       mts,
-		readingsSource: c,
+		Monitor:        dbMonitor,
+		probe:          probe,
+		triggers:       triggers,
+		readingsSource: readingsChan,
 		stopped:        make(chan struct{}),
 		Env:            env,
 	}, nil
