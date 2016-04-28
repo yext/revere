@@ -58,7 +58,7 @@ func newMonitorFromModel(db *sql.DB, m *revere.Monitor) (*Monitor, error) {
 		return nil, err
 	}
 
-	probe, err := probeType.Load(m.ProbeJson)
+	probe, err := probeType.LoadFromDB(m.ProbeJson)
 	if err != nil {
 		return nil, err
 	}

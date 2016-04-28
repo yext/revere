@@ -12,12 +12,14 @@ type ProbeType interface {
 	Id() ProbeTypeId
 	Name() string
 	Load(probe string) (Probe, error)
+	LoadFromDB(probe string) (Probe, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
 	AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId
 }
 
 type Probe interface {
+	DBModelJSON() (string, error)
 	ProbeType() ProbeType
 	Validate() []string
 }

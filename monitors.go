@@ -291,11 +291,20 @@ func (m *Monitor) create(tx *sql.Tx) (MonitorID, error) {
 	}
 	defer stmt.Close()
 
+	// TODO(psingh): Move into monitor vm after saving is moved there
 	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		return 0, err
 	}
-	res, err := stmt.Exec(nil, m.Name, m.Owner, m.Description, m.Response, probeType.Id(), m.ProbeJson, time.Now(), 1, m.Archived)
+	probe, err := probeType.Load(m.ProbeJson)
+	if err != nil {
+		return 0, err
+	}
+	dbProbeJSON, err := probe.DBModelJSON()
+	if err != nil {
+		return 0, err
+	}
+	res, err := stmt.Exec(nil, m.Name, m.Owner, m.Description, m.Response, probeType.Id(), dbProbeJSON, time.Now(), 1, m.Archived)
 	if err != nil {
 		return 0, err
 	}
@@ -312,11 +321,20 @@ func (m *Monitor) update(tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 
+	// TODO(psingh): Move into monitor vm after saving is moved there
 	probeType, err := probes.ProbeTypeById(m.ProbeType)
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(m.Name, m.Owner, m.Description, m.Response, probeType.Id(), m.ProbeJson, time.Now(), m.Archived, m.MonitorId)
+	probe, err := probeType.Load(m.ProbeJson)
+	if err != nil {
+		return err
+	}
+	dbProbeJSON, err := probe.DBModelJSON()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(m.Name, m.Owner, m.Description, m.Response, probeType.Id(), dbProbeJSON, time.Now(), m.Archived, m.MonitorId)
 	if err != nil {
 		return err
 	}
