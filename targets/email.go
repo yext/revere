@@ -67,6 +67,9 @@ func (et EmailTarget) Validate() (errs []string) {
 		}
 	}
 	for _, e := range et.Addresses {
+		if e.ReplyTo == "" {
+			continue
+		}
 		if !emailRegex.MatchString(e.ReplyTo) {
 			errs = append(errs, "An invalid reply to was provided.")
 			break
