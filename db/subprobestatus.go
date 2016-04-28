@@ -49,6 +49,30 @@ func loadSubprobeStatusesForMonitor(dt dbOrTx, id MonitorID) (map[string]Subprob
 	return result, nil
 }
 
+func (tx *Tx) InsertSubprobeStatus(s SubprobeStatus) error {
+	q := `INSERT INTO pfx_subprobe_statuses (
+	        subprobeid,
+	        recorded,
+	        state,
+	        silenced,
+	        enteredstate,
+	        lastnormal
+	      ) VALUES (
+	        :subprobeid,
+		:recorded,
+		:state,
+		:silenced,
+		:enteredstate,
+		:lastnormal
+	      )`
+	_, err := tx.NamedExec(cq(tx, q), s)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	return nil
+}
+
 func (tx *Tx) UpdateSubprobeStatus(s SubprobeStatus) error {
 	q := `UPDATE pfx_subprobe_statuses
 	      SET recorded = :recorded,

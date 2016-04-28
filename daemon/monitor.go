@@ -135,8 +135,19 @@ func (m *monitor) process(readings []probe.Reading) {
 	for _, r := range readings {
 		subprobe := m.subprobes[r.Subprobe]
 		if subprobe == nil {
-			// TODO(eefi): Implement creating new subprobes.
-			continue
+			var err error
+			subprobe, err = createSubprobe(m, r)
+			if err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"monitor":  m.id,
+					"subprobe": r.Subprobe,
+					"state":    r.State,
+					"recorded": r.Recorded,
+				}).Error("Could not create subprobe. Discarding reading.")
+				continue
+			}
+
+			m.subprobes[subprobe.name] = subprobe
 		}
 
 		subprobe.process(r)

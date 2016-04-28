@@ -30,6 +30,68 @@ type subprobe struct {
 }
 
 func newSubprobe(name string, status db.SubprobeStatus, monitor *monitor) *subprobe {
+	return &subprobe{
+		id:              status.SubprobeID,
+		monitor:         monitor,
+		name:            name,
+		lastReading:     status.Recorded,
+		state:           status.State,
+		enteredState:    status.EnteredState,
+		lastNormal:      status.LastNormal,
+		saveNextReading: false,
+		triggerSets:     newSubprobeTriggerSets(monitor, name),
+		Env:             monitor.Env,
+	}
+}
+
+// createSubprobe creates a new subprobe in the database based on receiving a
+// reading for a previously unknown subprobe.
+func createSubprobe(monitor *monitor, reading probe.Reading) (*subprobe, error) {
+	s := &subprobe{
+		monitor: monitor,
+		name:    reading.Subprobe,
+
+		lastReading:  reading.Recorded,
+		state:        reading.State,
+		enteredState: reading.Recorded,
+
+		// A bit of a lie if state != Normal, but it's the best we have.
+		lastNormal: reading.Recorded,
+
+		// Make sure the first reading is saved.
+		saveNextReading: true,
+
+		triggerSets: newSubprobeTriggerSets(monitor, reading.Subprobe),
+
+		Env: monitor.Env,
+	}
+
+	err := s.DB.Tx(func(tx *db.Tx) error {
+		var err error
+
+		s.id, err = tx.InsertSubprobe(monitor.id, s.name)
+		if err != nil {
+			return errors.Maskf(err, "insert subprobe")
+		}
+
+		status := s.dbStatus()
+		err = tx.InsertSubprobeStatus(status)
+		if err != nil {
+			return errors.Maskf(err, "insert subprobe status")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Mask(err)
+	}
+
+	return s, nil
+}
+
+// newSubprobeTriggerSets filters monitor's triggers down to a map appropriate
+// for the triggerSets field of a subprobe with the given name.
+func newSubprobeTriggerSets(monitor *monitor, name string) map[db.TargetType]*sameTypeTriggerSet {
 	triggerSets := make(map[db.TargetType]*sameTypeTriggerSet)
 	for _, monitorTrigger := range monitor.triggers {
 		if monitorTrigger.subprobes.MatchString(name) {
@@ -45,19 +107,7 @@ func newSubprobe(name string, status db.SubprobeStatus, monitor *monitor) *subpr
 			triggerSet.add(trigger)
 		}
 	}
-
-	return &subprobe{
-		id:              status.SubprobeID,
-		monitor:         monitor,
-		name:            name,
-		lastReading:     status.Recorded,
-		state:           status.State,
-		enteredState:    status.EnteredState,
-		lastNormal:      status.LastNormal,
-		saveNextReading: false,
-		triggerSets:     triggerSets,
-		Env:             monitor.Env,
-	}
+	return triggerSets
 }
 
 func (s *subprobe) process(r probe.Reading) {
@@ -85,14 +135,8 @@ func (s *subprobe) record(r probe.Reading) error {
 		}
 		s.saveNextReading = s.saveNextReading || stateChanged
 
-		status := db.SubprobeStatus{
-			SubprobeID:   s.id,
-			Recorded:     s.lastReading,
-			State:        s.state,
-			Silenced:     false, // TODO(eefi)
-			EnteredState: s.enteredState,
-			LastNormal:   s.lastNormal,
-		}
+		status := s.dbStatus()
+		// TODO(eefi): Update status.Silenced.
 		if err := tx.UpdateSubprobeStatus(status); err != nil {
 			return errors.Maskf(err, "update subprobe status")
 		}
@@ -112,4 +156,14 @@ func (s *subprobe) record(r probe.Reading) error {
 
 		return nil
 	}))
+}
+
+func (s *subprobe) dbStatus() db.SubprobeStatus {
+	return db.SubprobeStatus{
+		SubprobeID:   s.id,
+		Recorded:     s.lastReading,
+		State:        s.state,
+		EnteredState: s.enteredState,
+		LastNormal:   s.lastNormal,
+	}
 }
