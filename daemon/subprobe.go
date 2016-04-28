@@ -10,6 +10,7 @@ import (
 	"github.com/yext/revere/env"
 	"github.com/yext/revere/probe"
 	"github.com/yext/revere/state"
+	"github.com/yext/revere/target"
 )
 
 type subprobe struct {
@@ -24,7 +25,7 @@ type subprobe struct {
 
 	saveNextReading bool
 
-	triggerSets map[db.TargetType]*sameTypeTriggerSet
+	triggerSets map[db.TargetType]sameTypeTriggerSet
 
 	*env.Env
 }
@@ -91,50 +92,81 @@ func createSubprobe(monitor *monitor, reading probe.Reading) (*subprobe, error) 
 
 // newSubprobeTriggerSets filters monitor's triggers down to a map appropriate
 // for the triggerSets field of a subprobe with the given name.
-func newSubprobeTriggerSets(monitor *monitor, name string) map[db.TargetType]*sameTypeTriggerSet {
-	triggerSets := make(map[db.TargetType]*sameTypeTriggerSet)
+func newSubprobeTriggerSets(monitor *monitor, name string) map[db.TargetType]sameTypeTriggerSet {
+	triggerSets := make(map[db.TargetType]sameTypeTriggerSet)
 	for _, monitorTrigger := range monitor.triggers {
 		if monitorTrigger.subprobes.MatchString(name) {
-			trigger := monitorTrigger.trigger
-			targetType := trigger.target.Type().ID()
+			triggerTemplate := monitorTrigger.triggerTemplate
+			targetType := triggerTemplate.target.Type().ID()
 
 			triggerSet := triggerSets[targetType]
 			if triggerSet == nil {
-				triggerSet = &sameTypeTriggerSet{}
+				triggerSet = newSameTypeTriggerSet()
 				triggerSets[targetType] = triggerSet
 			}
 
-			triggerSet.add(trigger)
+			triggerSet.add(newTrigger(triggerTemplate))
 		}
 	}
 	return triggerSets
 }
 
 func (s *subprobe) process(r probe.Reading) {
+	oldState := s.state
+
+	s.updateFor(r)
+
+	alert := s.newAlert(oldState, r)
+	for _, triggerSet := range s.triggerSets {
+		triggerSet.alert(alert)
+	}
+
 	if err := s.record(r); err != nil {
-		// Try to stumble on. We can still send alerts.
 		log.WithError(err).WithFields(log.Fields{
 			"monitor":  s.monitor.id,
 			"subprobe": s.name,
 			"state":    r.State,
 			"recorded": r.Recorded,
-		}).Error("Could not record reading. Skipping saving to DB.")
+		}).Error("Could not record reading into DB.")
+	}
+}
+
+func (s *subprobe) updateFor(r probe.Reading) {
+	stateChanged := s.state != r.State
+	s.lastReading = r.Recorded
+	s.state = r.State
+	if stateChanged {
+		s.enteredState = r.Recorded
+	}
+	if s.state == state.Normal {
+		s.lastNormal = r.Recorded
+	}
+	s.saveNextReading = s.saveNextReading || stateChanged
+}
+
+func (s *subprobe) newAlert(oldState state.State, r probe.Reading) *target.Alert {
+	return &target.Alert{
+		MonitorID:    s.monitor.id,
+		MonitorName:  s.monitor.name,
+		SubprobeID:   s.id,
+		SubprobeName: s.name,
+
+		Description: s.monitor.description,
+		Response:    s.monitor.response,
+
+		OldState: oldState,
+		NewState: r.State,
+
+		Recorded:     r.Recorded,
+		EnteredState: s.enteredState,
+		LastNormal:   s.lastNormal,
+
+		Details: r.Details,
 	}
 }
 
 func (s *subprobe) record(r probe.Reading) error {
 	return errors.Mask(s.DB.Tx(func(tx *db.Tx) error {
-		stateChanged := s.state != r.State
-		s.lastReading = r.Recorded
-		s.state = r.State
-		if stateChanged {
-			s.enteredState = r.Recorded
-		}
-		if s.state == state.Normal {
-			s.lastNormal = r.Recorded
-		}
-		s.saveNextReading = s.saveNextReading || stateChanged
-
 		status := s.dbStatus()
 		// TODO(eefi): Update status.Silenced.
 		if err := tx.UpdateSubprobeStatus(status); err != nil {

@@ -12,9 +12,10 @@ import (
 )
 
 type monitor struct {
-	*db.Monitor
-
-	id db.MonitorID
+	id          db.MonitorID
+	name        string
+	description string
+	response    string
 
 	probe    probe.Probe
 	triggers []monitorTrigger
@@ -29,7 +30,7 @@ type monitor struct {
 
 type monitorTrigger struct {
 	subprobes *regexp.Regexp
-	*trigger
+	*triggerTemplate
 }
 
 func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
@@ -73,8 +74,10 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	}
 
 	monitor := &monitor{
-		Monitor:        dbMonitor,
 		id:             id,
+		name:           dbMonitor.Name,
+		description:    dbMonitor.Description,
+		response:       dbMonitor.Response,
 		probe:          probe,
 		triggers:       monitorTriggers,
 		subprobes:      make(map[string]*subprobe),
@@ -106,14 +109,14 @@ func newMonitorTrigger(dbMonitorTrigger db.MonitorTrigger) (*monitorTrigger, err
 		return nil, errors.Maskf(err, "compile regexp")
 	}
 
-	trigger, err := newTrigger(dbMonitorTrigger.Trigger)
+	triggerTemplate, err := newTriggerTemplate(dbMonitorTrigger.Trigger)
 	if err != nil {
 		return nil, errors.Maskf(err, "make trigger")
 	}
 
 	return &monitorTrigger{
-		subprobes: subprobesRegexp,
-		trigger:   trigger,
+		subprobes:       subprobesRegexp,
+		triggerTemplate: triggerTemplate,
 	}, nil
 }
 
