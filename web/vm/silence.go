@@ -21,7 +21,6 @@ type Silence struct {
 const (
 	// TODO(fchen): fix util/time... silences sends in argument as nanoseconds, not milliseconds
 	maxSilenceDuration = 14 * 24 * time.Hour
-	minSilenceDuration = 1 * time.Hour
 )
 
 func (s *Silence) Id() int64 {
@@ -74,11 +73,6 @@ func (s *Silence) Validate(db *sql.DB) (errs []string) {
 		errs = append(errs, fmt.Sprintf("End cannot be more than %d %s after start.", p, t))
 	}
 
-	if s.Start.Add(minSilenceDuration).After(s.End) {
-		p, t := util.GetPeriodAndType(int64(minSilenceDuration))
-		errs = append(errs, fmt.Sprintf("End cannot be less than %d %s after start.", p, t))
-	}
-
 	if s.isCreate() {
 		errs = append(errs, s.validateNew()...)
 	} else {
@@ -94,7 +88,7 @@ func (s *Silence) validateNew() (errs []string) {
 	}
 
 	now := time.Now()
-	if now.After(s.Start) || now.After(s.End) {
+	if (now.Sub(s.Start) > time.Minute) || now.After(s.End) {
 		errs = append(errs, "Start and end must be in the future.")
 	}
 	return
