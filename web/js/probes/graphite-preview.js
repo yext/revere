@@ -37,7 +37,23 @@ var graphitePreview = function() {
   };
 
   var previewGraphite = function() {
-    $('#js-preview-btn').click(function(e) {
+    var $previewImg = $('#js-preview-img'),
+      $previewBtn = $('#js-preview-btn'),
+      $previewError = $('#js-preview-error');
+
+    $previewImg.on('load', function() {
+      $previewError.addClass('hidden');
+      $previewImg.removeClass('hidden');
+      $previewBtn.button('reset');
+    });
+
+    $previewImg.on('error', function() {
+      $previewImg.addClass('hidden');
+      $previewError.removeClass('hidden');
+      $previewBtn.button('reset');
+    });
+
+    $previewBtn.click(function(e) {
       e.preventDefault();
       $(this).button('loading');
       var gtFields = $('#js-graphite-threshold').find(':input').serializeObject();
@@ -47,22 +63,12 @@ var graphitePreview = function() {
         getGraphiteTargets(gtFields),
         getGraphitePreviewPeriod(previewFields)
       );
-
-      $('#js-preview-error').addClass('hidden');
-      $('#js-preview-img').on('error', function() {
-        $('#js-preview-error').removeClass('hidden');
-        $('#js-preview-img').addClass('hidden');
-      }).removeClass('hidden')
-      .attr('src', url);
-    });
-
-    $('#js-preview-img').on('load', function() {
-      $('#js-preview-btn').button('reset');
+      $previewImg.attr('src', url);
     });
   };
 
   var disableUnusedPreviewPeriod = function() {
-    $(document.body).on('change','input[type=radio][name=previewPeriod]', function() {
+    $(document.body).on('change','input[type=radio][name=PreviewPeriod]', function() {
       if ($(this).val() === 'last') {
         $('.js-range-period').prop('disabled', true);
         $('.js-last-period').prop('disabled', false);
@@ -74,15 +80,15 @@ var graphitePreview = function() {
   };
 
   var getGraphiteBaseUrl = function(gtFields) {
-    return gtFields['url'];
+    return gtFields['Url'];
   };
 
   var getGraphiteTargets = function(gtFields) {
     return [
-      getDataTargetExpression(gtFields['expression'], gtFields['triggerIf']),
-      getThresholdTargetExpression(gtFields['warningThreshold'], 'warning', 'orange'),
-      getThresholdTargetExpression(gtFields['errorThreshold'], 'error', 'red'),
-      getThresholdTargetExpression(gtFields['criticalThreshold'], 'critical', 'black')
+      getDataTargetExpression(gtFields['Expression'], gtFields['TriggerIf']),
+      getThresholdTargetExpression(gtFields['Warning'], 'warning', 'orange'),
+      getThresholdTargetExpression(gtFields['Error'], 'error', 'red'),
+      getThresholdTargetExpression(gtFields['Critical'], 'critical', 'black')
     ];
   };
 
