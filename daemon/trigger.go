@@ -43,8 +43,18 @@ func newTrigger(template *triggerTemplate) *trigger {
 }
 
 func (t *trigger) shouldTrigger(a *target.Alert) bool {
-	// TODO(eefi): Implement.
-	return true
+	if a.OldState == a.NewState {
+		if a.NewState < t.level {
+			return false
+		}
+		return time.Since(t.lastAlert) >= t.period
+	}
+
+	if a.NewState >= t.level {
+		return true
+	}
+
+	return a.OldState >= t.level && t.triggerOnExit
 }
 
 type sameTypeTriggerSet map[db.TriggerID]*trigger
