@@ -2,6 +2,10 @@
 // Revere's view.
 package state
 
+import (
+	"fmt"
+)
+
 // State is a state that Revere can consider a monitored service to be in. The
 // available states are defined as constants in this package.
 type State int8
@@ -47,3 +51,20 @@ const (
 	// possible.
 	Critical
 )
+
+func (s State) String() string {
+	switch s {
+	case Normal:
+		return "Normal"
+	case Warning:
+		return "Warning"
+	case Unknown:
+		return "Unknown"
+	case Error:
+		return "ERROR"
+	case Critical:
+		return "CRITICAL"
+	default:
+		return fmt.Sprintf("Invalid(%d)", s)
+	}
+}
