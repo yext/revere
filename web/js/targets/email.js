@@ -53,16 +53,16 @@ var emailTarget = function() {
 
       // Deal with having multiple emails
       var emails = [];
-      var emailTo = emailInputs.EmailTo;
+      var emailTo = emailInputs.To;
       var replyTo = emailInputs.ReplyTo;
       if (typeof emailTo === 'string') {
-        emails.push({'EmailTo': emailTo, 'ReplyTo': replyTo});
+        emails.push({'To': emailTo, 'ReplyTo': replyTo});
       } else {
         for (var i = 0; i < emailTo.length; i++) {
-          emails.push({'EmailTo': emailTo[i], 'ReplyTo': replyTo[i]});
+          emails.push({'To': emailTo[i], 'ReplyTo': replyTo[i]});
         }
       }
-      return JSON.stringify({'EmailAddresses':emails});
+      return JSON.stringify({'Addresses':emails});
     });
   };
 

@@ -9,11 +9,11 @@ type Email struct{}
 
 type EmailTarget struct {
 	Email
-	EmailAddresses []*EmailAddress
+	Addresses []*EmailAddress
 }
 
 type EmailAddress struct {
-	EmailTo string
+	To      string
 	ReplyTo string
 }
 
@@ -60,13 +60,13 @@ func (et Email) Scripts() map[string][]string {
 }
 
 func (et EmailTarget) Validate() (errs []string) {
-	for _, e := range et.EmailAddresses {
-		if !emailRegex.MatchString(e.EmailTo) {
+	for _, e := range et.Addresses {
+		if !emailRegex.MatchString(e.To) {
 			errs = append(errs, "An invalid email to was provided.")
 			break
 		}
 	}
-	for _, e := range et.EmailAddresses {
+	for _, e := range et.Addresses {
 		if !emailRegex.MatchString(e.ReplyTo) {
 			errs = append(errs, "An invalid reply to was provided.")
 			break
