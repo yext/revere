@@ -64,6 +64,21 @@ func AllSilences(db *sql.DB) ([]*Silence, error) {
 }
 
 func (s *Silence) Validate(db *sql.DB) (errs []string) {
+	errs = append(errs, s.validate()...)
+	if s.isCreate() {
+		errs = append(errs, s.validateNew()...)
+	} else {
+		old, err := NewSilence(db, s.SilenceId)
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("Unable to load original silence with id %d", s.SilenceId))
+		}
+		errs = append(errs, s.validateOld(old)...)
+	}
+
+	return
+}
+
+func (s *Silence) validate() (errs []string) {
 	if s.End.Before(s.Start) {
 		errs = append(errs, "Start must be before end.")
 	}
@@ -72,13 +87,6 @@ func (s *Silence) Validate(db *sql.DB) (errs []string) {
 		p, t := util.GetPeriodAndType(int64(maxSilenceDuration))
 		errs = append(errs, fmt.Sprintf("End cannot be more than %d %s after start.", p, t))
 	}
-
-	if s.isCreate() {
-		errs = append(errs, s.validateNew()...)
-	} else {
-		errs = append(errs, s.validateOld(db)...)
-	}
-
 	return
 }
 
@@ -94,12 +102,7 @@ func (s *Silence) validateNew() (errs []string) {
 	return
 }
 
-func (s *Silence) validateOld(db *sql.DB) (errs []string) {
-	old, err := NewSilence(db, s.SilenceId)
-	if err != nil {
-		errs = append(errs, fmt.Sprintf("Unable to load original silence with id %d", s.SilenceId))
-	}
-
+func (s *Silence) validateOld(old *Silence) (errs []string) {
 	if old.MonitorId != s.MonitorId {
 		errs = append(errs, "Monitor name cannot be changed. Create a new silence instead.")
 	}

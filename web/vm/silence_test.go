@@ -1,14 +1,8 @@
-package revere_test
+package vm
 
 import (
 	"testing"
 	"time"
-
-	. "github.com/yext/revere"
-)
-
-var (
-	silenceEndLimit = 14 * 24 * time.Hour
 )
 
 func presentSilence() *Silence {
@@ -59,100 +53,103 @@ func TestEditableSilence(t *testing.T) {
 }
 
 func TestEditingPastSilence(t *testing.T) {
-	s := futureSilence()
-	ps := pastSilence()
-	errs := s.ValidateAgainstOld(ps)
+	old := pastSilence()
+	s := presentSilence()
+	errs := append(s.validate(), s.validateOld(old)...)
 	if errs == nil {
 		t.Error("Expected error trying to edit past silence")
 	}
 }
 
 func TestPastSilenceCreate(t *testing.T) {
-	ps := pastSilence()
-	errs := ps.ValidateAgainstOld(nil)
+	s := pastSilence()
+	errs := append(s.validate(), s.validateNew()...)
 	if errs == nil {
 		t.Error("Expected error trying to create a silence in the past")
 	}
 }
 
 func TestCreateSilenceInvalidMonitorId(t *testing.T) {
-	fs := futureSilence()
-	fs.MonitorId = 0
-	errs := fs.ValidateAgainstOld(nil)
+	s := futureSilence()
+	s.MonitorId = 0
+	errs := append(s.validate(), s.validateNew()...)
 	if errs == nil {
 		t.Error("Expected error trying to create a silence with an invalid monitor id")
 	}
 }
 
 func TestEditSilenceInvalidMonitorId(t *testing.T) {
+	old := futureSilence()
 	s := presentSilence()
-	s.MonitorId = 0
-	errs := s.ValidateAgainstOld(futureSilence())
+	s.MonitorId = 2
+	errs := append(s.validate(), s.validateOld(old)...)
 	if errs == nil {
 		t.Error("Expected error trying to edit a silence with a different monitor id")
 	}
 }
 
 func TestEditSilenceInvalidSubprobes(t *testing.T) {
+	old := presentSilence()
 	s := presentSilence()
 	s.Subprobe = ""
-	errs := s.ValidateAgainstOld(futureSilence())
+	errs := append(s.validate(), s.validateOld(old)...)
 	if errs == nil {
 		t.Error("Expected error trying to edit a silence with a different subprobe")
 	}
 }
 
 func TestCreateSilenceStartAfterEnd(t *testing.T) {
-	fs := futureSilence()
-	fs.Start = fs.End.AddDate(0, 0, 1)
-	errs := fs.ValidateAgainstOld(nil)
+	s := futureSilence()
+	s.Start = s.End.AddDate(0, 0, 1)
+	errs := append(s.validate(), s.validateNew()...)
 	if errs == nil {
 		t.Error("Expected error trying to create a silence with a start after the end")
 	}
 }
 
 func TestSilenceInvalidDuration(t *testing.T) {
-	fs := futureSilence()
-	fs.End = fs.End.Add(silenceEndLimit)
-	errs := fs.ValidateAgainstOld(nil)
+	s := futureSilence()
+	s.End = s.End.Add(maxSilenceDuration)
+	errs := append(s.validate(), s.validateNew()...)
 	if errs == nil {
 		t.Error("Expected error trying to create a silence with a end date beyond the allowed limit")
 	}
 }
 
 func TestPresentSilenceStartEdit(t *testing.T) {
-	fs := futureSilence()
-	errs := fs.ValidateAgainstOld(presentSilence())
+	old := presentSilence()
+	s := futureSilence()
+	errs := append(s.validate(), s.validateOld(old)...)
 	if errs == nil {
 		t.Error("Expected error trying to set a start time for a currently running silence")
 	}
 }
 
 func TestValidSilenceCreate(t *testing.T) {
-	fs := futureSilence()
-	errs := fs.ValidateAgainstOld(nil)
+	s := futureSilence()
+	errs := append(s.validate(), s.validateNew()...)
 	if errs != nil {
 		t.Errorf("Unexpected error trying to create a new silence: %v", errs)
 	}
 }
 
 func TestValidPresentSilenceEdit(t *testing.T) {
-	oldPs := presentSilence()
-	newPs := presentSilence()
-	newPs.Start = oldPs.Start
-	newPs.End = newPs.End.AddDate(0, 0, 1)
-	errs := newPs.ValidateAgainstOld(oldPs)
+	old := presentSilence()
+	s := presentSilence()
+	s.Start = old.Start
+	s.End = s.End.AddDate(0, 0, 1)
+	errs := append(s.validate(), s.validateOld(old)...)
 	if errs != nil {
 		t.Errorf("Unexpected error trying to edit a present silence: %v", errs)
 	}
 }
 
 func TestValidFutureSilenceEdit(t *testing.T) {
-	oldFs := futureSilence()
-	newFs := futureSilence()
-	newFs.Start = newFs.Start.AddDate(0, 0, 1)
-	newFs.End = newFs.End.AddDate(0, 0, 1)
-	errs := newFs.ValidateAgainstOld(oldFs)
+	old := futureSilence()
+	s := futureSilence()
+	s.Start = s.Start.AddDate(0, 0, 1)
+	s.End = s.End.AddDate(0, 0, 1)
+	errs := append(s.validate(), s.validateOld(old)...)
 	if errs != nil {
 		t.Errorf("Unexpected error trying to edit a future silence: %v", errs)
 	}
