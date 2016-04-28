@@ -137,17 +137,13 @@ func (s *Silence) Editable() bool {
 	return time.Now().Before(s.End)
 }
 
-func (s *Silence) Save(db *sql.DB) error {
+func (s *Silence) Save(tx *sql.Tx) error {
 	silence := &revere.Silence{s.SilenceId, s.MonitorId, s.MonitorName, s.Subprobe, s.Start, s.End}
 	if s.isCreate() {
-		return revere.Transact(db, func(tx *sql.Tx) error {
-			id, err := silence.Create(tx)
-			s.SilenceId = id
-			return err
-		})
+		id, err := silence.Create(tx)
+		s.SilenceId = id
+		return err
 	} else {
-		return revere.Transact(db, func(tx *sql.Tx) error {
-			return silence.Update(tx)
-		})
+		return silence.Update(tx)
 	}
 }

@@ -108,7 +108,9 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		err = s.Save(db)
+		err = revere.Transact(db, func(tx *sql.Tx) error {
+			return s.Save(tx)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()), http.StatusInternalServerError)
 			return
