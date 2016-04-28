@@ -25,10 +25,10 @@ const (
 	allTriggerSaveFields = "triggerid, level, triggeronexit, periodms, targettype, target"
 )
 
-type State int16
+type State int8
 
 const (
-	NORMAL State = iota
+	NORMAL State = iota * 10
 	WARNING
 	UNKNOWN
 	ERROR
