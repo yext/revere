@@ -112,9 +112,9 @@ var graphitePreview = function() {
 
   var getGraphitePreviewPeriod = function(previewFields) {
     var previewPeriod = {};
-    if (previewFields['previewPeriod'] === 'last') {
-      previewPeriod['from'] = '-' + previewFields['lastPeriod'] + previewFields['lastPeriodType'];
-    } else if (previewFields['previewPeriod'] === 'range') {
+    if (previewFields['PreviewPeriod'] === 'last') {
+      previewPeriod['from'] = '-' + previewFields['LastPeriod'] + previewFields['LastPeriodType'];
+    } else if (previewFields['PreviewPeriod'] === 'range') {
       var fromDate = $('#js-datetimepicker-from').data().date,
         untilDate = $('#js-datetimepicker-until').data().date;
 
