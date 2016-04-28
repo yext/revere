@@ -70,17 +70,20 @@ func loadSilenceFromRow(rows *sql.Rows) (*Silence, error) {
 	return &s, nil
 }
 
-func (s *Silence) Update(db *sql.DB) error {
-	_, err := db.Exec("UPDATE silences SET monitorid=?, subprobe=?, start=?, end=? WHERE silenceid=?",
-		s.MonitorId, s.Subprobe, s.Start, s.End, s.SilenceId)
+func (s *Silence) Update(tx *sql.Tx) error {
+	_, err := tx.Exec("UPDATE silences SET monitorid=?, subprobe=?, start=?, end=? WHERE silenceid=?", s.MonitorId, s.Subprobe, s.Start, s.End, s.SilenceId)
+
 	return err
 }
 
-func (s *Silence) Create(db *sql.DB) (SilenceID, error) {
-	res, err := db.Exec(fmt.Sprintf(`
-		INSERT INTO silences(%s) VALUES (?, ?, ?, ?, ?)
-		`, createSilenceFields),
-		nil, s.MonitorId, s.Subprobe, s.Start, s.End)
+func (s *Silence) Create(tx *sql.Tx) (SilenceID, error) {
+	res, err := tx.Exec(
+		fmt.Sprintf("INSERT INTO silences(%s) VALUES (?, ?, ?, ?, ?)", createSilenceFields),
+		nil,
+		s.MonitorId,
+		s.Subprobe,
+		s.Start,
+		s.End)
 	if err != nil {
 		return 0, err
 	}

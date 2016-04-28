@@ -140,10 +140,14 @@ func (s *Silence) Editable() bool {
 func (s *Silence) Save(db *sql.DB) error {
 	silence := &revere.Silence{s.SilenceId, s.MonitorId, s.MonitorName, s.Subprobe, s.Start, s.End}
 	if s.isCreate() {
-		id, err := silence.Create(db)
-		s.SilenceId = id
-		return err
+		return revere.Transact(db, func(tx *sql.Tx) error {
+			id, err := silence.Create(tx)
+			s.SilenceId = id
+			return err
+		})
 	} else {
-		return silence.Update(db)
+		return revere.Transact(db, func(tx *sql.Tx) error {
+			return silence.Update(tx)
+		})
 	}
 }
