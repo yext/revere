@@ -49,12 +49,12 @@ var triggersEdit = function() {
     $(document.body).on('click', '.js-remove-trigger', function(e) {
       e.preventDefault();
       $trigger = $(this).parents('.js-trigger');
-      var id = $trigger.find('input[name="id"]').val();
+      var id = $trigger.find('input[name="TriggerId"]').val();
       if(id == '0'){
         $trigger.remove();
       } else {
         $trigger.addClass('hidden');
-        $trigger.find('input[name="delete"]').prop('checked', true);
+        $trigger.find('input[name="Delete"]').prop('checked', true);
       }
       if(noTriggers()) {
         $emptyTriggers.removeClass('hidden');
