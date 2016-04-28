@@ -98,7 +98,14 @@ func (s *subprobe) record(r probe.Reading) error {
 		}
 
 		if s.saveNextReading {
-			// TODO(eefi): Record reading.
+			dbReading := db.Reading{
+				SubprobeID: s.id,
+				Recorded:   r.Recorded,
+				State:      r.State,
+			}
+			if err := tx.InsertReading(dbReading); err != nil {
+				return errors.Maskf(err, "insert reading")
+			}
 
 			s.saveNextReading = false
 		}

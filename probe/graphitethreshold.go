@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"math/rand"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -35,10 +36,16 @@ func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- []Readi
 
 func (gt *GraphiteThreshold) Check() []Reading {
 	// TODO(eefi): Implement.
+
+	s := state.Normal
+	if rand.Intn(4) == 0 {
+		s = state.Error
+	}
+
 	return []Reading{
 		{
 			Subprobe: "_",
-			State:    state.Unknown,
+			State:    s,
 			Recorded: time.Now(),
 		},
 	}
