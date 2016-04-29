@@ -76,6 +76,28 @@ func loadMonitor(dt dbOrTx, id MonitorID) (*Monitor, error) {
 	return &m, nil
 }
 
+func (db *DB) LoadMonitors() ([]*Monitor, error) {
+	return loadMonitors(db)
+}
+
+func (tx *Tx) LoadMonitors() ([]*Monitor, error) {
+	return loadMonitors(tx)
+}
+
+func loadMonitors(dt dbOrTx) ([]*Monitor, error) {
+	dt = unsafe(dt)
+
+	monitors := []*Monitor{}
+	err := dt.Select(&monitors, cq(dt, "SELECT * FROM pfx_monitors ORDER BY name"))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, errors.Trace(err)
+	}
+	return monitors, nil
+}
+
 func (db *DB) LoadTriggersForMonitor(id MonitorID) ([]MonitorTrigger, error) {
 	return loadTriggersForMonitor(db, id)
 }
