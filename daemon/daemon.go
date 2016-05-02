@@ -2,7 +2,10 @@
 package daemon
 
 import (
-	"fmt"
+	"sync"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/env"
@@ -12,38 +15,122 @@ import (
 // triggers and dispatches alerts.
 type Daemon struct {
 	monitors map[db.MonitorID]*monitor
+
+	lastMonitorsUpdate time.Time
+
+	stop    chan struct{}
+	stopper sync.Once
+	stopped chan struct{}
+
 	*env.Env
 }
 
 // New initializes a new Daemon. To actually make the Daemon run, call Start.
 func New(env *env.Env) *Daemon {
-	return &Daemon{monitors: make(map[db.MonitorID]*monitor), Env: env}
+	return &Daemon{
+		monitors: make(map[db.MonitorID]*monitor),
+		stop:     make(chan struct{}),
+		stopped:  make(chan struct{}),
+		Env:      env,
+	}
 }
 
 // Start starts running a Daemon.
 func (d *Daemon) Start() {
-	monitorIDs, err := d.DB.LoadAllMonitorIDs()
-	if err != nil {
-		// TODO(eefi): Change when implementing monitor reloading.
-		panic(fmt.Sprintf("start daemon: load monitor IDs: %v", err))
+	go d.run()
+}
+
+func (d *Daemon) run() {
+	defer close(d.stopped)
+
+	t := time.NewTicker(time.Duration(10) * time.Second)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-t.C:
+			d.updateMonitors()
+		case <-d.stop:
+			return
+		}
+	}
+}
+
+func (d *Daemon) updateMonitors() {
+	currentUpdateTime := time.Now()
+
+	threshold := d.lastMonitorsUpdate
+	if !threshold.IsZero() {
+		// Provide some buffer for clock skew.
+		threshold = threshold.Add(time.Duration(-5) * time.Minute)
 	}
 
-	for _, id := range monitorIDs {
-		monitor, err := newMonitor(id, d.Env)
-		if err != nil {
-			// TODO(eefi): Change when implementing monitor reloading.
-			panic(fmt.Sprintf("start daemon: load monitor %d: %v", id, err))
+	infos, err := d.DB.LoadMonitorVersionInfosUpdatedSince(threshold)
+	if err != nil {
+		log.WithError(err).Error("Could not load list of updated monitors.")
+	}
+
+	for _, info := range infos {
+		old := d.monitors[info.MonitorID]
+		if old != nil {
+			if old.version == info.Version && info.Archived == nil {
+				// Already running newest version.
+				continue
+			}
+
+			log.WithFields(log.Fields{
+				"monitor": old.id,
+				"version": old.version,
+			}).Debug("Tearing down monitor.")
+
+			old.stop()
+			delete(d.monitors, info.MonitorID)
 		}
 
-		d.monitors[id] = monitor
-		monitor.start()
+		if info.Archived != nil {
+			// Don't run archived monitors.
+			continue
+		}
+
+		log.WithFields(log.Fields{
+			"monitor": info.MonitorID,
+			"version": info.Version,
+		}).Debug("Starting monitor.")
+
+		new, err := newMonitor(info.MonitorID, d.Env)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"monitor": info.MonitorID,
+			}).Error("Load monitor failed.")
+
+			// TODO(eefi): Put in a placeholder that constantly
+			// reports _:Unknown to Revere admin.
+		}
+
+		d.monitors[info.MonitorID] = new
+		new.start()
 	}
+
+	d.lastMonitorsUpdate = currentUpdateTime
 }
 
 // Stop gracefully stops a Daemon. It tries to allow any in-progress delivery of
 // alerts to finish before returning.
 func (d *Daemon) Stop() {
-	for _, m := range d.monitors {
-		m.stop()
-	}
+	d.stopper.Do(func() {
+		// Stop run loop first to avoid race over what monitors exist to
+		// be stopped.
+		close(d.stop)
+		<-d.stopped
+
+		for id, m := range d.monitors {
+			log.WithFields(log.Fields{
+				"monitor": m.id,
+				"version": m.version,
+			}).Debug("Tearing down monitor.")
+
+			m.stop()
+			delete(d.monitors, id)
+		}
+	})
 }

@@ -17,6 +17,7 @@ type monitor struct {
 	name        string
 	description string
 	response    string
+	version     int32
 
 	probe    probe.Probe
 	triggers []monitorTrigger
@@ -80,6 +81,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		name:           dbMonitor.Name,
 		description:    dbMonitor.Description,
 		response:       dbMonitor.Response,
+		version:        dbMonitor.Version,
 		probe:          probe,
 		triggers:       monitorTriggers,
 		subprobes:      make(map[string]*subprobe),

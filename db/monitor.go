@@ -30,21 +30,28 @@ type MonitorTrigger struct {
 	*Trigger
 }
 
-func (db *DB) LoadAllMonitorIDs() ([]MonitorID, error) {
-	return loadAllMonitorIDs(db)
+type MonitorVersionInfo struct {
+	MonitorID MonitorID
+	Version   int32
+	Archived  *time.Time
 }
 
-func (tx *Tx) LoadAllMonitorIDs() ([]MonitorID, error) {
-	return loadAllMonitorIDs(tx)
-}
+func (db *DB) LoadMonitorVersionInfosUpdatedSince(t time.Time) ([]MonitorVersionInfo, error) {
+	var infos []MonitorVersionInfo
+	var err error
 
-func loadAllMonitorIDs(dt dbOrTx) ([]MonitorID, error) {
-	var ids []MonitorID
-	err := dt.Select(&ids, cq(dt, "SELECT monitorid FROM pfx_monitors"))
+	q := "SELECT monitorid, version, archived FROM pfx_monitors"
+	if t.IsZero() {
+		err = db.Select(&infos, cq(db, q))
+	} else {
+		q += " WHERE changed >= ?"
+		err = db.Select(&infos, cq(db, q), t)
+	}
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
-	return ids, nil
+
+	return infos, nil
 }
 
 func (db *DB) LoadMonitor(id MonitorID) (*Monitor, error) {
