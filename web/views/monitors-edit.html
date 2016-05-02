@@ -42,7 +42,7 @@
         <label class="col-sm-2 control-label" for="ProbeType">Probe</label>
         <div class="col-sm-10">
           <select id="#js-probe-type" class="form-control" data-json-type="Number" name="ProbeType">
-            {{range probes}}
+            {{range probeTypes}}
               <option value="{{.Id}}" {{if eq $._.ProbeType .Id}}selected{{end}}>{{.Name}}</option>
             {{end}}
           </select>

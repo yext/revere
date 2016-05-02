@@ -26,7 +26,7 @@ func init() {
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
-	tmpl.AddDefaultFunc("probes", probes.AllProbes)
+	tmpl.AddDefaultFunc("probeTypes", probes.AllTypes)
 	tmpl.AddDefaultFunc("settings", settings.AllSettingTypes)
 	tmpl.SetPartialsLocation(partials)
 }

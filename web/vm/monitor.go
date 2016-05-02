@@ -20,7 +20,7 @@ type Monitor struct {
 	Changed     time.Time
 	Version     int
 	Archived    *time.Time
-	Probe       *probes.Probe
+	Probe       probes.Probe
 	Triggers    []*MonitorTrigger
 	Labels      []*MonitorLabel
 }
@@ -68,7 +68,7 @@ func newMonitorFromModel(db *sql.DB, monitor *revere.Monitor) (*Monitor, error) 
 		Triggers:    nil,
 		Labels:      nil,
 	}
-	m.Probe, err = probes.NewProbe(monitor.ProbeType, monitor.ProbeJson)
+	m.Probe, err = probes.LoadFromDb(monitor.ProbeType, monitor.ProbeJson)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func BlankMonitor(db *sql.DB) (*Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	m.Probe = probes.DefaultProbe(db)
+	m.Probe = probes.Default()
 
 	return m, nil
 }
@@ -148,7 +148,7 @@ func (m *Monitor) Validate(db *sql.DB) (errs []string) {
 	}
 
 	var err error
-	m.Probe, err = probes.LoadProbe(m.ProbeType, m.ProbeParams)
+	m.Probe, err = probes.LoadFromParams(m.ProbeType, m.ProbeParams)
 	if err != nil {
 		errs = append(errs, fmt.Sprintf("Unable to load probe for monitor: %s", m.ProbeParams))
 	}
@@ -166,11 +166,11 @@ func (m *Monitor) Validate(db *sql.DB) (errs []string) {
 
 func (m *Monitor) Save(tx *sql.Tx) error {
 	var err error
-	m.Probe, err = probes.LoadProbe(m.ProbeType, m.ProbeParams)
+	m.Probe, err = probes.LoadFromParams(m.ProbeType, m.ProbeParams)
 	if err != nil {
 		return err
 	}
-	probeJson, err := m.Probe.serialize()
+	probeJson, err := m.Probe.Serialize()
 	if err != nil {
 		return err
 	}
