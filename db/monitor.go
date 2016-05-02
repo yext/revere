@@ -30,6 +30,12 @@ type MonitorTrigger struct {
 	*Trigger
 }
 
+type MonitorLabel struct {
+	MonitorID MonitorID
+	Subprobes string
+	*Label
+}
+
 type MonitorVersionInfo struct {
 	MonitorID MonitorID
 	Version   int32
@@ -119,4 +125,27 @@ func loadTriggersForMonitor(dt dbOrTx, id MonitorID) ([]MonitorTrigger, error) {
 		return nil, errors.Trace(err)
 	}
 	return mts, nil
+}
+
+func (db *DB) LoadLabelsForMonitor(id MonitorID) ([]MonitorLabel, error) {
+	return loadLabelsForMonitor(db, id)
+}
+
+func (tx *Tx) LoadLabelsForMonitor(id MonitorID) ([]MonitorLabel, error) {
+	return loadLabelsForMonitor(tx, id)
+}
+
+func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]MonitorLabel, error) {
+	dt = unsafe(dt)
+
+	var mls []MonitorLabel
+	q := `SELECT *
+	      FROM pfx_labels_monitors
+	      JOIN pfx_labels USING (labelid)
+	      WHERE pfx_labels_monitors.monitorid = ?`
+	err := dt.Select(&mls, cq(dt, q), id)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	return mls, nil
 }
