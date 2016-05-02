@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"sync"
 	"time"
 
 	"github.com/juju/errors"
@@ -15,6 +16,7 @@ type Polling struct {
 	readingsSink chan<- []Reading
 
 	stop    chan struct{}
+	stopper sync.Once
 	stopped chan struct{}
 }
 
@@ -37,8 +39,10 @@ func (p *Polling) Start() {
 }
 
 func (p *Polling) Stop() {
-	close(p.stop)
-	<-p.stopped
+	p.stopper.Do(func() {
+		close(p.stop)
+		<-p.stopped
+	})
 }
 
 func (p *Polling) poll() {

@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"regexp"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
@@ -23,6 +24,7 @@ type monitor struct {
 	subprobes map[string]*subprobe
 
 	readingsSource chan []probe.Reading
+	stopper        sync.Once
 	stopped        chan struct{}
 
 	*env.Env
@@ -158,7 +160,9 @@ func (m *monitor) process(readings []probe.Reading) {
 }
 
 func (m *monitor) stop() {
-	m.probe.Stop()
-	close(m.readingsSource)
-	<-m.stopped
+	m.stopper.Do(func() {
+		m.probe.Stop()
+		close(m.readingsSource)
+		<-m.stopped
+	})
 }
