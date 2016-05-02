@@ -28,7 +28,7 @@ func init() {
 }
 
 func (e Email) Id() TargetTypeId {
-	return 0
+	return 1
 }
 
 func (e Email) Name() string {
