@@ -21,8 +21,8 @@ type Trigger struct {
 }
 
 const (
-	allTriggerLoadFields = "t.triggerid, t.level, t.triggeronexit, t.periodms, t.targettype, t.target"
-	allTriggerSaveFields = "triggerid, level, triggeronexit, periodms, targettype, target"
+	allTriggerLoadFields = "t.triggerid, t.level, t.triggeronexit, t.periodmilli, t.targettype, t.target"
+	allTriggerSaveFields = "triggerid, level, triggeronexit, periodmilli, targettype, target"
 )
 
 type State int8
@@ -85,17 +85,17 @@ func LoadMonitorTriggers(db *sql.DB, monitorId MonitorID) (triggers []*MonitorTr
 
 func loadMonitorTriggerFromRow(rows *sql.Rows) (*MonitorTrigger, error) {
 	var (
-		t        MonitorTrigger
-		err      error
-		level    State
-		periodMs int64
+		t           MonitorTrigger
+		err         error
+		level       State
+		periodMilli int64
 	)
-	if err = rows.Scan(&t.TriggerId, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson, &t.Subprobe); err != nil {
+	if err = rows.Scan(&t.TriggerId, &level, &t.TriggerOnExit, &periodMilli, &t.TargetType, &t.TargetJson, &t.Subprobe); err != nil {
 		return nil, err
 	}
 	//TODO(psingh): Move into view monitor
 	t.Level = States(level)
-	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
+	t.Period, t.PeriodType = util.GetPeriodAndType(periodMilli)
 
 	return &t, nil
 }
@@ -126,17 +126,17 @@ func LoadLabelTriggers(db *sql.DB, labelId LabelID) (triggers []*LabelTrigger, e
 
 func loadLabelTriggerFromRow(rows *sql.Rows) (*LabelTrigger, error) {
 	var (
-		t        LabelTrigger
-		err      error
-		level    State
-		periodMs int64
+		t           LabelTrigger
+		err         error
+		level       State
+		periodMilli int64
 	)
-	if err = rows.Scan(&t.TriggerId, &level, &t.TriggerOnExit, &periodMs, &t.TargetType, &t.TargetJson); err != nil {
+	if err = rows.Scan(&t.TriggerId, &level, &t.TriggerOnExit, &periodMilli, &t.TargetType, &t.TargetJson); err != nil {
 		return nil, err
 	}
 	//TODO(psingh): Move into view monitor
 	t.Level = States(level)
-	t.Period, t.PeriodType = util.GetPeriodAndType(periodMs)
+	t.Period, t.PeriodType = util.GetPeriodAndType(periodMilli)
 
 	return &t, nil
 }
@@ -202,7 +202,7 @@ func (t *Trigger) update(tx *sql.Tx) (err error) {
 	var stmt *sql.Stmt
 	stmt, err = tx.Prepare(`
 		UPDATE triggers
-		SET level=?, triggeronexit=?, periodms=?, targettype=?, target=?
+		SET level=?, triggeronexit=?, periodmilli=?, targettype=?, target=?
 		WHERE triggerid=?
 	`)
 	if err != nil {

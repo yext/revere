@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-func GetPeriodAndType(periodMs int64) (int64, string) {
-	ms := time.Duration(periodMs) * time.Millisecond
+func GetPeriodAndType(periodMilli int64) (int64, string) {
+	ms := time.Duration(periodMilli) * time.Millisecond
 	switch {
 	case ms == 0:
 		return 0, ""
