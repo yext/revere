@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/yext/revere/datasources"
-	"github.com/yext/revere/probes"
 )
 
 type ProbeTypeId int16
@@ -32,7 +31,7 @@ const (
 
 var (
 	types       map[ProbeTypeId]ProbeType = make(map[ProbeTypeId]ProbeType)
-	defaultType                           = probes.GraphiteThreshold{}
+	defaultType                           = GraphiteThreshold{}
 )
 
 func Default() (Probe, error) {

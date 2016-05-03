@@ -11,9 +11,10 @@ import (
 type GraphiteThreshold struct{}
 
 type GraphiteThresholdProbe struct {
-	Url        string
-	Expression string
-	Threshold
+	// TODO(fchen): fix tags on front-end js
+	URL             string
+	Expression      string
+	Thresholds      ThresholdsModel
 	AuditFunction   string
 	CheckPeriod     int64
 	CheckPeriodType string
@@ -22,8 +23,7 @@ type GraphiteThresholdProbe struct {
 	AuditPeriodType string
 }
 
-// TODO(psingh): Make into *float64 and handle showing <nil> in frontend
-type Threshold struct {
+type ThresholdsModel struct {
 	Warning  float64
 	Error    float64
 	Critical float64
@@ -42,15 +42,15 @@ func init() {
 	addProbeType(GraphiteThreshold{})
 }
 
-func (gt GraphiteThreshold) Id() ProbeTypeId {
+func (gt *GraphiteThreshold) Id() ProbeTypeId {
 	return 0
 }
 
-func (gt GraphiteThreshold) Name() string {
+func (gt *GraphiteThreshold) Name() string {
 	return "Graphite Threshold"
 }
 
-func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
+func (gt *GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	var g GraphiteThresholdProbe
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -59,14 +59,9 @@ func (gt GraphiteThreshold) Load(probe string) (Probe, error) {
 	return g, nil
 }
 
-// TODO(psingh): Clean up, temporary fix
-func (gt GraphiteThreshold) LoadFromDB(probeJSON string) (Probe, error) {
-	if probeJSON == `{}` {
-		return &GraphiteThresholdProbe{}, nil
-	}
-
+func (gt *GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
 	var g probe.GraphiteThresholdDBModel
-	err := json.Unmarshal([]byte(probeJSON), &g)
+	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
 		return nil, err
 	}
@@ -77,10 +72,10 @@ func (gt GraphiteThreshold) LoadFromDB(probeJSON string) (Probe, error) {
 	return &GraphiteThresholdProbe{
 		g.URL,
 		g.Expression,
-		Threshold{
-			Warning:  *g.Thresholds.Warning,
-			Error:    *g.Thresholds.Error,
-			Critical: *g.Thresholds.Critical,
+		ThresholdsModel{
+			*g.Thresholds.Warning,
+			*g.Thresholds.Error,
+			*g.Thresholds.Critical,
 		},
 		g.AuditFunction,
 		checkPeriod,
@@ -91,14 +86,18 @@ func (gt GraphiteThreshold) LoadFromDB(probeJSON string) (Probe, error) {
 	}, nil
 }
 
-func (gt GraphiteThreshold) Templates() map[string]string {
+func (gt *GraphiteThreshold) blank() (Probe, error) {
+	return &GraphiteThresholdProbe{}, nil
+}
+
+func (gt *GraphiteThreshold) Templates() map[string]string {
 	return map[string]string{
 		"edit": "graphite-edit.html",
 		"view": "graphite-view.html",
 	}
 }
 
-func (gt GraphiteThreshold) Scripts() map[string][]string {
+func (gt *GraphiteThreshold) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"graphite-preview.js",
@@ -106,13 +105,13 @@ func (gt GraphiteThreshold) Scripts() map[string][]string {
 	}
 }
 
-func (g GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
+func (g *GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
 	return []datasources.DataSourceTypeId{
 		datasources.Graphite{}.Id(),
 	}
 }
 
-func (g GraphiteThresholdProbe) DBModelJSON() (string, error) {
+func (g *GraphiteThresholdProbe) Serialize() (string, error) {
 	checkPeriodMilli := util.GetMs(g.CheckPeriod, g.CheckPeriodType)
 	auditPeriodMilli := util.GetMs(g.AuditPeriod, g.AuditPeriodType)
 
@@ -134,11 +133,11 @@ func (g GraphiteThresholdProbe) DBModelJSON() (string, error) {
 	return string(gtDBJSON), err
 }
 
-func (g GraphiteThresholdProbe) ProbeType() ProbeType {
+func (g *GraphiteThresholdProbe) ProbeType() ProbeType {
 	return GraphiteThreshold{}
 }
 
-func (g GraphiteThresholdProbe) Validate() (errs []string) {
+func (g *GraphiteThresholdProbe) Validate() (errs []string) {
 	if g.Url == "" {
 		errs = append(errs, "Graphite data source is required")
 	}
