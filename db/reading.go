@@ -18,7 +18,8 @@ type Reading struct {
 }
 
 func (tx *Tx) InsertReading(r Reading) error {
-	q := `INSERT INTO pfx_readings (subprobeid, recorded, state)
+	// TODO(eefi): Drop 2 suffix from table name.
+	q := `INSERT INTO pfx_readings2 (subprobeid, recorded, state)
 	      VALUES (:subprobeid, :recorded, :state)`
 	_, err := tx.NamedExec(cq(tx, q), r)
 	if err != nil {
