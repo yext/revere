@@ -35,7 +35,7 @@ var (
 )
 
 func Default() (Probe, error) {
-	probe, err := Blank(defaultType)
+	probe, err := defaultType.blank()
 	if err != nil {
 		return nil, err
 	}

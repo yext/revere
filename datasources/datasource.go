@@ -9,48 +9,77 @@ type DataSourceTypeId int16
 type DataSourceType interface {
 	Id() DataSourceTypeId
 	Name() string
-	Template() string
+	loadFromParams(ds string) (DataSource, error)
+	loadFromDb(ds string) (DataSource, error)
+	blank() (DataSource, error)
+	Templates() string
 	Scripts() []string
-	Load(source string) (DataSource, error)
-	LoadDefault() DataSource
 }
 
 type DataSource interface {
-	Validate() []string
+	Serialize() (string, error)
 	DataSourceType() DataSourceType
+	Validate() []string
 }
 
-var (
-	defaultDataSourceTypeId = Graphite{}.Id()
-	dataSourceTypes         = make(map[DataSourceTypeId]DataSourceType)
+const (
+	DataSourceDir = "datasources"
 )
 
-func DataSourceTypeById(dataSourceTypeId DataSourceTypeId) (DataSourceType, error) {
-	if dst, ok := dataSourceTypes[dataSourceTypeId]; !ok {
-		return nil, fmt.Errorf("Invalid data source type with id: %d", dataSourceTypeId)
-	} else {
-		return dst, nil
+var (
+	defaultType = Graphite{}
+	types       = make(map[DataSourceTypeId]DataSourceType)
+)
+
+func Default() (DataSource, error) {
+	ds, err := defaultType.blank()
+	if err != nil {
+		return nil, err
 	}
+
+	return ds, nil
+}
+
+func LoadFromParams(id DataSourceTypeId, dsParams string) (DataSource, error) {
+	dsType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return dsType.loadFromParams(dsParams)
+}
+
+func LoadFromDb(id DataSourceTypeId, dsJson string) (DataSource, error) {
+	dsType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return dsType.loadFromDb(dsJson)
+}
+
+func Blank(id DataSourceType) (DataSource, error) {
+	dsType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return dsType.blank()
+}
+
+func getType(id DataSourceTypeId) (DataSourceType, error) {
+	dsType, ok := types[id]
+	if !ok {
+		return nil, fmt.Errorf("No data source type with id %d exists", id)
+	}
+
+	return dsType, nil
 }
 
 func addDataSourceType(dataSourceType DataSourceType) {
-	if _, ok := dataSourceTypes[dataSourceType.Id()]; !ok {
-		dataSourceTypes[dataSourceType.Id()] = dataSourceType
+	if _, ok := types[dataSourceType.Id()]; !ok {
+		types[dataSourceType.Id()] = dataSourceType
 	} else {
 		panic(fmt.Sprintf("A data source type with id %d already exists", dataSourceType.Id))
 	}
-}
-
-func GetDataSourceTypes() []*DataSourceType {
-	types := make([]*DataSourceType, len(dataSourceTypes))
-	i := 0
-	for _, dst := range dataSourceTypes {
-		types[i] = &dst
-		i++
-	}
-	return types
-}
-
-func DefaultDataSourceType() DataSourceType {
-	return dataSourceTypes[defaultDataSourceTypeId]
 }
