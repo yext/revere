@@ -114,3 +114,24 @@ func loadMonitorsForLabel(dt dbOrTx, id LabelID) ([]LabelMonitor, error) {
 	}
 	return lms, nil
 }
+
+type LabelTriggerWithSubprobes struct {
+	LabelTrigger
+	// TODO(eefi): Rename column in DB to subprobes.
+	Subprobes string `db:"subprobe"`
+}
+
+func (tx *Tx) LoadLabelTriggersForMonitor(id MonitorID) ([]LabelTriggerWithSubprobes, error) {
+	var results []LabelTriggerWithSubprobes
+	// TODO(eefi): Update "subprobe" when DB column is renamed.
+	q := `SELECT labelid, triggerid, pfx_triggers.*, pfx_labels_monitors.subprobe
+	      FROM pfx_labels_monitors
+	      JOIN pfx_label_triggers USING (labelid)
+	      JOIN pfx_triggers USING (triggerid)
+	      WHERE pfx_labels_monitors.monitorid = ?`
+	err := tx.Select(&results, cq(tx, q), id)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	return results, nil
+}

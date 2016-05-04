@@ -63,14 +63,34 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		return nil, errors.Maskf(err, "load triggers for monitor %d", id)
 	}
 
-	monitorTriggers := make([]monitorTrigger, 0, len(dbMonitorTriggers))
+	dbLabelTriggers, err := tx.LoadLabelTriggersForMonitor(id)
+	if err != nil {
+		return nil, errors.Maskf(err, "load label triggers for monitor %d", id)
+	}
+
+	monitorTriggers := make(
+		[]monitorTrigger, 0, len(dbMonitorTriggers)+len(dbLabelTriggers))
 	for _, dbMonitorTrigger := range dbMonitorTriggers {
-		monitorTrigger, err := newMonitorTrigger(dbMonitorTrigger)
+		monitorTrigger, err := newMonitorTrigger(
+			dbMonitorTrigger.Subprobes, dbMonitorTrigger.Trigger)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"monitor": id,
 				"trigger": dbMonitorTrigger.TriggerID,
 			}).Error("Could not load monitor trigger. Discarding.")
+			continue
+		}
+		monitorTriggers = append(monitorTriggers, *monitorTrigger)
+	}
+	for _, dbLabelTrigger := range dbLabelTriggers {
+		monitorTrigger, err := newMonitorTrigger(
+			dbLabelTrigger.Subprobes, dbLabelTrigger.Trigger)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"monitor": id,
+				"label":   dbLabelTrigger.LabelID,
+				"trigger": dbLabelTrigger.TriggerID,
+			}).Error("Could not load label trigger. Discarding.")
 			continue
 		}
 		monitorTriggers = append(monitorTriggers, *monitorTrigger)
@@ -107,13 +127,13 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	return monitor, nil
 }
 
-func newMonitorTrigger(dbMonitorTrigger db.MonitorTrigger) (*monitorTrigger, error) {
-	subprobesRegexp, err := regexp.Compile(dbMonitorTrigger.Subprobes)
+func newMonitorTrigger(subprobes string, dbTrigger *db.Trigger) (*monitorTrigger, error) {
+	subprobesRegexp, err := regexp.Compile(subprobes)
 	if err != nil {
 		return nil, errors.Maskf(err, "compile regexp")
 	}
 
-	triggerTemplate, err := newTriggerTemplate(dbMonitorTrigger.Trigger)
+	triggerTemplate, err := newTriggerTemplate(dbTrigger)
 	if err != nil {
 		return nil, errors.Maskf(err, "make trigger")
 	}
