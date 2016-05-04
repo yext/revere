@@ -26,7 +26,8 @@ type Monitor struct {
 
 type MonitorTrigger struct {
 	MonitorID MonitorID
-	Subprobes string
+	// TODO(eefi): Rename column in DB to subprobes.
+	Subprobes string `db:"subprobe"`
 	*Trigger
 }
 
