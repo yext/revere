@@ -26,6 +26,7 @@ func newTriggerTemplate(dbModel *db.Trigger) (*triggerTemplate, error) {
 	}
 
 	return &triggerTemplate{
+		id:            dbModel.TriggerID,
 		level:         dbModel.Level,
 		triggerOnExit: dbModel.TriggerOnExit,
 		period:        time.Duration(dbModel.PeriodMilli) * time.Millisecond,
