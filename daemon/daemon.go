@@ -104,7 +104,9 @@ func (d *Daemon) updateMonitors() {
 			}).Error("Load monitor failed.")
 
 			// TODO(eefi): Put in a placeholder that constantly
-			// reports _:Unknown to Revere admin.
+			// reports _:Unknown to Revere admin. For now, just
+			// ignore this monitor.
+			continue
 		}
 
 		d.monitors[info.MonitorID] = new
