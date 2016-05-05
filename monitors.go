@@ -341,6 +341,20 @@ func (m *Monitor) update(tx *sql.Tx) error {
 	return nil
 }
 
+func updateMonitorVersion(tx *sql.Tx, monitorID MonitorID) error {
+	stmt, err := tx.Prepare("UPDATE monitors SET version=version+1 WHERE monitorid = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(monitorID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (mt *MonitorTrigger) Validate() (errs []string) {
 	if err := validateSubprobe(mt.Subprobe); err != nil {
 		errs = append(errs, err.Error())
