@@ -18,7 +18,7 @@ type DataSourceType interface {
 
 type DataSource interface {
 	Serialize() (string, error)
-	DataSourceType() DataSourceType
+	Type() DataSourceType
 	Validate() []string
 }
 

@@ -1,47 +1,78 @@
 package datasources
 
-import (
-	"encoding/json"
-)
+import "encoding/json"
 
 type Graphite struct{}
 
+// TODO(fchen): match front-end to "URL"
 type GraphiteDataSource struct {
-	Url string
+	URL string
+}
+
+// Eventually implemented in DB layer
+type GraphiteDataSourceDBModel struct {
+	URL string
 }
 
 func init() {
 	addDataSourceType(Graphite{})
 }
 
-func (gs Graphite) Id() DataSourceTypeId {
+func (_ Graphite) Id() DataSourceTypeId {
 	return 0
 }
 
-func (gs Graphite) Template() string {
-	return "graphite-datasource.html"
-}
-
-func (gs Graphite) Name() string {
+func (_ Graphite) Name() string {
 	return "Graphite"
 }
 
-func (gs Graphite) Scripts() []string {
+func (_ Graphite) loadFromParams(ds string) (DataSource, error) {
+	var g GraphiteDataSource
+	err := json.Unmarshal([]byte(ds), &g)
+	if err != nil {
+		return nil, err
+	}
+	return g, nil
+}
+
+func (_ Graphite) loadFromDb(ds string) (DataSource, error) {
+	var g GraphiteDataSourceDBModel
+	err := json.Unmarshal([]byte(ds), &g)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GraphiteDataSource{
+		g.URL,
+	}, nil
+}
+
+func (_ Graphite) blank() (DataSource, error) {
+	return &GraphiteDataSource{}, nil
+}
+
+func (_ Graphite) Templates() string {
+	return "graphite-datasource.html"
+}
+
+func (_ Graphite) Scripts() []string {
 	return []string{
 		"graphite-datasource.js",
 	}
 }
 
-func (gs Graphite) Load(dataSourceJson string) (dataSource DataSource, err error) {
-	dataSource = new(GraphiteDataSource)
-	err = json.Unmarshal([]byte(dataSourceJson), &dataSource)
-	return
+func (g *GraphiteDataSource) Serialize() string {
+	gDB := GraphiteDataSourceDBModel{
+		g.URL,
+	}
+
+	gDBJSON, err := json.Marshal(gDB)
+	return string(gDBJSON), err
 }
 
-func (gs Graphite) LoadDefault() DataSource {
-	newSource := new(GraphiteDataSource)
-	newSource.Url = ""
-	return newSource
+// TODO(fchen): check for and fix references to DataSourceType in frontend
+func (g *GraphiteDataSource) Type() DataSourceType {
+	return Graphite{}
 }
 
 func (g *GraphiteDataSource) Validate() []string {
@@ -51,8 +82,4 @@ func (g *GraphiteDataSource) Validate() []string {
 	}
 
 	return errs
-}
-
-func (g *GraphiteDataSource) DataSourceType() DataSourceType {
-	return Graphite{}
 }

@@ -21,7 +21,7 @@ type ProbeType interface {
 
 type Probe interface {
 	Serialize() (string, error)
-	ProbeType() ProbeType
+	Type() ProbeType
 	Validate() []string
 }
 

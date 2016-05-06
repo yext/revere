@@ -42,15 +42,15 @@ func init() {
 	addProbeType(GraphiteThreshold{})
 }
 
-func (gt *GraphiteThreshold) Id() ProbeTypeId {
+func (_ GraphiteThreshold) Id() ProbeTypeId {
 	return 0
 }
 
-func (gt *GraphiteThreshold) Name() string {
+func (_ GraphiteThreshold) Name() string {
 	return "Graphite Threshold"
 }
 
-func (gt *GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
+func (_ GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	var g GraphiteThresholdProbe
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -59,7 +59,7 @@ func (gt *GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	return g, nil
 }
 
-func (gt *GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
+func (_ GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
 	var g probe.GraphiteThresholdDBModel
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -86,18 +86,18 @@ func (gt *GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
 	}, nil
 }
 
-func (gt *GraphiteThreshold) blank() (Probe, error) {
+func (_ GraphiteThreshold) blank() (Probe, error) {
 	return &GraphiteThresholdProbe{}, nil
 }
 
-func (gt *GraphiteThreshold) Templates() map[string]string {
+func (_ GraphiteThreshold) Templates() map[string]string {
 	return map[string]string{
 		"edit": "graphite-edit.html",
 		"view": "graphite-view.html",
 	}
 }
 
-func (gt *GraphiteThreshold) Scripts() map[string][]string {
+func (_ GraphiteThreshold) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"graphite-preview.js",
@@ -105,7 +105,7 @@ func (gt *GraphiteThreshold) Scripts() map[string][]string {
 	}
 }
 
-func (g *GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
+func (_ GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
 	return []datasources.DataSourceTypeId{
 		datasources.Graphite{}.Id(),
 	}
@@ -133,7 +133,8 @@ func (g *GraphiteThresholdProbe) Serialize() (string, error) {
 	return string(gtDBJSON), err
 }
 
-func (g *GraphiteThresholdProbe) ProbeType() ProbeType {
+// TODO(fchen): fix references to ProbeType() in frontend
+func (g *GraphiteThresholdProbe) Type() ProbeType {
 	return GraphiteThreshold{}
 }
 
