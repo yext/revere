@@ -25,6 +25,9 @@ type GraphiteThreshold struct {
 	thresholds      []graphiteThresholdThreshold
 	summarizeValues func(values []float64) float64
 	triggersOn      func(summaryValue, threshold float64) bool
+
+	auditFunctionName string
+	triggerIfText     string
 }
 
 type graphiteThresholdThreshold struct {
@@ -76,6 +79,9 @@ func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- []Readi
 	if !ok {
 		return nil, errors.Errorf("unknown trigger if: %s", config.TriggerIf)
 	}
+
+	gt.auditFunctionName = config.AuditFunction
+	gt.triggerIfText = config.TriggerIf
 
 	return &gt, nil
 }
@@ -150,12 +156,31 @@ func (gt *GraphiteThreshold) Check() []Reading {
 	readings := make([]Reading, len(series)+1)
 	for i, s := range series {
 		r := Reading{s.Name, state.Normal, recorded, nil}
+
 		summaryValue := gt.summarizeValues(s.Values)
+		triggeredThreshold := math.NaN()
 		for _, t := range gt.thresholds {
 			if gt.triggersOn(summaryValue, t.threshold) {
 				r.State = t.state
+				triggeredThreshold = t.threshold
 			}
 		}
+
+		r.Details = graphiteThresholdDetails{
+			auditFunction: gt.auditFunctionName,
+			timeToAudit:   gt.timeToAudit,
+			triggerIf:     gt.triggerIfText,
+
+			measured:  summaryValue,
+			threshold: triggeredThreshold,
+
+			graphite:    &g,
+			expression:  gt.expression,
+			seriesName:  s.Name,
+			seriesStart: s.Start,
+			seriesEnd:   s.End,
+		}
+
 		readings[i] = r
 	}
 	readings[len(series)] = Reading{"_", state.Normal, recorded, nil}

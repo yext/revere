@@ -32,7 +32,10 @@ type Reading struct {
 
 // Details encodes probe-type-specific details from a reading.
 type Details interface {
-	// TODO(eefi): Fill in.
+	// Text returns a human-readable description of these details. The
+	// description may be multiple lines, though it should not end with a
+	// line break.
+	Text() string
 }
 
 // New makes a Probe of the given type and settings. The Probe will send
