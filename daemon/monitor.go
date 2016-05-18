@@ -10,6 +10,7 @@ import (
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/env"
 	"github.com/yext/revere/probe"
+	"github.com/yext/revere/state"
 )
 
 type monitor struct {
@@ -159,6 +160,11 @@ func (m *monitor) start() {
 }
 
 func (m *monitor) process(readings []probe.Reading) {
+	var silences []silence
+	if m.shouldLoadSilences(readings) {
+		silences = m.loadActiveSilences()
+	}
+
 	for _, r := range readings {
 		subprobe := m.subprobes[r.Subprobe]
 		if subprobe == nil {
@@ -177,8 +183,66 @@ func (m *monitor) process(readings []probe.Reading) {
 			m.subprobes[subprobe.name] = subprobe
 		}
 
-		subprobe.process(r)
+		isSilenced := false
+		for _, silence := range silences {
+			if silence.silences(subprobe) {
+				isSilenced = true
+				break
+			}
+		}
+
+		subprobe.process(r, isSilenced)
 	}
+}
+
+// shouldLoadSilences returns whether processing the given set of readings
+// against the current state of this monitor's subprobes might require checking
+// for silences.
+//
+// In the common case of all subprobes currently normal and all incoming
+// readings reading normal, no alerts will need to be sent, so it doesn't matter
+// whether there are any active silences. We can avoid a DB round trip when this
+// is the case.
+func (m *monitor) shouldLoadSilences(readings []probe.Reading) bool {
+	for _, s := range m.subprobes {
+		if s.state != state.Normal {
+			return true
+		}
+	}
+	for _, r := range readings {
+		if r.State != state.Normal {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *monitor) loadActiveSilences() []silence {
+	dbSilences, err := m.DB.LoadActiveSilencesForMonitor(m.id)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"monitor": m.id,
+		}).Error("Could not load active silences. Proceeding without silencing.")
+		return nil
+	}
+
+	if len(dbSilences) == 0 {
+		return nil
+	}
+
+	silences := make([]silence, 0, len(dbSilences))
+	for _, dbSilence := range dbSilences {
+		s, err := newSilence(dbSilence)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"monitor": m.id,
+				"silence": dbSilence.SilenceID,
+			}).Error("Could not load silence. Ignoring.")
+			continue
+		}
+		silences = append(silences, s)
+	}
+	return silences
 }
 
 func (m *monitor) stop() {
