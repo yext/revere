@@ -21,8 +21,7 @@ type graphiteThresholdDetails struct {
 	graphite    *resource.Graphite
 	expression  string
 	seriesName  string
-	seriesStart time.Time
-	seriesEnd   time.Time
+	measuredEnd time.Time
 }
 
 func (d graphiteThresholdDetails) Text() string {
@@ -44,14 +43,14 @@ func (d graphiteThresholdDetails) Text() string {
 }
 
 func (d graphiteThresholdDetails) graphURL() string {
-	measuredStart := d.seriesEnd.Add(-d.timeToAudit)
+	measuredStart := d.measuredEnd.Add(-d.timeToAudit)
 
 	targets := make([]string, 0, 3)
 
 	timeHighlight := fmt.Sprintf(
 		`color(drawAsInfinite(timeSlice(timeFunction("", 1), "%s", "%s")), "yellow")`,
 		resource.GraphiteTimestamp(measuredStart),
-		resource.GraphiteTimestamp(d.seriesEnd))
+		resource.GraphiteTimestamp(d.measuredEnd))
 	targets = append(targets, timeHighlight)
 
 	if !math.IsNaN(d.threshold) {
@@ -79,7 +78,7 @@ func (d graphiteThresholdDetails) graphURL() string {
 		contextTime = 30 * time.Minute
 	}
 	args["from"] = resource.GraphiteTimestamp(measuredStart.Add(-2 * contextTime))
-	args["until"] = resource.GraphiteTimestamp(d.seriesEnd.Add(contextTime))
+	args["until"] = resource.GraphiteTimestamp(d.measuredEnd.Add(contextTime))
 
 	return d.graphite.RenderURL(targets, args)
 }
@@ -88,8 +87,8 @@ func (d graphiteThresholdDetails) valuesURL() string {
 	return d.graphite.RenderURL([]string{d.target()}, map[string]string{
 		"format": "csv",
 		"tz":     "UTC",
-		"from":   resource.GraphiteTimestamp(d.seriesStart),
-		"until":  resource.GraphiteTimestamp(d.seriesEnd),
+		"from":   resource.GraphiteTimestamp(d.measuredEnd.Add(-d.timeToAudit)),
+		"until":  resource.GraphiteTimestamp(d.measuredEnd),
 	})
 }
 

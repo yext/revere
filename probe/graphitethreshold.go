@@ -136,10 +136,11 @@ var (
 )
 
 func (gt *GraphiteThreshold) Check() []Reading {
+	now := time.Now()
+
 	g := resource.Graphite{gt.graphiteBase}
 
-	series, err := g.QueryRecent(gt.expression, gt.timeToAudit)
-	now := time.Now()
+	series, err := g.Query(gt.expression, now.Add(-gt.timeToAudit), now)
 	if err != nil {
 		// TODO(eefi): Include this probe's monitor's ID.
 		log.WithError(err).Error("Could not query Graphite.")
@@ -154,7 +155,7 @@ func (gt *GraphiteThreshold) Check() []Reading {
 
 	readings := make([]Reading, len(series)+1)
 	for i, s := range series {
-		r := Reading{s.Name, state.Normal, s.End, nil}
+		r := Reading{s.Name, state.Normal, now, nil}
 
 		summaryValue := gt.summarizeValues(s.Values)
 		triggeredThreshold := math.NaN()
@@ -176,8 +177,7 @@ func (gt *GraphiteThreshold) Check() []Reading {
 			graphite:    &g,
 			expression:  gt.expression,
 			seriesName:  s.Name,
-			seriesStart: s.Start,
-			seriesEnd:   s.End,
+			measuredEnd: now,
 		}
 
 		readings[i] = r
