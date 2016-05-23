@@ -7,38 +7,83 @@ type TargetTypeId int16
 type TargetType interface {
 	Id() TargetTypeId
 	Name() string
-	Load(target string) (Target, error)
+	loadFromParams(target string) (Target, error)
+	loadFromDb(target string) (Target, error)
+	blank() (Target, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
 }
 
 type Target interface {
-	TargetType() TargetType
-	Validate() (errs []string)
+	Serialize() (string, error)
+	Type() TargetType
+	Validate() []string
 }
 
-var (
-	targetTypes map[TargetTypeId]TargetType = make(map[TargetTypeId]TargetType)
+const (
+	TargetsDir = "targets"
 )
 
-func TargetTypeById(targetType TargetTypeId) (TargetType, error) {
-	if tt, ok := targetTypes[targetType]; !ok {
-		return tt, fmt.Errorf("Invalid target type %d", targetType)
-	} else {
-		return tt, nil
+var (
+	types       map[TargetTypeId]TargetType = make(map[TargetTypeId]TargetType)
+	defaultType                             = Email{}
+)
+
+func Default() (Target, error) {
+	target, err := defaultType.blank()
+	if err != nil {
+		return nil, err
 	}
+
+	return target, nil
+}
+
+func LoadFromParams(id TargetTypeId, targetParams string) (Target, error) {
+	targetType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return targetType.loadFromParams(targetParams)
+}
+
+func LoadFromDb(id TargetTypeId, targetJson string) (Target, error) {
+	targetType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return targetType.loadFromDb(targetJson)
+}
+
+func Blank(id TargetTypeId) (Target, error) {
+	targetType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return targetType.blank()
+}
+
+func getType(id TargetTypeId) (TargetType, error) {
+	targetType, ok := types[id]
+	if !ok {
+		return nil, fmt.Errorf("No target type with id %d exists", id)
+	}
+
+	return targetType, nil
 }
 
 func addTargetType(targetType TargetType) {
-	if _, ok := targetTypes[targetType.Id()]; !ok {
-		targetTypes[targetType.Id()] = targetType
+	if _, ok := types[targetType.Id()]; !ok {
+		types[targetType.Id()] = targetType
 	} else {
 		panic(fmt.Sprintf("A target type with id %d already exists", targetType.Id()))
 	}
 }
 
 func AllTargets() (tts []TargetType) {
-	for _, v := range targetTypes {
+	for _, v := range types {
 		tts = append(tts, v)
 	}
 	return tts
