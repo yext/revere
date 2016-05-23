@@ -17,8 +17,6 @@ type EmailAddress struct {
 	ReplyTo string
 }
 
-const emailTargetTemplate = "email-edit.html"
-
 var (
 	emailRegex = regexp.MustCompile(`^[\w\.\-\+\_]+@[\w\.\-]+\.[a-zA-Z]+$`)
 )
@@ -27,36 +25,83 @@ func init() {
 	addTargetType(Email{})
 }
 
-func (e Email) Id() TargetTypeId {
+func (Email) Id() TargetTypeId {
 	return 0
 }
 
-func (e Email) Name() string {
+func (Email) Name() string {
 	return "Email"
 }
 
-func (e Email) Load(target string) (Target, error) {
-	var et EmailTarget
-	err := json.Unmarshal([]byte(target), &et)
+func (Email) loadFromParams(target string) (Target, error) {
+	var e EmailTarget
+	err := json.Unmarshal([]byte(target), &e)
 	if err != nil {
 		return nil, err
 	}
+	return e, nil
+}
+
+func (Email) loadFromDb(target string) (Target, error) {
+	var e target.EmailDBModel
+	err := json.Unmarshal([]byte(target), &e)
+	if err != nil {
+		return nil, err
+	}
+
+	var et EmailTarget
+	et.Addresses = make([]EmailAddress, len(e.Addresses))
+	for i, address := range e.Addresses {
+		et.Addresses = *EmailAddress{
+			To:      e.Addresses[i].To,
+			ReplyTo: e.Addresses[i].ReplyTo,
+		}
+	}
+
 	return et, nil
 }
 
-func (et Email) Templates() map[string]string {
+func (Email) blank() (Email, error) {
+	return EmailTarget{}, nil
+}
+
+func (Email) Templates() map[string]string {
 	return map[string]string{
 		"edit": "email-edit.html",
 		"view": "email-view.html",
 	}
 }
 
-func (et Email) Scripts() map[string][]string {
+func (Email) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"email.js",
 		},
 	}
+}
+
+func (et EmailTarget) Serialize() (string, error) {
+	etDB := target.GraphiteThresholdDBModel{}
+
+	etDB.Addresses = make(
+		[]struct {
+			To      string
+			ReplyTo string
+		},
+		len(et.Addresses),
+	)
+
+	for i, address := range et.Addresses {
+		etDB.Addresses[i].To = et.Addresses[i].To
+		etDB.Addresses[i].ReplyTo = et.Addresses[i].ReplyTo
+	}
+
+	etDBJSON, err := json.Marshal(etDB)
+	return string(etDBJSON), err
+}
+
+func (EmailTarget) Type() TargetType {
+	return Email{}
 }
 
 func (et EmailTarget) Validate() (errs []string) {
@@ -76,8 +121,4 @@ func (et EmailTarget) Validate() (errs []string) {
 		}
 	}
 	return
-}
-
-func (et EmailTarget) TargetType() TargetType {
-	return Email{}
 }

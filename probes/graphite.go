@@ -11,6 +11,8 @@ import (
 type GraphiteThreshold struct{}
 
 type GraphiteThresholdProbe struct {
+	GraphiteThreshold
+
 	// TODO(fchen): fix tags on front-end js
 	URL             string
 	Expression      string
@@ -42,15 +44,15 @@ func init() {
 	addProbeType(GraphiteThreshold{})
 }
 
-func (_ GraphiteThreshold) Id() ProbeTypeId {
+func (GraphiteThreshold) Id() ProbeTypeId {
 	return 0
 }
 
-func (_ GraphiteThreshold) Name() string {
+func (GraphiteThreshold) Name() string {
 	return "Graphite Threshold"
 }
 
-func (_ GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
+func (GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	var g GraphiteThresholdProbe
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -59,7 +61,7 @@ func (_ GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	return g, nil
 }
 
-func (_ GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
+func (GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
 	var g probe.GraphiteThresholdDBModel
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -86,18 +88,18 @@ func (_ GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
 	}, nil
 }
 
-func (_ GraphiteThreshold) blank() (Probe, error) {
+func (GraphiteThreshold) blank() (Probe, error) {
 	return &GraphiteThresholdProbe{}, nil
 }
 
-func (_ GraphiteThreshold) Templates() map[string]string {
+func (GraphiteThreshold) Templates() map[string]string {
 	return map[string]string{
 		"edit": "graphite-edit.html",
 		"view": "graphite-view.html",
 	}
 }
 
-func (_ GraphiteThreshold) Scripts() map[string][]string {
+func (GraphiteThreshold) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"graphite-preview.js",
@@ -105,7 +107,7 @@ func (_ GraphiteThreshold) Scripts() map[string][]string {
 	}
 }
 
-func (_ GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
+func (GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
 	return []datasources.DataSourceTypeId{
 		datasources.Graphite{}.Id(),
 	}
