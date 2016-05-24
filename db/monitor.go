@@ -150,3 +150,31 @@ func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]MonitorLabel, error) {
 	}
 	return mls, nil
 }
+
+func (tx *Tx) CreateMonitorTrigger(mt MonitorTrigger) error {
+	var err error
+	mt.TriggerID, err = tx.createTrigger(mt.Trigger)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `INSERT INTO pfx_monitor_triggers (monitorid, subprobe, triggerid)
+	      VALUES (:monitorid, :subprobes, :triggerid)`
+	_, err = tx.NamedExec(cq(tx, q), mt)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
+	err := tx.updateTrigger(mt.Trigger)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `UPDATE pfx_monitor_triggers
+	      SET subprobe=:subprobes
+	      WHERE triggerid=:triggerid`
+	_, err = tx.NamedExec(cq(tx, q), mt)
+	return errors.Trace(err)
+}
