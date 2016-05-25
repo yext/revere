@@ -41,6 +41,7 @@ import (
 	"os/signal"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"golang.org/x/sys/unix"
 
@@ -49,8 +50,9 @@ import (
 )
 
 var (
-	conf = flag.String("conf", "", "JSON `file` configuring Revere's static environment")
-	mode = flag.String("mode", "daemon,web", "comma-separated `modes` to run")
+	conf     = flag.String("conf", "", "JSON `file` configuring Revere's static environment")
+	mode     = flag.String("mode", "daemon,web", "comma-separated `modes` to run")
+	logLevel = flag.String("logLevel", "warn", "Logrus `level` to log at")
 )
 
 func main() {
@@ -61,6 +63,9 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
+
+	err := initLog()
+	ifErrPrintAndExit(err)
 
 	env, err := loadEnv()
 	ifErrPrintAndExit(err)
@@ -89,6 +94,16 @@ func main() {
 	}
 
 	waitForExitSignal()
+}
+
+func initLog() error {
+	level, err := log.ParseLevel(*logLevel)
+	if err != nil {
+		return errors.Mask(err)
+	}
+
+	log.SetLevel(level)
+	return nil
 }
 
 func loadEnv() (*env.Env, error) {
