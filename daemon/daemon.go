@@ -43,6 +43,8 @@ func (d *Daemon) Start() {
 func (d *Daemon) run() {
 	defer close(d.stopped)
 
+	log.Info("Daemon is running.")
+
 	t := time.NewTicker(time.Duration(10) * time.Second)
 	defer t.Stop()
 
@@ -81,7 +83,7 @@ func (d *Daemon) updateMonitors() {
 			log.WithFields(log.Fields{
 				"monitor": old.id,
 				"version": old.version,
-			}).Debug("Tearing down monitor.")
+			}).Info("Tearing down monitor.")
 
 			old.stop()
 			delete(d.monitors, info.MonitorID)
@@ -95,7 +97,7 @@ func (d *Daemon) updateMonitors() {
 		log.WithFields(log.Fields{
 			"monitor": info.MonitorID,
 			"version": info.Version,
-		}).Debug("Starting monitor.")
+		}).Info("Starting monitor.")
 
 		new, err := newMonitor(info.MonitorID, d.Env)
 		if err != nil {
@@ -129,10 +131,12 @@ func (d *Daemon) Stop() {
 			log.WithFields(log.Fields{
 				"monitor": m.id,
 				"version": m.version,
-			}).Debug("Tearing down monitor.")
+			}).Info("Tearing down monitor.")
 
 			m.stop()
 			delete(d.monitors, id)
 		}
+
+		log.Info("Daemon has stopped.")
 	})
 }

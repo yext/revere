@@ -94,6 +94,8 @@ func main() {
 	}
 
 	waitForExitSignal()
+
+	log.Info("Caught exit signal. Revere is shutting down...")
 }
 
 func initLog() error {

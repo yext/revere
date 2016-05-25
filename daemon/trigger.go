@@ -85,6 +85,18 @@ func (s sameTypeTriggerSet) alert(a *target.Alert) {
 		return
 	}
 
+	if log.GetLevel() >= log.DebugLevel {
+		log.WithFields(log.Fields{
+			"monitor":    a.MonitorID,
+			"subprobe":   a.SubprobeName,
+			"state":      a.NewState,
+			"recorded":   a.Recorded,
+			"targetType": targetType.ID(),
+			"toAlert":    len(toAlert),
+			"inactive":   len(inactive),
+		}).Debug("Sending alerts.")
+	}
+
 	errors := targetType.Alert(a, toAlert, inactive)
 
 	for _, errAndIDs := range errors {

@@ -160,6 +160,8 @@ func (m *monitor) start() {
 }
 
 func (m *monitor) process(readings []probe.Reading) {
+	m.logReadings(readings)
+
 	var silences []silence
 	if m.shouldLoadSilences(readings) {
 		silences = m.loadActiveSilences()
@@ -193,6 +195,23 @@ func (m *monitor) process(readings []probe.Reading) {
 
 		subprobe.process(r, isSilenced)
 	}
+}
+
+func (m *monitor) logReadings(readings []probe.Reading) {
+	if log.GetLevel() < log.DebugLevel {
+		return
+	}
+
+	readingsPerLevel := make(map[state.State]int)
+	for _, r := range readings {
+		readingsPerLevel[r.State] += 1
+	}
+
+	l := log.WithField("monitor", m.id)
+	for s, n := range readingsPerLevel {
+		l = l.WithField(s.String(), n)
+	}
+	l.Debug("Received readings.")
 }
 
 // shouldLoadSilences returns whether processing the given set of readings

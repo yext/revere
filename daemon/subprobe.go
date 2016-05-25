@@ -121,6 +121,13 @@ func (s *subprobe) process(r probe.Reading, isSilenced bool) {
 		for _, triggerSet := range s.triggerSets {
 			triggerSet.alert(alert)
 		}
+	} else if r.State != state.Normal && log.GetLevel() >= log.DebugLevel {
+		log.WithFields(log.Fields{
+			"monitor":  s.monitor.id,
+			"subprobe": s.name,
+			"state":    r.State,
+			"recorded": r.Recorded,
+		}).Debug("Suppressing alerts for silenced subprobe.")
 	}
 
 	if err := s.record(r, isSilenced); err != nil {
