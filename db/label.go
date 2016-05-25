@@ -69,6 +69,19 @@ func loadLabels(dt dbOrTx) ([]*Label, error) {
 	return labels, nil
 }
 
+func (db *DB) IsExistingLabel(id LabelID) (exists bool) {
+	if id == 0 {
+		return false
+	}
+
+	q := `SELECT EXISTS (SELECT * FROM pfx_labels WHERE labelid = ?)`
+	err := db.Get(&exists, cq(db, q), id)
+	if err != nil {
+		return false
+	}
+	return
+}
+
 func (db *DB) LoadTriggersForLabel(id LabelID) ([]LabelTrigger, error) {
 	return loadTriggersForLabel(db, id)
 }
@@ -134,6 +147,46 @@ func (tx *Tx) LoadLabelTriggersForMonitor(id MonitorID) ([]LabelTriggerWithSubpr
 		return nil, errors.Trace(err)
 	}
 	return results, nil
+}
+
+func (tx *Tx) CreateLabel(l *Label) (LabelID, error) {
+	q := `INSERT INTO pfx_labels (name, description)
+	      VALUES (:name, :description)`
+	result, err := tx.NamedExec(cq(tx, q), l)
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+	return LabelID(id), nil
+}
+
+func (tx *Tx) UpdateLabel(l *Label) error {
+	q := `UPDATE pfx_labels
+	      SET name=:name, description=:description
+	      WHERE labelid=:labelid`
+	_, err := tx.NamedExec(cq(tx, q), l)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) CreateLabelMonitor(lm LabelMonitor) error {
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobe)
+	      VALUES (:labelid, :monitorid, :subprobes)`
+	_, err := tx.NamedExec(cq(tx, q), lm)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) UpdateLabelMonitor(lm LabelMonitor) error {
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `UPDATE pfx_labels_monitors
+	      SET subprobe=:subprobes
+	      WHERE labelid=:labelid AND monitorid=:monitorid`
+	_, err := tx.NamedExec(cq(tx, q), lm)
+	return errors.Trace(err)
 }
 
 func (tx *Tx) CreateLabelTrigger(lt LabelTrigger) error {
