@@ -106,6 +106,9 @@ var (
 					max = value
 				}
 			}
+			if math.IsInf(max, -1) {
+				return math.NaN()
+			}
 			return max
 		},
 		"min": func(values []float64) float64 {
@@ -114,6 +117,9 @@ var (
 				if value < min {
 					min = value
 				}
+			}
+			if math.IsInf(min, +1) {
+				return math.NaN()
 			}
 			return min
 		},
@@ -153,11 +159,16 @@ func (gt *GraphiteThreshold) Check() []Reading {
 		return []Reading{{"_", state.Normal, now, nil}}
 	}
 
-	readings := make([]Reading, len(series)+1)
-	for i, s := range series {
+	readings := make([]Reading, 0, len(series)+1)
+	for _, s := range series {
+		summaryValue := gt.summarizeValues(s.Values)
+		if math.IsNaN(summaryValue) {
+			// Series was all NaNs.
+			continue
+		}
+
 		r := Reading{s.Name, state.Normal, now, nil}
 
-		summaryValue := gt.summarizeValues(s.Values)
 		triggeredThreshold := math.NaN()
 		for _, t := range gt.thresholds {
 			if gt.triggersOn(summaryValue, t.threshold) {
@@ -180,9 +191,9 @@ func (gt *GraphiteThreshold) Check() []Reading {
 			measuredEnd: now,
 		}
 
-		readings[i] = r
+		readings = append(readings, r)
 	}
-	readings[len(series)] = Reading{"_", state.Normal, now, nil}
+	readings = append(readings, Reading{"_", state.Normal, now, nil})
 
 	return readings
 }

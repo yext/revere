@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 )
 
@@ -75,36 +74,6 @@ func (g Graphite) query(target, from, until string) ([]GraphiteSeries, error) {
 	series, err := parseGraphiteRawRender(data)
 	if err != nil {
 		return nil, errors.Maskf(err, "parse Graphite raw render response")
-	}
-
-	// TODO(eefi): Drop this when we've figured out what's going on.
-	emptySeries := false
-	for _, s := range series {
-		if len(s.Values) == 0 {
-			emptySeries = true
-			break
-		}
-
-		hasValue := false
-		for _, v := range s.Values {
-			if !math.IsNaN(v) {
-				hasValue = true
-				break
-			}
-		}
-
-		if !hasValue {
-			emptySeries = true
-			break
-		}
-	}
-	if emptySeries {
-		log.WithFields(log.Fields{
-			"target": target,
-			"from":   from,
-			"until":  until,
-			"data":   string(data),
-		}).Warn("Graphite returned empty series.")
 	}
 
 	return series, nil
