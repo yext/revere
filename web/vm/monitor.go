@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/yext/revere"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 )
 
@@ -87,8 +88,8 @@ func newMonitorsFromModels(monitors []*revere.Monitor) []*Monitor {
 func BlankMonitor(db *sql.DB) (*Monitor, error) {
 	var err error
 	m := &Monitor{}
-	m.Triggers = BlankMonitorTriggers()
-	m.Labels = BlankMonitorLabels()
+	m.Triggers = blankMonitorTriggers()
+	m.Labels = blankMonitorLabels()
 	if err != nil {
 		return nil, err
 	}
@@ -132,13 +133,13 @@ func PopulateLabelsForMonitors(db *sql.DB, monitors []*Monitor) error {
 	return nil
 }
 
-func (m *Monitor) loadComponents(db *sql.DB) error {
+func (m *Monitor) loadComponents(tx *db.Tx) error {
 	var err error
-	m.Triggers, err = LoadMonitorTriggers(m.MonitorId)
+	m.Triggers, err = newMonitorTriggers(tx, m.MonitorId)
 	if err != nil {
 		return err
 	}
-	m.Labels, err = LoadMonitorLabels(m.MonitorId)
+	m.Labels, err = NewMonitorLabels(tx, m.MonitorId)
 	return err
 }
 
@@ -197,14 +198,14 @@ func (m *Monitor) Save(tx *sql.Tx) error {
 	}
 
 	for _, t := range m.Triggers {
-		err = t.Save(tx, m.MonitorId)
+		err = t.save(tx, m.MonitorId)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, l := range m.Labels {
-		err = l.Save(tx, m.MonitorId)
+		err = l.save(tx, m.MonitorId)
 		if err != nil {
 			return err
 		}

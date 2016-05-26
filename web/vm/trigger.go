@@ -1,85 +1,86 @@
 package vm
 
 import (
-	"github.com/yext/revere"
+	"fmt"
+
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
+	"github.com/yext/revere/state"
 	"github.com/yext/revere/targets"
+	"github.com/yext/revere/util"
 )
 
 type Trigger struct {
-	*revere.Trigger
-	Target   *Target
-	Subprobe string
+	TriggerID     TriggerID
+	Level         string
+	Period        int64
+	PeriodType    string
+	TargetType    db.TargetType
+	TargetParams  string
+	TriggerOnExit bool
+	Target        *Target
 }
 
-type modelTrigger struct {
-	Trigger  *revere.Trigger
-	Subprobe string
+func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
+	target, err := targets.LoadFromDb(trigger.TargetType, trigger.Target)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	period, periodType := util.GetPeriodAndType(trigger.PeriodMilli)
+
+	return &Trigger{
+		TriggerID:     trigger.TriggerID,
+		Level:         trigger.Level,
+		Period:        period,
+		PeriodType:    periodType,
+		TargetType:    trigger.TargetType,
+		TargetParams:  nil,
+		TriggerOnExit: trigger.TriggerOnExit,
+		Target:        target,
+	}, nil
 }
 
 func (t *Trigger) Id() int64 {
-	return int64(t.Trigger.TriggerId)
+	return int64(t.TriggerID)
 }
 
-func NewTriggersFromLabelTriggers(lts []*revere.LabelTrigger) ([]*Trigger, error) {
-	triggers := make([]*modelTrigger, len(lts))
-	for i, labelTrigger := range lts {
-		triggers[i] = &modelTrigger{&labelTrigger.Trigger, ""}
-	}
-
-	return newTriggers(triggers)
-}
-
-func NewTriggersFromMonitorTriggers(mts []*revere.MonitorTrigger) ([]*Trigger, error) {
-	triggers := make([]*modelTrigger, len(mts))
-	for i, monitorTrigger := range mts {
-		triggers[i] = &modelTrigger{&monitorTrigger.Trigger, monitorTrigger.Subprobe}
-	}
-
-	return newTriggers(triggers)
-}
-
-func newTrigger(t *revere.Trigger, s string) (*Trigger, error) {
-	viewmodel := new(Trigger)
-
-	viewmodel.Trigger = t
-	viewmodel.Subprobe = s
-
-	targetType, err := targets.TargetTypeById(t.TargetType)
+func (t *Trigger) Validate() (errs []string) {
+	var err error
+	t.Target, err = targets.LoadFromParams(t.TargetType, t.TargetParams)
 	if err != nil {
-		return nil, err
+		errs = append(errs, fmt.Sprintf("Unable to load probe for monitor: %s", m.ProbeParams))
+	}
+	errs = append(errs, target.Validate()...)
+
+	errs = append(errs, m.Probe.Validate()...)
+	if _, err := state.ReverseStates(t.Level); err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid state for trigger: %s", t.Level))
 	}
 
-	target, err := targetType.Load(t.TargetJson)
+	if util.GetMs(t.Period, t.PeriodType) == 0 {
+		errs = append(errs, fmt.Sprintf("Invalid period for trigger: %d %s", t.Period, t.PeriodType))
+	}
+
+	return
+}
+
+func (t *Trigger) setId(id db.TriggerID) {
+	t.TriggerID = id
+}
+
+func (t *Trigger) toModelTrigger() (*db.Trigger, error) {
+	triggerJSON, err := t.Target.Serialize()
 	if err != nil {
-		return nil, err
-	}
-	viewmodel.Target = NewTarget(target)
-
-	return viewmodel, nil
-}
-
-func newTriggers(mts []*modelTrigger) ([]*Trigger, error) {
-	triggers := make([]*Trigger, len(mts))
-	for i, modelTrigger := range mts {
-		trigger, err := newTrigger(modelTrigger.Trigger, modelTrigger.Subprobe)
-		if err != nil {
-			return nil, err
-		}
-		triggers[i] = trigger
+		return nil, errors.Trace(err)
 	}
 
-	return triggers, nil
-}
-
-func BlankTrigger() *Trigger {
-	viewmodel := new(Trigger)
-
-	viewmodel.Trigger = new(revere.Trigger)
-	viewmodel.Target = DefaultTarget()
-
-	return viewmodel
-}
-
-func (t *Trigger) GetTargetType() targets.TargetType {
-	return t.Target.TargetType()
+	return &db.Trigger{
+		TriggerID:     t.TriggerID,
+		Level:         t.Level,
+		TriggerOnExit: t.TriggerOnExit,
+		PeriodMilli:   util.GetMs(t.Period, t.PeriodType),
+		TargetType:    t.TargetType,
+		Target:        triggerJson,
+	}, nil
 }

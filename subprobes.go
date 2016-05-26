@@ -3,7 +3,6 @@ package revere
 import (
 	"database/sql"
 	"fmt"
-	"regexp"
 	"time"
 )
 
@@ -30,13 +29,6 @@ type SubprobeStatus struct {
 
 const allSubprobeFields = `s.subprobeid, s.monitorid, m.name as mn, s.name, s.archived,
 	ss.subprobeid, ss.recorded, ss.state, ss.silenced, ss.enteredstate`
-
-func validateSubprobe(subprobe string) (err error) {
-	if _, err = regexp.Compile(subprobe); err != nil {
-		return fmt.Errorf("Invalid subprobe: %s", err.Error())
-	}
-	return
-}
 
 func LoadSubprobesByName(db *sql.DB, monitorId MonitorID) (subprobes []*Subprobe, err error) {
 	return loadSubprobes(db, fmt.Sprintf("WHERE s.monitorid = %d ORDER BY s.name", monitorId))

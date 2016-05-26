@@ -3,6 +3,7 @@ package vm
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 
 	"github.com/yext/revere"
 )
@@ -82,4 +83,12 @@ func AllMonitorLabelsForSubprobes(db *sql.DB, subprobes []*Subprobe) (map[revere
 		mIds[i] = subprobe.MonitorId
 	}
 	return allMonitorLabels(db, mIds)
+}
+
+//TODO(fchen): maybe find this a better home
+func validateSubprobeRegex(subprobe string) (err error) {
+	if _, err = regexp.Compile(subprobe); err != nil {
+		return fmt.Errorf("Invalid subprobe: %s", err.Error())
+	}
+	return
 }

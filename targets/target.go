@@ -15,6 +15,7 @@ type TargetType interface {
 }
 
 type Target interface {
+	TargetType
 	Serialize() (string, error)
 	Type() TargetType
 	Validate() []string
