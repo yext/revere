@@ -4,6 +4,8 @@ package state
 
 import (
 	"fmt"
+
+	"github.com/juju/errors"
 )
 
 // State is a state that Revere can consider a monitored service to be in. The
@@ -66,5 +68,22 @@ func (s State) String() string {
 		return "CRITICAL"
 	default:
 		return fmt.Sprintf("Invalid(%d)", s)
+	}
+}
+
+func FromString(s string) (State, err) {
+	switch s {
+	case Normal.String():
+		return Normal, nil
+	case Warning.String():
+		return Warning, nil
+	case Unknown.String():
+		return Unknown, nil
+	case Error.String():
+		return Error, nil
+	case Critical.String():
+		return Critical, nil
+	default:
+		return nil, errors.Errorf("invalid state %s", s)
 	}
 }
