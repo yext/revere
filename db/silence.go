@@ -23,6 +23,41 @@ type MonitorSilence struct {
 	*Silence
 }
 
+func (db *DB) IsExistingSilence(id SilenceID) (exists bool) {
+	if id == 0 {
+		return false
+	}
+
+	q := `SELECT EXISTS (SELECT * FROM pfx_silences WHERE silenceid = ?)`
+	err := db.Get(&exists, cq(db, q), id)
+	if err != nil {
+		return false
+	}
+	return
+}
+
+func (tx *Tx) CreateMonitorSilence(monitorSilence *MonitorSilence) (SilenceID, error) {
+	q := `INSERT INTO pfx_silences (monitorid, subprobe, start, end)
+	VALUES (:monitorid, :subprobe, :start, :end)`
+	result, err := tx.NamedExec(cq(tx, q), monitorSilence)
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+	return SilenceID(id), nil
+}
+
+func (tx *Tx) UpdateMonitorSilence(monitorSilence *MonitorSilence) error {
+	q := `UPDATE pfx_silences
+	     SET monitorid=:monitorid, subprobe=:subprobe, start=:start, end=:end
+		 WHERE silenceid=:silenceid`
+	_, err := tx.NamedExec(cq(tx, q), monitorSilence)
+	return errors.Trace(err)
+}
+
 func (db *DB) LoadActiveSilencesForMonitor(monitorID MonitorID) ([]Silence, error) {
 	var silences []Silence
 	q := `SELECT * FROM pfx_silences
