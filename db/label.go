@@ -56,14 +56,8 @@ func (tx *Tx) LoadLabels() ([]*Label, error) {
 }
 
 func loadLabels(dt dbOrTx) ([]*Label, error) {
-	dt = unsafe(dt)
-
-	labels := []*Label{}
-	err := dt.Select(&labels, cq(dt, "SELECT * FROM pfx_labels ORDER BY name"))
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+	var labels []*Label
+	if err := dt.Select(&labels, cq(dt, "SELECT * FROM pfx_labels ORDER BY name")); err != nil {
 		return nil, errors.Trace(err)
 	}
 	return labels, nil

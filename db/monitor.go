@@ -92,14 +92,8 @@ func (tx *Tx) LoadMonitors() ([]*Monitor, error) {
 }
 
 func loadMonitors(dt dbOrTx) ([]*Monitor, error) {
-	dt = unsafe(dt)
-
-	monitors := []*Monitor{}
-	err := dt.Select(&monitors, cq(dt, "SELECT * FROM pfx_monitors ORDER BY name"))
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+	var monitors []*Monitor
+	if err := dt.Select(&monitors, cq(dt, "SELECT * FROM pfx_monitors ORDER BY name")); err != nil {
 		return nil, errors.Trace(err)
 	}
 	return monitors, nil
