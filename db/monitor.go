@@ -192,7 +192,7 @@ func (tx *Tx) CreateMonitorTrigger(mt MonitorTrigger) error {
 
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_monitor_triggers (monitorid, subprobe, triggerid)
-	      VALUES (:monitorid, :subprobes, :triggerid)`
+	      VALUES (:monitorid, :subprobe, :triggerid)`
 	_, err = tx.NamedExec(cq(tx, q), mt)
 	return errors.Trace(err)
 }
@@ -205,7 +205,7 @@ func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
 
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_monitor_triggers
-	      SET subprobe=:subprobes
+	      SET subprobe=:subprobe
 	      WHERE triggerid=:triggerid`
 	_, err = tx.NamedExec(cq(tx, q), mt)
 	return errors.Trace(err)
@@ -214,7 +214,7 @@ func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
 func (tx *Tx) CreateMonitorLabel(ml MonitorLabel) error {
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobe)
-	      VALUES (:labelid, :monitorid, :subprobes)`
+	      VALUES (:labelid, :monitorid, :subprobe)`
 	_, err := tx.NamedExec(cq(tx, q), ml)
 	return errors.Trace(err)
 }
@@ -222,7 +222,7 @@ func (tx *Tx) CreateMonitorLabel(ml MonitorLabel) error {
 func (tx *Tx) UpdateMonitorLabel(ml MonitorLabel) error {
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_labels_monitors
-	      SET subprobe=:subprobes
+	      SET subprobe=:subprobe
 	      WHERE labelid=:labelid AND monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), ml)
 	return errors.Trace(err)

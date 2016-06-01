@@ -20,8 +20,9 @@ type LabelTrigger struct {
 }
 
 type LabelMonitor struct {
-	LabelID   LabelID
-	Subprobes string
+	LabelID LabelID
+	// TODO(eefi): Rename column in DB to subprobes.
+	Subprobes string `db:"subprobe"`
 	*Monitor
 }
 
@@ -169,7 +170,7 @@ func (tx *Tx) UpdateLabel(l *Label) error {
 func (tx *Tx) CreateLabelMonitor(lm LabelMonitor) error {
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobe)
-	      VALUES (:labelid, :monitorid, :subprobes)`
+	      VALUES (:labelid, :monitorid, :subprobe)`
 	_, err := tx.NamedExec(cq(tx, q), lm)
 	return errors.Trace(err)
 }
@@ -177,7 +178,7 @@ func (tx *Tx) CreateLabelMonitor(lm LabelMonitor) error {
 func (tx *Tx) UpdateLabelMonitor(lm LabelMonitor) error {
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_labels_monitors
-	      SET subprobe=:subprobes
+	      SET subprobe=:subprobe
 	      WHERE labelid=:labelid AND monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), lm)
 	return errors.Trace(err)
