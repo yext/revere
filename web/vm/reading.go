@@ -2,55 +2,49 @@ package vm
 
 import (
 	"database/sql"
-	"time"
+	"fmt"
 
-	"github.com/juju/errors"
-
-	"github.com/yext/db"
-	"github.com/yext/revere/state"
+	"github.com/yext/revere"
 )
 
 type Reading struct {
-	ReadingID  db.ReadingID
-	SubprobeID db.SubprobeID
-	State      state.State
-	StateStr   string
-	Recorded   time.Time
+	*revere.Reading
 }
 
 func (r *Reading) Id() int64 {
-	return int64(r.ReadingID)
+	return int64(r.ReadingId)
 }
 
-func AllReadingsFromSubprobe(db *sql.DB, id db.SubprobeID) ([]*Reading, error) {
-	rs, err := db.LoadReadings(db, id)
+func AllReadingsFromSubprobe(db *sql.DB, id revere.SubprobeID) ([]*Reading, error) {
+	rs, err := revere.LoadReadings(db, id)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
 	if rs == nil {
-		return nil, errors.Errorf("No readings found for subprobe: %d", id)
+		return nil, fmt.Errorf("No readings found for subprobe: %d", id)
 	}
 
-	return newReadingsFromModel(rs), nil
+	return newReadingsFromModel(db, rs), nil
 }
 
-func newReadingFromModel(reading *db.Reading) *Reading {
-	return &Reading{
-		ReadingID:  reading.ReadingID,
-		SubprobeID: reading.SubprobeID,
-		State:      reading.State,
-		Recorded:   reading.Recorded,
+func newReadingFromModel(db *sql.DB, r *revere.Reading) *Reading {
+	viewmodel := new(Reading)
+	viewmodel.Reading = r
+
+	return viewmodel
+}
+
+func newReadingsFromModel(db *sql.DB, rs []*revere.Reading) []*Reading {
+	readings := make([]*Reading, len(rs))
+	for i, r := range rs {
+		readings[i] = newReadingFromModel(db, r)
 	}
+	return readings
 }
 
-func newReadingsFromModel(readings []*db.Reading) []*Reading {
-	rs := make([]*Reading, len(readings))
-	for i, reading := range readings {
-		rs[i] = newReadingFromModel(reading)
-	}
-	return rs
-}
+func BlankReading(db *sql.DB) *Reading {
+	viewmodel := new(Reading)
+	viewmodel.Reading = new(revere.Reading)
 
-func BlankReading() *Reading {
-	return &Reading{}
+	return viewmodel
 }
