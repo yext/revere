@@ -68,3 +68,9 @@ func (db *DB) LoadDatasources() ([]*Datasource, error) {
 	}
 	return datasources, nil
 }
+
+func (tx *Tx) DeleteDatasource(id DatasourceID) error {
+	q := `DELETE FROM pfx_data_sources WHERE sourceid = ?`
+	_, err := tx.Exec(cq(tx, q), id)
+	return errors.Trace(err)
+}
