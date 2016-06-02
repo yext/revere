@@ -26,6 +26,7 @@ func newTriggerTemplate(dbModel *db.Trigger) (*triggerTemplate, error) {
 	}
 
 	return &triggerTemplate{
+		id:            dbModel.TriggerID,
 		level:         dbModel.Level,
 		triggerOnExit: dbModel.TriggerOnExit,
 		period:        time.Duration(dbModel.PeriodMilli) * time.Millisecond,
@@ -82,6 +83,18 @@ func (s sameTypeTriggerSet) alert(a *target.Alert) {
 
 	if len(toAlert) == 0 {
 		return
+	}
+
+	if log.GetLevel() >= log.DebugLevel {
+		log.WithFields(log.Fields{
+			"monitor":    a.MonitorID,
+			"subprobe":   a.SubprobeName,
+			"state":      a.NewState,
+			"recorded":   a.Recorded,
+			"targetType": targetType.ID(),
+			"toAlert":    len(toAlert),
+			"inactive":   len(inactive),
+		}).Debug("Sending alerts.")
 	}
 
 	errors := targetType.Alert(a, toAlert, inactive)

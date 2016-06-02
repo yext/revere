@@ -178,6 +178,9 @@ func (l *Label) Save(db *sql.DB) (err error) {
 		if err != nil {
 			return
 		}
+		if err = updateMonitorVersion(tx, lm.MonitorId); err != nil {
+			return
+		}
 	}
 	return
 }

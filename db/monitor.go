@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 )
@@ -26,25 +27,40 @@ type Monitor struct {
 
 type MonitorTrigger struct {
 	MonitorID MonitorID
-	Subprobes string
+	// TODO(eefi): Rename column in DB to subprobes.
+	Subprobes string `db:"subprobe"`
 	*Trigger
 }
 
-func (db *DB) LoadAllMonitorIDs() ([]MonitorID, error) {
-	return loadAllMonitorIDs(db)
+type MonitorLabel struct {
+	MonitorID MonitorID
+	// TODO(eefi): Rename column in DB to subprobes.
+	Subprobes string `db:"subprobe"`
+	*Label
 }
 
-func (tx *Tx) LoadAllMonitorIDs() ([]MonitorID, error) {
-	return loadAllMonitorIDs(tx)
+type MonitorVersionInfo struct {
+	MonitorID MonitorID
+	Version   int32
+	Archived  *time.Time
 }
 
-func loadAllMonitorIDs(dt dbOrTx) ([]MonitorID, error) {
-	var ids []MonitorID
-	err := dt.Select(&ids, cq(dt, "SELECT monitorid FROM pfx_monitors"))
+func (db *DB) LoadMonitorVersionInfosUpdatedSince(t time.Time) ([]MonitorVersionInfo, error) {
+	var infos []MonitorVersionInfo
+	var err error
+
+	q := "SELECT monitorid, version, archived FROM pfx_monitors"
+	if t.IsZero() {
+		err = db.Select(&infos, cq(db, q))
+	} else {
+		q += " WHERE changed >= ?"
+		err = db.Select(&infos, cq(db, q), t)
+	}
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
-	return ids, nil
+
+	return infos, nil
 }
 
 func (db *DB) LoadMonitor(id MonitorID) (*Monitor, error) {
@@ -69,6 +85,22 @@ func loadMonitor(dt dbOrTx, id MonitorID) (*Monitor, error) {
 	return &m, nil
 }
 
+func (db *DB) LoadMonitors() ([]*Monitor, error) {
+	return loadMonitors(db)
+}
+
+func (tx *Tx) LoadMonitors() ([]*Monitor, error) {
+	return loadMonitors(tx)
+}
+
+func loadMonitors(dt dbOrTx) ([]*Monitor, error) {
+	var monitors []*Monitor
+	if err := dt.Select(&monitors, cq(dt, "SELECT * FROM pfx_monitors ORDER BY name")); err != nil {
+		return nil, errors.Trace(err)
+	}
+	return monitors, nil
+}
+
 func (db *DB) LoadTriggersForMonitor(id MonitorID) ([]MonitorTrigger, error) {
 	return loadTriggersForMonitor(db, id)
 }
@@ -90,4 +122,108 @@ func loadTriggersForMonitor(dt dbOrTx, id MonitorID) ([]MonitorTrigger, error) {
 		return nil, errors.Trace(err)
 	}
 	return mts, nil
+}
+
+func (db *DB) LoadLabelsForMonitor(id MonitorID) ([]MonitorLabel, error) {
+	return loadLabelsForMonitor(db, id)
+}
+
+func (tx *Tx) LoadLabelsForMonitor(id MonitorID) ([]MonitorLabel, error) {
+	return loadLabelsForMonitor(tx, id)
+}
+
+func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]MonitorLabel, error) {
+	dt = unsafe(dt)
+
+	var mls []MonitorLabel
+	q := `SELECT *
+	      FROM pfx_labels_monitors
+	      JOIN pfx_labels USING (labelid)
+	      WHERE pfx_labels_monitors.monitorid = ?`
+	err := dt.Select(&mls, cq(dt, q), id)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	return mls, nil
+}
+
+func (tx *Tx) BatchLoadMonitorLabels(mIDs []MonitorID) (map[MonitorID][]MonitorLabel, error) {
+	if len(mIDs) == 0 {
+		return nil, nil
+	}
+
+	query, args, err := sqlx.In(`
+		SELECT * FROM pfx_labels
+		JOIN pfx_labels_monitors USING (labelid)
+		WHERE monitorid IN (?)
+	`, mIDs)
+	if err != nil {
+		return nil, err
+	}
+	// This isn't absolutely necessary but putting this here to support other potential backends
+	query = tx.Rebind(query)
+
+	rows, err := tx.Queryx(cq(tx, query), args...)
+	if err != nil {
+		return nil, err
+	}
+
+	monitorLabels := make(map[MonitorID][]MonitorLabel)
+	for rows.Next() {
+		var ml MonitorLabel
+		if err = rows.StructScan(&ml); err != nil {
+			return nil, err
+		}
+		monitorLabels[ml.MonitorID] = append(monitorLabels[ml.MonitorID], ml)
+	}
+	rows.Close()
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return monitorLabels, nil
+}
+
+func (tx *Tx) CreateMonitorTrigger(mt MonitorTrigger) error {
+	var err error
+	mt.TriggerID, err = tx.createTrigger(mt.Trigger)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `INSERT INTO pfx_monitor_triggers (monitorid, subprobe, triggerid)
+	      VALUES (:monitorid, :subprobe, :triggerid)`
+	_, err = tx.NamedExec(cq(tx, q), mt)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
+	err := tx.updateTrigger(mt.Trigger)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `UPDATE pfx_monitor_triggers
+	      SET subprobe=:subprobe
+	      WHERE triggerid=:triggerid`
+	_, err = tx.NamedExec(cq(tx, q), mt)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) CreateMonitorLabel(ml MonitorLabel) error {
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobe)
+	      VALUES (:labelid, :monitorid, :subprobe)`
+	_, err := tx.NamedExec(cq(tx, q), ml)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) UpdateMonitorLabel(ml MonitorLabel) error {
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `UPDATE pfx_labels_monitors
+	      SET subprobe=:subprobe
+	      WHERE labelid=:labelid AND monitorid=:monitorid`
+	_, err := tx.NamedExec(cq(tx, q), ml)
+	return errors.Trace(err)
 }

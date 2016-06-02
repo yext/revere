@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"regexp"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
@@ -9,6 +10,7 @@ import (
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/env"
 	"github.com/yext/revere/probe"
+	"github.com/yext/revere/state"
 )
 
 type monitor struct {
@@ -16,6 +18,7 @@ type monitor struct {
 	name        string
 	description string
 	response    string
+	version     int32
 
 	probe    probe.Probe
 	triggers []monitorTrigger
@@ -23,6 +26,7 @@ type monitor struct {
 	subprobes map[string]*subprobe
 
 	readingsSource chan []probe.Reading
+	stopper        sync.Once
 	stopped        chan struct{}
 
 	*env.Env
@@ -60,14 +64,34 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		return nil, errors.Maskf(err, "load triggers for monitor %d", id)
 	}
 
-	monitorTriggers := make([]monitorTrigger, 0, len(dbMonitorTriggers))
+	dbLabelTriggers, err := tx.LoadLabelTriggersForMonitor(id)
+	if err != nil {
+		return nil, errors.Maskf(err, "load label triggers for monitor %d", id)
+	}
+
+	monitorTriggers := make(
+		[]monitorTrigger, 0, len(dbMonitorTriggers)+len(dbLabelTriggers))
 	for _, dbMonitorTrigger := range dbMonitorTriggers {
-		monitorTrigger, err := newMonitorTrigger(dbMonitorTrigger)
+		monitorTrigger, err := newMonitorTrigger(
+			dbMonitorTrigger.Subprobes, dbMonitorTrigger.Trigger)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"monitor": id,
 				"trigger": dbMonitorTrigger.TriggerID,
 			}).Error("Could not load monitor trigger. Discarding.")
+			continue
+		}
+		monitorTriggers = append(monitorTriggers, *monitorTrigger)
+	}
+	for _, dbLabelTrigger := range dbLabelTriggers {
+		monitorTrigger, err := newMonitorTrigger(
+			dbLabelTrigger.Subprobes, dbLabelTrigger.Trigger)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"monitor": id,
+				"label":   dbLabelTrigger.LabelID,
+				"trigger": dbLabelTrigger.TriggerID,
+			}).Error("Could not load label trigger. Discarding.")
 			continue
 		}
 		monitorTriggers = append(monitorTriggers, *monitorTrigger)
@@ -78,6 +102,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		name:           dbMonitor.Name,
 		description:    dbMonitor.Description,
 		response:       dbMonitor.Response,
+		version:        dbMonitor.Version,
 		probe:          probe,
 		triggers:       monitorTriggers,
 		subprobes:      make(map[string]*subprobe),
@@ -103,13 +128,13 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	return monitor, nil
 }
 
-func newMonitorTrigger(dbMonitorTrigger db.MonitorTrigger) (*monitorTrigger, error) {
-	subprobesRegexp, err := regexp.Compile(dbMonitorTrigger.Subprobes)
+func newMonitorTrigger(subprobes string, dbTrigger *db.Trigger) (*monitorTrigger, error) {
+	subprobesRegexp, err := regexp.Compile(subprobes)
 	if err != nil {
 		return nil, errors.Maskf(err, "compile regexp")
 	}
 
-	triggerTemplate, err := newTriggerTemplate(dbMonitorTrigger.Trigger)
+	triggerTemplate, err := newTriggerTemplate(dbTrigger)
 	if err != nil {
 		return nil, errors.Maskf(err, "make trigger")
 	}
@@ -135,6 +160,13 @@ func (m *monitor) start() {
 }
 
 func (m *monitor) process(readings []probe.Reading) {
+	m.logReadings(readings)
+
+	var silences []silence
+	if m.shouldLoadSilences(readings) {
+		silences = m.loadActiveSilences()
+	}
+
 	for _, r := range readings {
 		subprobe := m.subprobes[r.Subprobe]
 		if subprobe == nil {
@@ -153,12 +185,89 @@ func (m *monitor) process(readings []probe.Reading) {
 			m.subprobes[subprobe.name] = subprobe
 		}
 
-		subprobe.process(r)
+		isSilenced := false
+		for _, silence := range silences {
+			if silence.silences(subprobe) {
+				isSilenced = true
+				break
+			}
+		}
+
+		subprobe.process(r, isSilenced)
 	}
 }
 
+func (m *monitor) logReadings(readings []probe.Reading) {
+	if log.GetLevel() < log.DebugLevel {
+		return
+	}
+
+	readingsPerLevel := make(map[state.State]int)
+	for _, r := range readings {
+		readingsPerLevel[r.State] += 1
+	}
+
+	l := log.WithField("monitor", m.id)
+	for s, n := range readingsPerLevel {
+		l = l.WithField(s.String(), n)
+	}
+	l.Debug("Received readings.")
+}
+
+// shouldLoadSilences returns whether processing the given set of readings
+// against the current state of this monitor's subprobes might require checking
+// for silences.
+//
+// In the common case of all subprobes currently normal and all incoming
+// readings reading normal, no alerts will need to be sent, so it doesn't matter
+// whether there are any active silences. We can avoid a DB round trip when this
+// is the case.
+func (m *monitor) shouldLoadSilences(readings []probe.Reading) bool {
+	for _, s := range m.subprobes {
+		if s.state != state.Normal {
+			return true
+		}
+	}
+	for _, r := range readings {
+		if r.State != state.Normal {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *monitor) loadActiveSilences() []silence {
+	dbSilences, err := m.DB.LoadActiveSilencesForMonitor(m.id)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"monitor": m.id,
+		}).Error("Could not load active silences. Proceeding without silencing.")
+		return nil
+	}
+
+	if len(dbSilences) == 0 {
+		return nil
+	}
+
+	silences := make([]silence, 0, len(dbSilences))
+	for _, dbSilence := range dbSilences {
+		s, err := newSilence(dbSilence)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"monitor": m.id,
+				"silence": dbSilence.SilenceID,
+			}).Error("Could not load silence. Ignoring.")
+			continue
+		}
+		silences = append(silences, s)
+	}
+	return silences
+}
+
 func (m *monitor) stop() {
-	m.probe.Stop()
-	close(m.readingsSource)
-	<-m.stopped
+	m.stopper.Do(func() {
+		m.probe.Stop()
+		close(m.readingsSource)
+		<-m.stopped
+	})
 }

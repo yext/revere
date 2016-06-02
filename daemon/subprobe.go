@@ -111,17 +111,26 @@ func newSubprobeTriggerSets(monitor *monitor, name string) map[db.TargetType]sam
 	return triggerSets
 }
 
-func (s *subprobe) process(r probe.Reading) {
+func (s *subprobe) process(r probe.Reading, isSilenced bool) {
 	oldState := s.state
 
 	s.updateFor(r)
 
-	alert := s.newAlert(oldState, r)
-	for _, triggerSet := range s.triggerSets {
-		triggerSet.alert(alert)
+	if !isSilenced {
+		alert := s.newAlert(oldState, r)
+		for _, triggerSet := range s.triggerSets {
+			triggerSet.alert(alert)
+		}
+	} else if r.State != state.Normal && log.GetLevel() >= log.DebugLevel {
+		log.WithFields(log.Fields{
+			"monitor":  s.monitor.id,
+			"subprobe": s.name,
+			"state":    r.State,
+			"recorded": r.Recorded,
+		}).Debug("Suppressing alerts for silenced subprobe.")
 	}
 
-	if err := s.record(r); err != nil {
+	if err := s.record(r, isSilenced); err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"monitor":  s.monitor.id,
 			"subprobe": s.name,
@@ -165,10 +174,10 @@ func (s *subprobe) newAlert(oldState state.State, r probe.Reading) *target.Alert
 	}
 }
 
-func (s *subprobe) record(r probe.Reading) error {
+func (s *subprobe) record(r probe.Reading, isSilenced bool) error {
 	return errors.Mask(s.DB.Tx(func(tx *db.Tx) error {
 		status := s.dbStatus()
-		// TODO(eefi): Update status.Silenced.
+		status.Silenced = isSilenced
 		if err := tx.UpdateSubprobeStatus(status); err != nil {
 			return errors.Maskf(err, "update subprobe status")
 		}

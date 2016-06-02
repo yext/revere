@@ -45,7 +45,7 @@ func init() {
 }
 
 func (GraphiteThreshold) Id() ProbeTypeId {
-	return 0
+	return 1
 }
 
 func (GraphiteThreshold) Name() string {
