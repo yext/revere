@@ -71,7 +71,7 @@ func (s State) String() string {
 	}
 }
 
-func FromString(s string) (State, err) {
+func FromString(s string) (State, error) {
 	switch s {
 	case Normal.String():
 		return Normal, nil
@@ -84,6 +84,6 @@ func FromString(s string) (State, err) {
 	case Critical.String():
 		return Critical, nil
 	default:
-		return nil, errors.Errorf("invalid state %s", s)
+		return 0, errors.Errorf("invalid state %s", s)
 	}
 }
