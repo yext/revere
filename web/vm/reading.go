@@ -6,7 +6,7 @@ import (
 
 	"github.com/juju/errors"
 
-	"github.com/yext/db"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/state"
 )
 
