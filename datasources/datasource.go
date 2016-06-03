@@ -58,7 +58,7 @@ func LoadFromDb(id DataSourceTypeId, dsJson string) (DataSource, error) {
 	return dsType.loadFromDb(dsJson)
 }
 
-func Blank(id DataSourceType) (DataSource, error) {
+func Blank(id DataSourceTypeId) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
 		return nil, err

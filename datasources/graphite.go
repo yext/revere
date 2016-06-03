@@ -61,7 +61,7 @@ func (_ Graphite) Scripts() []string {
 	}
 }
 
-func (g *GraphiteDataSource) Serialize() string {
+func (g GraphiteDataSource) Serialize() (string, error) {
 	gDB := GraphiteDataSourceDBModel{
 		g.URL,
 	}
@@ -71,13 +71,13 @@ func (g *GraphiteDataSource) Serialize() string {
 }
 
 // TODO(fchen): check for and fix references to DataSourceType in frontend
-func (g *GraphiteDataSource) Type() DataSourceType {
+func (g GraphiteDataSource) Type() DataSourceType {
 	return Graphite{}
 }
 
-func (g *GraphiteDataSource) Validate() []string {
+func (g GraphiteDataSource) Validate() []string {
 	var errs []string
-	if g.Url == "" {
+	if g.URL == "" {
 		errs = append(errs, "Url is required")
 	}
 
