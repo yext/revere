@@ -184,6 +184,13 @@ func (tx *Tx) UpdateLabelMonitor(lm LabelMonitor) error {
 	return errors.Trace(err)
 }
 
+func (tx *Tx) DeleteLabelMonitor(lm LabelMonitor) error {
+	q := `DELETE FROM pfx_labels_monitors
+	      WHERE labelid=:labelid AND monitorid=:monitorid`
+	_, err := tx.NamedExec(cq(tx, q), lm)
+	return errors.Trace(err)
+}
+
 func (tx *Tx) CreateLabelTrigger(lt LabelTrigger) error {
 	var err error
 	lt.TriggerID, err = tx.createTrigger(lt.Trigger)
