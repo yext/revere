@@ -3,6 +3,8 @@ package targets
 import (
 	"encoding/json"
 	"regexp"
+
+	"github.com/yext/revere/target"
 )
 
 type Email struct{}
@@ -42,26 +44,26 @@ func (Email) loadFromParams(target string) (Target, error) {
 	return e, nil
 }
 
-func (Email) loadFromDb(target string) (Target, error) {
+func (Email) loadFromDb(encodedTarget string) (Target, error) {
 	var e target.EmailDBModel
-	err := json.Unmarshal([]byte(target), &e)
+	err := json.Unmarshal([]byte(encodedTarget), &e)
 	if err != nil {
 		return nil, err
 	}
 
 	var et EmailTarget
-	et.Addresses = make([]EmailAddress, len(e.Addresses))
-	for i, address := range e.Addresses {
-		et.Addresses = *EmailAddress{
+	et.Addresses = make([]*EmailAddress, len(e.Addresses))
+	for i, _ := range e.Addresses {
+		et.Addresses = append(et.Addresses, &EmailAddress{
 			To:      e.Addresses[i].To,
 			ReplyTo: e.Addresses[i].ReplyTo,
-		}
+		})
 	}
 
 	return et, nil
 }
 
-func (Email) blank() (Email, error) {
+func (Email) blank() (Target, error) {
 	return EmailTarget{}, nil
 }
 
@@ -81,7 +83,7 @@ func (Email) Scripts() map[string][]string {
 }
 
 func (et EmailTarget) Serialize() (string, error) {
-	etDB := target.GraphiteThresholdDBModel{}
+	etDB := target.EmailDBModel{}
 
 	etDB.Addresses = make(
 		[]struct {
@@ -91,7 +93,7 @@ func (et EmailTarget) Serialize() (string, error) {
 		len(et.Addresses),
 	)
 
-	for i, address := range et.Addresses {
+	for i, _ := range et.Addresses {
 		etDB.Addresses[i].To = et.Addresses[i].To
 		etDB.Addresses[i].ReplyTo = et.Addresses[i].ReplyTo
 	}
