@@ -61,9 +61,9 @@ func (GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	return g, nil
 }
 
-func (GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
+func (GraphiteThreshold) loadFromDb(encodedProbe string) (Probe, error) {
 	var g probe.GraphiteThresholdDBModel
-	err := json.Unmarshal([]byte(probe), &g)
+	err := json.Unmarshal([]byte(encodedProbe), &g)
 	if err != nil {
 		return nil, err
 	}
@@ -72,19 +72,19 @@ func (GraphiteThreshold) loadFromDb(probe string) (Probe, error) {
 	auditPeriod, auditPeriodType := util.GetPeriodAndType(g.TimeToAuditMilli)
 
 	return &GraphiteThresholdProbe{
-		g.URL,
-		g.Expression,
-		ThresholdsModel{
+		URL:        g.URL,
+		Expression: g.Expression,
+		Thresholds: ThresholdsModel{
 			*g.Thresholds.Warning,
 			*g.Thresholds.Error,
 			*g.Thresholds.Critical,
 		},
-		g.AuditFunction,
-		checkPeriod,
-		checkPeriodType,
-		g.TriggerIf,
-		auditPeriod,
-		auditPeriodType,
+		AuditFunction:   g.AuditFunction,
+		CheckPeriod:     checkPeriod,
+		CheckPeriodType: checkPeriodType,
+		TriggerIf:       g.TriggerIf,
+		AuditPeriod:     auditPeriod,
+		AuditPeriodType: auditPeriodType,
 	}, nil
 }
 
@@ -113,17 +113,17 @@ func (GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTyp
 	}
 }
 
-func (g *GraphiteThresholdProbe) Serialize() (string, error) {
+func (g GraphiteThresholdProbe) Serialize() (string, error) {
 	checkPeriodMilli := util.GetMs(g.CheckPeriod, g.CheckPeriodType)
 	auditPeriodMilli := util.GetMs(g.AuditPeriod, g.AuditPeriodType)
 
 	gtDB := probe.GraphiteThresholdDBModel{
-		g.Url,
+		g.URL,
 		g.Expression,
 		probe.GraphiteThresholdThresholdsDBModel{
-			Warning:  &g.Warning,
-			Error:    &g.Error,
-			Critical: &g.Critical,
+			Warning:  &g.Thresholds.Warning,
+			Error:    &g.Thresholds.Error,
+			Critical: &g.Thresholds.Critical,
 		},
 		g.TriggerIf,
 		checkPeriodMilli,
@@ -136,12 +136,12 @@ func (g *GraphiteThresholdProbe) Serialize() (string, error) {
 }
 
 // TODO(fchen): fix references to ProbeType() in frontend
-func (g *GraphiteThresholdProbe) Type() ProbeType {
+func (g GraphiteThresholdProbe) Type() ProbeType {
 	return GraphiteThreshold{}
 }
 
-func (g *GraphiteThresholdProbe) Validate() (errs []string) {
-	if g.Url == "" {
+func (g GraphiteThresholdProbe) Validate() (errs []string) {
+	if g.URL == "" {
 		errs = append(errs, "Graphite data source is required")
 	}
 
