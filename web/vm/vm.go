@@ -5,7 +5,7 @@ type Component interface {
 }
 
 type DeletableComponent interface {
-	Del() string
+	Del() bool
 }
 
 func isCreate(c Component) bool {
