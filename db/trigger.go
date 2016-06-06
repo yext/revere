@@ -46,7 +46,7 @@ func (tx *Tx) updateTrigger(t *Trigger) error {
 	return errors.Trace(err)
 }
 
-func (tx *Tx) DeleteTrigger(triggerID TriggerID) error {
+func (tx *Tx) deleteTrigger(triggerID TriggerID) error {
 	q := `DELETE FROM pfx_triggers WHERE triggerid=?`
 	_, err := tx.Exec(cq(tx, q), triggerID)
 	return errors.Trace(err)

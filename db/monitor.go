@@ -183,18 +183,18 @@ func (tx *Tx) BatchLoadMonitorLabels(mIDs []MonitorID) (map[MonitorID][]MonitorL
 	return monitorLabels, nil
 }
 
-func (tx *Tx) CreateMonitorTrigger(mt MonitorTrigger) error {
+func (tx *Tx) CreateMonitorTrigger(mt MonitorTrigger) (TriggerID, error) {
 	var err error
 	mt.TriggerID, err = tx.createTrigger(mt.Trigger)
 	if err != nil {
-		return errors.Trace(err)
+		return 0, errors.Trace(err)
 	}
 
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_monitor_triggers (monitorid, subprobe, triggerid)
 	      VALUES (:monitorid, :subprobe, :triggerid)`
 	_, err = tx.NamedExec(cq(tx, q), mt)
-	return errors.Trace(err)
+	return mt.TriggerID, errors.Trace(err)
 }
 
 func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
@@ -209,6 +209,10 @@ func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
 	      WHERE triggerid=:triggerid`
 	_, err = tx.NamedExec(cq(tx, q), mt)
 	return errors.Trace(err)
+}
+
+func (tx *Tx) DeleteMonitorTrigger(triggerID TriggerID) error {
+	return tx.deleteTrigger(triggerID)
 }
 
 func (tx *Tx) CreateMonitorLabel(ml MonitorLabel) error {

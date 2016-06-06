@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/juju/errors"
@@ -16,10 +15,12 @@ type MonitorTrigger struct {
 }
 
 func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]MonitorTrigger, error) {
-	monitorTriggers := db.LoadMonitorTriggers(tx, id)
+	monitorTriggers, err := tx.LoadTriggersForMonitor(id)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
 
 	mts := make([]MonitorTrigger, len(monitorTriggers))
-	var err error
 	for i, monitorTrigger := range monitorTriggers {
 		mts[i].Trigger, err = newTriggerFromModel(monitorTrigger.Trigger)
 		if err != nil {
@@ -40,28 +41,31 @@ func (mt *MonitorTrigger) Del() {
 	return mt.Delete
 }
 
-func (mt *MonitorTrigger) Validate() {
-	//TODO(fchen): maybe validate that MonitorID exists and is legitimate
+func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
 	if !db.IsExistingMonitor(mt.MonitorID) {
 		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", mt.MonitorID))
 	}
-	if err := validateSubprobe(mt.Subprobe); err != nil {
+	if err := validateSubprobeRegex(mt.Subprobes); err != nil {
 		errs = append(errs, err.Error())
 	}
-	errs = append(errs, mt.Trigger.Validate()...)
+	errs = append(errs, mt.Trigger.validate()...)
 	return
 }
 
-func (mt *MonitorTrigger) save(tx *sql.Tx, id db.MonitorID) error {
-	monitorTrigger := &db.MonitorTrigger{mt.Trigger.toModelTrigger(), mt.Subprobe}
+func (mt *MonitorTrigger) save(tx *db.Tx, id db.MonitorID) error {
+	monitorTrigger := &db.MonitorTrigger{
+		MonitorID: mt.MonitorID,
+		Subprobes: mt.Subprobes,
+		Trigger:   mt.Trigger.toModelTrigger(),
+	}
 	var err error
 	if isCreate(mt) {
-		id, err := monitorTrigger.create(tx, id)
+		id, err := tx.CreateMonitorTrigger(monitorTrigger)
 		mt.Trigger.setId(id)
 	} else if isDelete(mt) {
-		err = monitorTrigger.delete(tx, id)
+		err = tx.DeleteMonitorTrigger(monitorTrigger.TriggerID)
 	} else {
-		err = monitorTrigger.update(tx, id)
+		err = tx.UpdateMonitorTrigger(monitorTrigger)
 	}
 
 	return errors.Trace(err)
