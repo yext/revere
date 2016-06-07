@@ -214,7 +214,7 @@ func (m *Monitor) Save(tx *sql.Tx) error {
 	return nil
 }
 
-func (m *Monitor) toModelMonitor() (*db.Monitor, error) {
+func (m *Monitor) toDBMonitor() (*db.Monitor, error) {
 	probeJSON, err := t.Probe.Serialize()
 	if err != nil {
 		return nil, errors.Trace(err)

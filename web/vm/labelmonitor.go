@@ -56,7 +56,7 @@ func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {
 }
 
 func (lm *LabelMonitor) save(tx *db.Tx, id db.LabelID) error {
-	monitor, err := lm.Monitor.toModelMonitor()
+	monitor, err := lm.Monitor.toDBMonitor()
 	if err != nil {
 		return errors.Trace(err)
 	}

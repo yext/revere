@@ -69,7 +69,7 @@ func (t *Trigger) setId(id db.TriggerID) {
 	t.TriggerID = id
 }
 
-func (t *Trigger) toModelTrigger() (*db.Trigger, error) {
+func (t *Trigger) toDBTrigger() (*db.Trigger, error) {
 	triggerJSON, err := t.Target.Serialize()
 	if err != nil {
 		return nil, errors.Trace(err)

@@ -53,7 +53,7 @@ func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
 }
 
 func (mt *MonitorTrigger) save(tx *db.Tx, id db.MonitorID) error {
-	trigger, err := mt.Trigger.toModelTrigger()
+	trigger, err := mt.Trigger.toDBTrigger()
 	if err != nil {
 		return errors.Trace(err)
 	}
