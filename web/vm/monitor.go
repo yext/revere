@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/juju/errors"
 	"github.com/yext/revere"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
@@ -19,7 +20,7 @@ type Monitor struct {
 	ProbeType   probes.ProbeTypeId
 	ProbeParams string
 	Changed     time.Time
-	Version     int
+	Version     int32
 	Archived    *time.Time
 	Probe       probes.Probe
 	Triggers    []*MonitorTrigger
@@ -39,7 +40,7 @@ func NewMonitor(db *sql.DB, id revere.MonitorID) (*Monitor, error) {
 		return nil, fmt.Errorf("Monitor not found: %d", id)
 	}
 
-	m, err := newMonitorFromModel(db, monitor)
+	m, err := newMonitorFromModel(monitor)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func NewMonitor(db *sql.DB, id revere.MonitorID) (*Monitor, error) {
 	return m, nil
 }
 
-func newMonitorFromModel(db *sql.DB, monitor *revere.Monitor) (*Monitor, error) {
+func newMonitorFromModel(monitor *revere.Monitor) (*Monitor, error) {
 	var err error
 	m := &Monitor{
 		MonitorId:   monitor.MonitorId,
@@ -211,4 +212,24 @@ func (m *Monitor) Save(tx *sql.Tx) error {
 		}
 	}
 	return nil
+}
+
+func (m *Monitor) toModelMonitor() (*db.Monitor, error) {
+	monitorJSON, err := t.Probe.Serialize()
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	return &db.Monitor{
+		MonitorID:   db.MonitorID(m.MonitorId),
+		Name:        m.Name,
+		Owner:       m.Owner,
+		Description: m.Description,
+		Response:    m.Response,
+		ProbeType:   db.ProbeType(m.ProbeType),
+		Probe:       monitorJSON,
+		Changed:     m.Changed,
+		Version:     m.Version,
+		Archived:    m.Archived,
+	}, nil
 }

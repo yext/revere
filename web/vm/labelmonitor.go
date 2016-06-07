@@ -1,23 +1,74 @@
 package vm
 
-import "github.com/yext/revere"
+import (
+	"fmt"
+
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
+)
 
 type LabelMonitor struct {
-	*revere.LabelMonitor
+	Monitor   *Monitor
+	LabelID   db.LabelID
+	Subprobes string
+	Delete    bool
 }
 
 func (lm *LabelMonitor) Id() int64 {
 	return int64(lm.LabelMonitor.MonitorId)
 }
 
-func NewLabelMonitors(labelMonitors []*revere.LabelMonitor) []*LabelMonitor {
-	viewmodels := make([]*LabelMonitor, len(labelMonitors))
-	for i, lm := range labelMonitors {
-		viewmodels[i] = &LabelMonitor{lm}
+func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]LabelMonitor, error) {
+	labelMonitors, err := tx.LoadMonitorsForLabel(id)
+	if err != nil {
+		return nil, errors.Trace(err)
 	}
-	return viewmodels
+
+	lms := make([]LabelMonitor, len(labelMonitors))
+	for i, labelMonitor := range labelMonitors {
+		lms[i].Monitor, err = newMonitorFromModel(labelMonitor.Monitor)
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+		lms[i].LabelID = labelMonitor.LabelID
+		lms[i].Subprobes = labelMonitor.Subprobes
+	}
+
+	return lms
 }
 
-func BlankLabelMonitors() []*LabelMonitor {
-	return []*LabelMonitor{}
+func blankLabelMonitors() []LabelMonitor {
+	return []LabelMonitor{}
+}
+
+func (lm *LabelMonitor) Del() {
+	return lm.Delete
+}
+
+func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {
+	if !db.IsExistingLabel(lm.LabelID) {
+		errs = append(errs, fmt.Sprintf("Invalid label: %d", lm.LabelID))
+	}
+	if err := validateSubprobeRegex(lm.Subprobes); err != nil {
+		errs = append(errs, err.Error())
+	}
+	return
+}
+
+func (lm *LabelMonitor) save(tx *db.Tx, id db.LabelID) error {
+	labelMonitor := &db.LabelMonitor{
+		LabelID:   lm.LabelID,
+		Subprobes: lm.Subprobes,
+		Monitor:   lm.Monitor.toModelMonitor(),
+	}
+	var err errors
+	if isCreate(lm) {
+		err = tx.CreateLabelMonitor(labelMonitor)
+	} else if isDelete(lm) {
+		err = tx.DeleteLabelMonitor(labelMonitor)
+	} else {
+		err = tx.UpdateLabelMonitor(labelMonitor)
+	}
+
+	return errors.Trace(err)
 }
