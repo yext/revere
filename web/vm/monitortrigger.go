@@ -53,12 +53,15 @@ func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
 }
 
 func (mt *MonitorTrigger) save(tx *db.Tx, id db.MonitorID) error {
+	trigger, err := mt.Trigger.toModelTrigger()
+	if err != nil {
+		return errors.Trace(err)
+	}
 	monitorTrigger := &db.MonitorTrigger{
 		MonitorID: mt.MonitorID,
 		Subprobes: mt.Subprobes,
-		Trigger:   mt.Trigger.toModelTrigger(),
+		Trigger:   trigger,
 	}
-	var err error
 	if isCreate(mt) {
 		id, err := tx.CreateMonitorTrigger(monitorTrigger)
 		mt.Trigger.setId(id)

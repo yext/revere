@@ -215,7 +215,7 @@ func (m *Monitor) Save(tx *sql.Tx) error {
 }
 
 func (m *Monitor) toModelMonitor() (*db.Monitor, error) {
-	monitorJSON, err := t.Probe.Serialize()
+	probeJSON, err := t.Probe.Serialize()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -227,7 +227,7 @@ func (m *Monitor) toModelMonitor() (*db.Monitor, error) {
 		Description: m.Description,
 		Response:    m.Response,
 		ProbeType:   db.ProbeType(m.ProbeType),
-		Probe:       monitorJSON,
+		Probe:       probeJSON,
 		Changed:     m.Changed,
 		Version:     m.Version,
 		Archived:    m.Archived,

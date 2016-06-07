@@ -56,12 +56,15 @@ func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {
 }
 
 func (lm *LabelMonitor) save(tx *db.Tx, id db.LabelID) error {
+	monitor, err := lm.Monitor.toModelMonitor()
+	if err != nil {
+		return errors.Trace(err)
+	}
 	labelMonitor := &db.LabelMonitor{
 		LabelID:   lm.LabelID,
 		Subprobes: lm.Subprobes,
-		Monitor:   lm.Monitor.toModelMonitor(),
+		Monitor:   monitor,
 	}
-	var err errors
 	if isCreate(lm) {
 		err = tx.CreateLabelMonitor(labelMonitor)
 	} else if isDelete(lm) {
