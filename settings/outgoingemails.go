@@ -12,63 +12,98 @@ type OutgoingEmailSetting struct {
 	SmtpServer        string
 }
 
+// Temp struct until datasources and datasource package are combined, i.e. datasource package needs to be created
+type OutgoingEmailSettingDBModel struct {
+	FromName          string
+	FromEmail         string
+	SubjectLinePrefix string
+	SmtpServer        string
+}
+
 func init() {
 	addSettingType(OutgoingEmail{})
 }
 
-func (o OutgoingEmail) Id() SettingTypeId {
+func (OutgoingEmail) Id() SettingTypeId {
 	return 0
 }
 
-func (o OutgoingEmail) Name() string {
+func (OutgoingEmail) Name() string {
 	return "Outgoing Email Configuration"
 }
 
-func (o OutgoingEmail) Template() string {
+func (OutgoingEmail) loadFromParams(s string) (Setting, error) {
+	var oe OutgoingEmailSetting
+	err := json.Unmarshal([]byte(s), &oe)
+	if err != nil {
+		return nil, err
+	}
+	return oe, nil
+}
+
+func (OutgoingEmail) loadFromDbds(s string) (Setting, error) {
+	var oe OutgoingEmailSettingDBModel
+	err := json.Unmarshal([]byte(s), &oe)
+	if err != nil {
+		return nil, err
+	}
+
+	return &OutgoingEmailSetting{
+		FromName:          oe.FromName,
+		FromEmail:         oe.FromEmail,
+		SubjectLinePrefix: oe.SubjectLinePrefix,
+		SmtpServer:        oe.SmtpServer,
+	}, nil
+}
+
+func (OutgoingEmail) blank() (Setting, error) {
+	return &OutgoingEmailSetting{}, nil
+}
+
+func (OutgoingEmail) Template() string {
 	return "_outgoing-email.html"
 }
 
-func (o OutgoingEmail) Scripts() []string {
+func (OutgoingEmail) Scripts() []string {
 	return []string{
 		"outgoing-emails.js",
 	}
 }
 
-func (o OutgoingEmail) Load(settingJson string) (Setting, error) {
-	setting := new(OutgoingEmailSetting)
-	err := json.Unmarshal([]byte(settingJson), &setting)
-	if err != nil {
-		return nil, err
+func (oe *OutgoingEmailSetting) Serialize() (string, error) {
+	oeDB := OutgoingEmailSettingDBModel{
+		FromName:          oe.FromName,
+		FromEmail:         oe.FromEmail,
+		SubjectLinePrefix: oe.SubjectLinePrefix,
+		SmtpServer:        oe.SmtpServer,
 	}
-	return setting, err
+
+	oeDBJSON, err := json.Marshal(oeDB)
+	return string(oeDBJSON), err
 }
 
-func (o OutgoingEmail) LoadDefault() Setting {
-	return &OutgoingEmailSetting{}
+func (*OutgoingEmailSetting) Type() SettingType {
+	return OutgoingEmail{}
 }
 
-func (os *OutgoingEmailSetting) Validate() []string {
+func (oe *OutgoingEmailSetting) Validate() []string {
 	var errs []string
 
-	if os.FromName == "" {
+	if oe.FromName == "" {
 		errs = append(errs, "Name is required")
 	}
 
-	if os.FromEmail == "" {
+	if oe.FromEmail == "" {
 		errs = append(errs, "Email is required")
 	}
 
-	if os.SubjectLinePrefix == "" {
+	if oe.SubjectLinePrefix == "" {
 		errs = append(errs, "Subject line is required")
 	}
 
-	if os.SmtpServer == "" {
+	if oe.SmtpServer == "" {
 		errs = append(errs, "SMTP server is required")
 	}
 
 	return errs
-}
-
-func (os *OutgoingEmailSetting) SettingType() SettingType {
-	return OutgoingEmail{}
 }
