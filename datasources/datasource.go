@@ -77,10 +77,18 @@ func getType(id DataSourceTypeId) (DataSourceType, error) {
 	return dsType, nil
 }
 
+//TODO (fchen): eventually change to addType for datasources, settings, probes, targets; conform naming and syntax
 func addDataSourceType(dataSourceType DataSourceType) {
 	if _, ok := types[dataSourceType.Id()]; !ok {
 		types[dataSourceType.Id()] = dataSourceType
 	} else {
 		panic(fmt.Sprintf("A data source type with id %d already exists", dataSourceType.Id))
 	}
+}
+
+func AllTypes() (dsts []DataSourceType) {
+	for _, t := range types {
+		dsts = append(dsts, t)
+	}
+	return dsts
 }
