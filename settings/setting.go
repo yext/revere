@@ -6,56 +6,95 @@
 */
 package settings
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/juju/errors"
+)
 
 type SettingTypeId int16
 
 type SettingType interface {
 	Id() SettingTypeId
 	Name() string
+	loadFromParams(ds string) (Setting, error)
+	loadFromDb(ds string) (Setting, error)
+	blank() (Setting, error)
 	Template() string
 	Scripts() []string
-	Load(string) (Setting, error)
-	LoadDefault() Setting
 }
 
 type Setting interface {
 	SettingType
+	Serialize() (string, error)
+	Type() SettingType
 	Validate() []string
-	SettingType() SettingType
 }
 
-var (
-	defaultSettingTypeId = OutgoingEmail{}.Id()
-	settingTypes         = make(map[SettingTypeId]SettingType)
+const (
+	SettingDir = "settings"
 )
 
-func SettingTypeById(settingType SettingTypeId) (SettingType, error) {
-	if s, ok := settingTypes[settingType]; !ok {
-		return nil, fmt.Errorf("Invalid setting type with id: %d", settingType)
+var (
+	defaultType = OutgoingEmail{}
+	types       = make(map[SettingTypeId]SettingType)
+)
+
+func Default() (Setting, error) {
+	s, err := defaultType.blank()
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	return s, nil
+}
+
+func LoadFromParams(id SettingTypeId, sParams string) (Setting, error) {
+	sType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return sType.loadFromParams(sParams)
+}
+
+func LoadFromDb(id SettingTypeId, sJson string) (Setting, error) {
+	sType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return sType.loadFromDb(sJson)
+}
+
+func Blank(id SettingTypeId) (Setting, error) {
+	sType, err := getType(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return sType.blank()
+}
+
+func getType(id SettingTypeId) (SettingType, error) {
+	if s, ok := types[id]; !ok {
+		return nil, errors.Errorf("Invalid setting type with id: %d", id)
 	} else {
 		return s, nil
 	}
 }
 
 func addSettingType(s SettingType) {
-	if _, exists := settingTypes[s.Id()]; !exists {
-		settingTypes[s.Id()] = s
+	if _, exists := types[s.Id()]; !exists {
+		types[s.Id()] = s
 	} else {
-		panic(fmt.Sprintf("A setting with id %d already exists", s.Id()))
+		panic(fmt.Sprintf("A setting type with id %d already exists", s.Id()))
 	}
 }
 
-func AllSettingTypes() (types []SettingType) {
-	types = make([]SettingType, len(settingTypes))
-	i := 0
-	for _, s := range settingTypes {
-		types[i] = s
-		i++
+func AllTypes() (sts []SettingType) {
+	for _, t := range types {
+		sts = append(sts, t)
 	}
-	return
-}
-
-func DefaultSettingType() SettingType {
-	return settingTypes[defaultSettingTypeId]
+	return sts
 }
