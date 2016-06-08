@@ -1,78 +1,140 @@
 package vm
 
 import (
-	"database/sql"
 	"fmt"
 
-	"github.com/yext/revere"
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 )
 
 type Label struct {
-	*revere.Label
-	Monitors []*LabelMonitor
-	Triggers []*Trigger
+	LabelID     db.LabelID
+	Name        string
+	Description string
+	Triggers    []*LabelTrigger
+	Monitors    []*LabelMonitor
 }
 
 func (l *Label) Id() int64 {
-	return int64(l.Label.LabelId)
+	return int64(l.LabelID)
 }
 
-func NewLabel(db *sql.DB, id revere.LabelID) (*Label, error) {
-	l, err := revere.LoadLabel(db, id)
+func NewLabel(tx *db.Tx, id db.LabelID) (*Label, error) {
+	label, err := tx.LoadLabel(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
-	if l == nil {
-		return nil, fmt.Errorf("Label not found: %d", id)
+	if label == nil {
+		return nil, errors.Errorf("Label not found: %d", id)
 	}
 
-	return newLabelFromModel(db, l)
+	l := newLabelFromDB(label)
+
+	err := l.loadComponents(tx)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	return l, nil
 }
 
-func newLabelFromModel(db *sql.DB, l *revere.Label) (*Label, error) {
+func newLabelFromDB(label *db.Label) *Label {
+	return &Label{
+		LabelID:     label.LabelID,
+		Name:        label.Name,
+		Description: label.Description,
+		Triggers:    nil,
+		Monitors:    nil,
+	}
+}
+
+func newLabelsFromDB(labels []*db.Label) []*Label {
+	ls := make([]*Label, len(labels))
+	for i, label := range labels {
+		ls[i] = newLabelFromDB(label)
+	}
+	return ls
+}
+
+func BlankLabel() (*Monitor, error) {
 	var err error
-	viewmodel := new(Label)
-	viewmodel.Label = l
-	viewmodel.Triggers, err = NewTriggersFromLabelTriggers(l.Triggers)
+	l := &Label{}
+	l.Triggers = blankLabelTriggers()
+	l.Monitors = blankLabelMonitors()
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
-	viewmodel.Monitors = NewLabelMonitors(l.Monitors)
-	if err != nil {
-		return nil, err
-	}
-	return viewmodel, nil
+
+	return l, nil
 }
 
-func newLabelsFromModels(db *sql.DB, rls []*revere.Label) []*Label {
-	labels := make([]*Label, len(rls))
-	for i, rl := range rls {
-		labels[i] = new(Label)
-		labels[i].Label = rl
+func AllLabels(tx *db.Tx) ([]*Label, error) {
+	ls, err := tx.LoadLabels()
+	if err != nil {
+		return nil, errors.Trace(err)
 	}
-	return labels
+
+	return newLabelsFromDB(ls), nil
 }
 
-func BlankLabel(db *sql.DB) (*Label, error) {
+func (l *Label) loadComponents(tx *db.Tx) error {
 	var err error
-	viewmodel := new(Label)
-	viewmodel.Label = new(revere.Label)
-	viewmodel.Triggers = []*Trigger{
-		BlankTrigger(),
-	}
-	viewmodel.Monitors = BlankLabelMonitors()
+	l.Triggers, err = newLabelTriggers(tx, l.LabelID)
 	if err != nil {
-		return nil, err
+		return errors.Trace(err)
 	}
-
-	return viewmodel, nil
+	l.Monitors, err = NewLabelMonitors(tx, l.LabelID)
+	return errors.Trace(err)
 }
 
-func AllLabels(db *sql.DB) ([]*Label, error) {
-	rls, err := revere.LoadLabels(db)
-	if err != nil {
-		return nil, err
+func (l *Label) Validate(db *db.DB) (errs []string) {
+	if l.Name == "" {
+		errs = append(errs, fmt.Sprintf("Label name is required"))
 	}
 
-	return newLabelsFromModels(db, rls), nil
+	for _, lt := range l.Triggers {
+		errs = append(errs, lt.validate()...)
+	}
+
+	for _, lm := range l.Monitors {
+		errs = append(errs, lm.validate(db)...)
+	}
+	return
+}
+
+func (l *Label) Save(tx *db.DB) error {
+	label := l.toDBLabel()
+
+	var err error
+	if isCreate(l) {
+		l.LabelID, err = db.CreateLabel(label)
+	} else {
+		err = db.UpdateLabel(label)
+	}
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	for _, t := range l.Triggers {
+		err = t.save(tx)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, m := range l.Monitors {
+		err = m.save(tx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (l *Label) toDBLabel() *db.Label {
+	return &db.Label{
+		LabelID:     l.LabelID,
+		Name:        l.Name,
+		Description: l.Description,
+	}
 }
