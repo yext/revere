@@ -6,6 +6,7 @@ type Graphite struct{}
 
 // TODO(fchen): match front-end to "URL"
 type GraphiteDataSource struct {
+	Graphite
 	URL string
 }
 

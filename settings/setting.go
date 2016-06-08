@@ -20,6 +20,7 @@ type SettingType interface {
 }
 
 type Setting interface {
+	SettingType
 	Validate() []string
 	SettingType() SettingType
 }

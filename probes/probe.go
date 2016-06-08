@@ -20,6 +20,7 @@ type ProbeType interface {
 }
 
 type Probe interface {
+	ProbeType
 	Serialize() (string, error)
 	Type() ProbeType
 	Validate() []string

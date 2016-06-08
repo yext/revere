@@ -5,6 +5,7 @@ import "encoding/json"
 type OutgoingEmail struct{}
 
 type OutgoingEmailSetting struct {
+	OutgoingEmail
 	FromName          string
 	FromEmail         string
 	SubjectLinePrefix string
