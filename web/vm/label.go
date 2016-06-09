@@ -102,6 +102,10 @@ func (l *Label) Validate(db *db.DB) (errs []string) {
 	return
 }
 
+func (l *Label) Create() bool {
+	return l.Id() == 0
+}
+
 func (l *Label) Save(tx *db.DB) error {
 	label := l.toDBLabel()
 

@@ -4,12 +4,16 @@ type Component interface {
 	Id() int64
 }
 
+type CreatableComponent interface {
+	Create() bool
+}
+
 type DeletableComponent interface {
 	Del() bool
 }
 
-func isCreate(c Component) bool {
-	return c.Id() == 0
+func isCreate(c CreatableComponent) bool {
+	return c.Create()
 }
 
 func isDelete(c DeletableComponent) bool {

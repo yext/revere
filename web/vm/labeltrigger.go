@@ -34,7 +34,15 @@ func BlankLabelTriggers() []LabelTrigger {
 	return []LabelTrigger{}
 }
 
-func (lt *LabelTrigger) Del() {
+func (lt *LabelTrigger) Id() db.TriggerID {
+	return lt.TriggerID
+}
+
+func (lt *LabelTrigger) Create() bool {
+	return lt.Id() == 0
+}
+
+func (lt *LabelTrigger) Del() bool {
 	return lt.Delete
 }
 

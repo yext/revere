@@ -63,6 +63,10 @@ func AllSilences(db *sql.DB) ([]*Silence, error) {
 	return silences, nil
 }
 
+func (s *Silence) Create() bool {
+	return s.Id() == 0
+}
+
 func (s *Silence) Validate(db *sql.DB) (errs []string) {
 	errs = append(errs, s.validate()...)
 	if s.isCreate() {

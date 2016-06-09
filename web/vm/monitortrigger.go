@@ -52,6 +52,18 @@ func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
 	return
 }
 
+func (mt *MonitorTrigger) Id() db.TriggerID {
+	return mt.TriggerID
+}
+
+func (mt *MonitorTrigger) Create() bool {
+	return mt.Id() == 0
+}
+
+func (mt *MonitorTrigger) Del() bool {
+	return mt.Delete
+}
+
 func (mt *MonitorTrigger) save(tx *db.Tx, id db.MonitorID) error {
 	trigger, err := mt.Trigger.toDBTrigger()
 	if err != nil {

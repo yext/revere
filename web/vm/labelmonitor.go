@@ -11,6 +11,7 @@ type LabelMonitor struct {
 	Monitor   *Monitor
 	LabelID   db.LabelID
 	Subprobes string
+	Create    bool
 	Delete    bool
 }
 
@@ -41,7 +42,11 @@ func blankLabelMonitors() []LabelMonitor {
 	return []LabelMonitor{}
 }
 
-func (lm *LabelMonitor) Del() {
+func (lm *LabelMonitor) Create() bool {
+	return lm.Create
+}
+
+func (lm *LabelMonitor) Del() bool {
 	return lm.Delete
 }
 
