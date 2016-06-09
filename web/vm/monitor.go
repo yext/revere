@@ -1,62 +1,61 @@
 package vm
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/juju/errors"
-	"github.com/yext/revere"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 )
 
 type Monitor struct {
-	MonitorId   revere.MonitorID
+	MonitorID   db.MonitorID
 	Name        string
 	Owner       string
 	Description string
 	Response    string
-	ProbeType   probes.ProbeTypeId
+	ProbeType   db.ProbeType
 	ProbeParams string
 	Changed     time.Time
 	Version     int32
-	Archived    *time.Time
-	Probe       probes.Probe
-	Triggers    []*MonitorTrigger
-	Labels      []*MonitorLabel
+	// TODO(fchen): changed and Archived need to match
+	Archived *time.Time
+	Probe    probes.Probe
+	Triggers []*MonitorTrigger
+	Labels   []*MonitorLabel
 }
 
 func (m *Monitor) Id() int64 {
-	return int64(m.MonitorId)
+	return int64(m.MonitorID)
 }
 
-func NewMonitor(db *sql.DB, id revere.MonitorID) (*Monitor, error) {
-	monitor, err := revere.LoadMonitor(db, id)
+func NewMonitor(tx *db.Tx, id db.MonitorID) (*Monitor, error) {
+	monitor, err := tx.LoadMonitor(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 	if monitor == nil {
 		return nil, fmt.Errorf("Monitor not found: %d", id)
 	}
 
-	m, err := newMonitorFromModel(monitor)
+	m, err := newMonitorFromDB(monitor)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	err := m.loadComponents(db)
+	err := m.loadComponents(tx)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return m, nil
 }
 
-func newMonitorFromModel(monitor *revere.Monitor) (*Monitor, error) {
+func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
 	var err error
 	m := &Monitor{
-		MonitorId:   monitor.MonitorId,
+		MonitorID:   monitor.MonitorID,
 		Name:        monitor.Name,
 		Owner:       monitor.Owner,
 		Description: monitor.Description,
@@ -72,79 +71,75 @@ func newMonitorFromModel(monitor *revere.Monitor) (*Monitor, error) {
 	}
 	m.Probe, err = probes.LoadFromDb(monitor.ProbeType, monitor.ProbeJson)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return m, nil
 }
 
-func newMonitorsFromModels(monitors []*revere.Monitor) []*Monitor {
+func newMonitorsFromDB(monitors []*db.Monitor) []*Monitor {
 	ms := make([]*Monitor, len(monitors))
 	for i, monitor := range monitors {
-		ms[i] = newMonitorFromModel(monitor)
+		ms[i] = newMonitorFromDB(monitor)
 	}
 	return ms
 }
 
-func BlankMonitor(db *sql.DB) (*Monitor, error) {
-	var err error
+func BlankMonitor() *Monitor {
 	m := &Monitor{}
 	m.Triggers = blankMonitorTriggers()
 	m.Labels = blankMonitorLabels()
-	if err != nil {
-		return nil, err
-	}
 	m.Probe = probes.Default()
 
-	return m, nil
+	return m
 }
 
-func AllMonitors(db *sql.DB) ([]*Monitor, error) {
-	monitors, err := revere.LoadMonitors(db)
+func AllMonitors(tx *db.Tx) ([]*Monitor, error) {
+	monitors, err := tx.LoadMonitors()
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	return newMonitorsFromModels(monitors), nil
+	return newMonitorsFromDB(monitors), nil
 }
 
-func AllMonitorsForLabel(db *sql.DB, labelId revere.LabelID) ([]*Monitor, error) {
-	monitors, err := revere.LoadMonitorsForLabel(db, labelId)
+func AllMonitorsForLabel(tx *db.Tx, labelID db.LabelID) ([]*Monitor, error) {
+	monitors, err := tx.LoadMonitorsWithLabel(labelID)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	return newMonitorsFromModels(monitors), nil
+	return newMonitorsFromDB(monitors), nil
 }
 
-func PopulateLabelsForMonitors(db *sql.DB, monitors []*Monitor) error {
-	mIds := make([]revere.MonitorID, len(monitors))
+func PopulateLabelsForMonitors(tx *db.Tx, monitors []*Monitor) error {
+	mIDs := make([]db.MonitorID, len(monitors))
 	for i, m := range monitors {
-		mIds[i] = m.MonitorId
+		mIDs[i] = m.MonitorID
 	}
 
-	mls, err := allMonitorLabels(db, mIds)
+	mls, err := allMonitorLabels(tx, mIDs)
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
 
 	for _, m := range monitors {
-		m.Labels = mls[m.MonitorId]
+		m.Labels = mls[m.MonitorID]
 	}
 	return nil
 }
 
 func (m *Monitor) loadComponents(tx *db.Tx) error {
 	var err error
-	m.Triggers, err = newMonitorTriggers(tx, m.MonitorId)
+	m.Triggers, err = newMonitorTriggers(tx, m.MonitorID)
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
-	m.Labels, err = NewMonitorLabels(tx, m.MonitorId)
-	return err
+	m.Labels, err = newMonitorLabels(tx, m.MonitorID)
+	return errors.Trace(err)
 }
 
-func (m *Monitor) Validate(db *sql.DB) (errs []string) {
+func (m *Monitor) Validate(db *db.DB) (errs []string) {
 	if m.Name == "" {
 		errs = append(errs, fmt.Sprintf("Monitor name is required"))
 	}
@@ -157,79 +152,70 @@ func (m *Monitor) Validate(db *sql.DB) (errs []string) {
 	errs = append(errs, m.Probe.Validate()...)
 
 	for _, mt := range m.Triggers {
-		errs = append(errs, mt.Validate()...)
+		errs = append(errs, mt.validate()...)
 	}
 
+	// TODO(fchen): rethink validation between Monitors and MonitorLabels
 	for _, ml := range m.Labels {
-		errs = append(errs, ml.Validate(db)...)
+		errs = append(errs, ml.validate(db)...)
 	}
 	return
 }
 
-func (m *Monitor) Save(tx *sql.Tx) error {
+func (m *Monitor) Save(tx *db.Tx) error {
 	var err error
 	m.Probe, err = probes.LoadFromParams(m.ProbeType, m.ProbeParams)
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
-	probeJson, err := m.Probe.Serialize()
+	monitor, err := m.toDBMonitor()
 	if err != nil {
-		return err
-	}
-	monitor := &revere.Monitor{
-		m.MonitorId,
-		m.Name,
-		m.Owner,
-		m.Description,
-		m.Response,
-		m.ProbeType,
-		probeJson,
-		m.Changed,
-		m.Version,
-		m.Archived,
+		return errors.Trace(err)
 	}
 
 	if isCreate(m) {
-		m.MonitorId, err = monitor.create(tx)
+		m.MonitorID, err = tx.CreateMonitor(monitor)
 	} else {
-		err = monitor.update(tx)
+		err = tx.UpdateMonitor(monitor)
 	}
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
 
 	for _, t := range m.Triggers {
-		err = t.save(tx, m.MonitorId)
+		err = t.save(tx)
 		if err != nil {
-			return err
+			return errors.Trace(err)
 		}
 	}
 
 	for _, l := range m.Labels {
-		err = l.save(tx, m.MonitorId)
+		err = l.save(tx)
 		if err != nil {
-			return err
+			return errors.Trace(err)
 		}
 	}
 	return nil
 }
 
 func (m *Monitor) toDBMonitor() (*db.Monitor, error) {
-	probeJSON, err := t.Probe.Serialize()
+	probeJSON, err := m.Probe.Serialize()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 
 	return &db.Monitor{
-		MonitorID:   db.MonitorID(m.MonitorId),
+		MonitorID:   m.MonitorId,
 		Name:        m.Name,
 		Owner:       m.Owner,
 		Description: m.Description,
 		Response:    m.Response,
-		ProbeType:   db.ProbeType(m.ProbeType),
-		Probe:       probeJSON,
-		Changed:     m.Changed,
-		Version:     m.Version,
-		Archived:    m.Archived,
+		ProbeType:   m.ProbeType,
+		// TODO(fchen): probably wont compile as Probe.Serialize() returns a string
+		// but db.Monitor.Probe expects types.JSONText
+		Probe:    probeJSON,
+		Changed:  m.Changed,
+		Version:  m.Version,
+		Archived: m.Archived,
 	}, nil
 }
