@@ -25,9 +25,9 @@ func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]LabelMonitor, error) {
 		return nil, errors.Trace(err)
 	}
 
-	lms := make([]LabelMonitor, len(labelMonitors))
+	lms := make([]*LabelMonitor, len(labelMonitors))
 	for i, labelMonitor := range labelMonitors {
-		lms[i].Monitor, err = newMonitorFromModel(labelMonitor.Monitor)
+		lms[i].Monitor, err = newMonitorFromDB(labelMonitor.Monitor)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
@@ -35,7 +35,7 @@ func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]LabelMonitor, error) {
 		lms[i].Subprobes = labelMonitor.Subprobes
 	}
 
-	return lms
+	return lms, nil
 }
 
 func blankLabelMonitors() []LabelMonitor {
@@ -65,7 +65,7 @@ func (lm *LabelMonitor) save(tx *db.Tx, id db.LabelID) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	labelMonitor := &db.LabelMonitor{
+	labelMonitor := db.LabelMonitor{
 		LabelID:   lm.LabelID,
 		Subprobes: lm.Subprobes,
 		Monitor:   monitor,
