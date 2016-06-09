@@ -1,88 +1,111 @@
 package vm
 
 import (
-	"database/sql"
 	"fmt"
 	"regexp"
+	"time"
 
-	"github.com/yext/revere"
+	"github.com/yext/revere/db"
+	"github.com/yext/revere/state"
 )
 
+type SubprobeStatus struct {
+	SubprobeID   db.SubprobeID
+	Recorded     time.Time
+	State        state.State
+	Silenced     bool
+	EnteredState time.Time
+	LastNormal   time.Time
+}
+
 type Subprobe struct {
-	*revere.Subprobe
+	SubprobeID  db.SubprobeID
+	MonitorID   db.MonitorID
+	MonitorName string
+	Name        string
+	Archived    *time.Time
+	Status      SubprobeStatus
 }
 
 func (s *Subprobe) Id() int64 {
-	return int64(s.Subprobe.SubprobeId)
+	return int64(s.SubprobeID)
 }
 
-func NewSubprobe(db *sql.DB, id revere.SubprobeID) (*Subprobe, error) {
-	s, err := revere.LoadSubprobe(db, id)
+func NewSubprobe(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
+	s, err := DB.LoadSubprobe(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 	if s == nil {
-		return nil, fmt.Errorf("Subprobe not found: %d", id)
+		return nil, errors.Errorf("Subprobe not found: %d", id)
 	}
 
 	return newSubprobeFromModel(db, s), nil
 }
 
-func newSubprobeFromModel(db *sql.DB, s *revere.Subprobe) *Subprobe {
-	viewmodel := new(Subprobe)
-	viewmodel.Subprobe = s
-
-	return viewmodel
+func newSubprobeFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
+	subprobeStatus := SubprobeStatus{
+		SubprobeID:   s.SubprobeID,
+		Recorded:     s.Recorded,
+		State:        s.State,
+		Silenced:     s.Silenced,
+		EnteredState: s.EnteredState,
+		LastNormal:   s.LastNormal,
+	}
+	return &Subprobe{
+		SubprobeID:  s.SubprobeID,
+		MonitorID:   s.MonitorID,
+		MonitorName: s.MonitorName,
+		Archived:    s.Archived,
+		Status:      subprobeStatus,
+	}
 }
 
-func newSubprobesFromModel(db *sql.DB, ss []*revere.Subprobe) []*Subprobe {
+func newSubprobesFromModel(ss []*db.Subprobe) []*Subprobe {
 	subprobes := make([]*Subprobe, len(ss))
 	for i, s := range ss {
-		subprobes[i] = newSubprobeFromModel(db, s)
+		subprobes[i] = newSubprobeFromModel(s)
 	}
 	return subprobes
 }
 
-func BlankSubprobe(db *sql.DB) *Subprobe {
-	viewmodel := new(Subprobe)
-	viewmodel.Subprobe = new(revere.Subprobe)
-
-	return viewmodel
+func BlankSubprobe() *Subprobe {
+	return &Subprobe{}
 }
 
-func AllSubprobesFromMonitor(db *sql.DB, id revere.MonitorID) ([]*Subprobe, error) {
-	ss, err := revere.LoadSubprobesByName(db, id)
+func AllSubprobesFromMonitor(tx *db.Tx, id db.MonitorID) ([]*Subprobe, error) {
+	ss, err := tx.LoadSubprobesByName(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return newSubprobesFromModel(db, ss), nil
+	return newSubprobesFromModel(ss), nil
 }
 
-func AllAbnormalSubprobes(db *sql.DB) ([]*Subprobe, error) {
-	ss, err := revere.LoadSubprobesBySeverity(db)
+func AllAbnormalSubprobes(tx *db.Tx) ([]*Subprobe, error) {
+	ss, err := tx.LoadSubprobesBySeverity()
 	if err != nil {
 		return nil, err
 	}
 
-	return newSubprobesFromModel(db, ss), nil
+	return newSubprobesFromModel(ss), nil
 }
 
-func AllAbnormalSubprobesForLabel(db *sql.DB, id revere.LabelID) ([]*Subprobe, error) {
-	ss, err := revere.LoadSubprobesBySeverityForLabel(db, id)
+func AllAbnormalSubprobesForLabel(tx *db.Tx, id db.LabelID) ([]*Subprobe, error) {
+	ss, err := tx.LoadSubprobesBySeverityForLabel(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return newSubprobesFromModel(db, ss), nil
+	return newSubprobesFromModel(ss), nil
 }
 
-func AllMonitorLabelsForSubprobes(db *sql.DB, subprobes []*Subprobe) (map[revere.MonitorID][]*MonitorLabel, error) {
-	mIds := make([]revere.MonitorID, len(subprobes))
+func AllMonitorLabelsForSubprobes(subprobes []*Subprobe) (map[db.MonitorID][]*MonitorLabel, error) {
+	mIds := make([]db.MonitorID, len(subprobes))
 	for i, subprobe := range subprobes {
-		mIds[i] = subprobe.MonitorId
+		mIds[i] = subprobe.MonitorID
 	}
-	return allMonitorLabels(db, mIds)
+	return allMonitorLabels(mIds)
 }
 
 //TODO(fchen): maybe find this a better home
