@@ -1,19 +1,19 @@
 package vm
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/yext/revere"
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/util"
 )
 
 type Silence struct {
-	SilenceId   revere.SilenceID
-	MonitorId   revere.MonitorID
 	MonitorName string
-	Subprobe    string
+	SilenceID   db.SilenceID
+	MonitorID   db.MonitorID
+	Subprobes   string
 	Start       time.Time
 	End         time.Time
 }
@@ -24,57 +24,62 @@ const (
 )
 
 func (s *Silence) Id() int64 {
-	return int64(s.SilenceId)
+	return int64(s.SilenceID)
 }
 
-func NewSilence(db *sql.DB, id revere.SilenceID) (*Silence, error) {
-	silence, err := revere.LoadSilence(db, id)
+func NewSilence(db *db.DB, id db.SilenceID) (*Silence, error) {
+	monitorSilence, err := db.LoadMonitorSilence(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
-	if silence == nil {
+	if monitorSilence == nil {
 		return nil, fmt.Errorf("Error loading silence with id: %d", id)
 	}
 
-	return newSilence(silence), nil
+	return newSilenceFromDB(monitorSilence), nil
 }
 
-func BlankSilence(db *sql.DB) (*Silence, error) {
-	silence := new(revere.Silence)
-
-	return newSilence(silence), nil
+func BlankSilence() *Silence {
+	return &Silence{}
 }
 
-func newSilence(s *revere.Silence) *Silence {
-	return &Silence{s.SilenceId, s.MonitorId, s.MonitorName, s.Subprobe, s.Start, s.End}
+func newSilenceFromDB(monitorSilence *db.MonitorSilence) *Silence {
+	return &Silence{
+		MonitorName: monitorSilence.MonitorName,
+		SilenceID:   monitorSilence.SilenceID,
+		MonitorID:   monitorSilence.MonitorID,
+		Subprobes:   monitorSilence.Subprobes,
+		Start:       monitorSilence.Start,
+		End:         monitorSilence.End,
+	}
 }
 
-func AllSilences(db *sql.DB) ([]*Silence, error) {
-	revereSilences, err := revere.LoadSilences(db)
+func AllSilences(tx *db.Tx) ([]*Silence, error) {
+	monitorSilences, err := tx.LoadMonitorSilences()
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	silences := make([]*Silence, len(revereSilences))
-	for i, revereSilence := range revereSilences {
-		silences[i] = newSilence(revereSilence)
+	ss := make([]*Silence, len(monitorSilences))
+	for i, monitorSilence := range monitorSilences {
+		ss[i] = newSilenceFromDB(monitorSilence)
 	}
 
-	return silences, nil
+	return ss, nil
 }
 
 func (s *Silence) Create() bool {
 	return s.Id() == 0
 }
 
-func (s *Silence) Validate(db *sql.DB) (errs []string) {
+func (s *Silence) Validate(db *db.DB) (errs []string) {
 	errs = append(errs, s.validate()...)
 	if s.isCreate() {
 		errs = append(errs, s.validateNew()...)
 	} else {
-		old, err := NewSilence(db, s.SilenceId)
+		old, err := NewSilence(db, s.SilenceID)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("Unable to load original silence with id %d", s.SilenceId))
+			errs = append(errs, fmt.Sprintf("Unable to load original silence with id %d", s.SilenceID))
 		}
 		errs = append(errs, s.validateOld(old)...)
 	}
@@ -95,7 +100,7 @@ func (s *Silence) validate() (errs []string) {
 }
 
 func (s *Silence) validateNew() (errs []string) {
-	if s.MonitorId == 0 {
+	if s.MonitorID == 0 {
 		errs = append(errs, "Monitor id must be provided.")
 	}
 
@@ -107,7 +112,7 @@ func (s *Silence) validateNew() (errs []string) {
 }
 
 func (s *Silence) validateOld(old *Silence) (errs []string) {
-	if old.MonitorId != s.MonitorId {
+	if old.MonitorID != s.MonitorID {
 		errs = append(errs, "Monitor name cannot be changed. Create a new silence instead.")
 	}
 	if old.Subprobe != s.Subprobe {
@@ -137,13 +142,21 @@ func (s *Silence) Editable() bool {
 	return time.Now().Before(s.End)
 }
 
-func (s *Silence) Save(tx *sql.Tx) error {
-	silence := &revere.Silence{s.SilenceId, s.MonitorId, s.MonitorName, s.Subprobe, s.Start, s.End}
+func (s *Silence) Save(tx *db.Tx) error {
+	monitorSilence := &db.MonitorSilence{
+		MonitorName: s.MonitorName,
+		SilenceID:   s.SilenceID,
+		MonitorID:   s.MonitorID,
+		Subprobes:   s.Subprobes,
+		Start:       s.Start,
+		End:         s.End,
+	}
 	if isCreate(s) {
-		id, err := silence.Create(tx)
-		s.SilenceId = id
-		return err
+		id, err := tx.CreateMonitorSilence(monitorSilence)
+		s.SilenceID = id
+		return errors.Trace(err)
 	} else {
-		return silence.Update(tx)
+		err := tx.UpdateMonitorSilence(monitorSilence)
+		return errors.Trace(err)
 	}
 }
