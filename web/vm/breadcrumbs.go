@@ -2,8 +2,6 @@ package vm
 
 import (
 	"fmt"
-
-	"github.com/yext/revere"
 )
 
 type Breadcrumb struct {
@@ -23,8 +21,8 @@ func SubprobeIndexBcs(mn string, id int64) []Breadcrumb {
 	return append(MonitorViewBcs(mn, id), Breadcrumb{"Subprobe", fmt.Sprintf("/monitors/%d/subprobes", id)})
 }
 
-func SubprobeViewBcs(s *revere.Subprobe) []Breadcrumb {
-	return append(SubprobeIndexBcs(s.MonitorName, int64(s.MonitorId)), Breadcrumb{s.Name, fmt.Sprintf("/monitors/%d/subprobes/%d", s.MonitorId, s.SubprobeId)})
+func SubprobeViewBcs(s *Subprobe) []Breadcrumb {
+	return append(SubprobeIndexBcs(s.MonitorName, int64(s.MonitorID)), Breadcrumb{s.Name, fmt.Sprintf("/monitors/%d/subprobes/%d", s.MonitorID, s.SubprobeID)})
 }
 
 func SilencesIndexBcs() []Breadcrumb {

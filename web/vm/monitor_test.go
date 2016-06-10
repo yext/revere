@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/yext/revere/probes"

@@ -16,10 +16,10 @@ type LabelMonitor struct {
 }
 
 func (lm *LabelMonitor) Id() int64 {
-	return int64(lm.LabelMonitor.MonitorId)
+	return int64(lm.Monitor.MonitorID)
 }
 
-func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]LabelMonitor, error) {
+func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]*LabelMonitor, error) {
 	labelMonitors, err := tx.LoadMonitorsForLabel(id)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -38,7 +38,7 @@ func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]LabelMonitor, error) {
 	return lms, nil
 }
 
-func blankLabelMonitors() []LabelMonitor {
+func blankLabelMonitors() []*LabelMonitor {
 	return []LabelMonitor{}
 }
 

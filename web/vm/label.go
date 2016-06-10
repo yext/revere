@@ -30,7 +30,7 @@ func NewLabel(tx *db.Tx, id db.LabelID) (*Label, error) {
 
 	l := newLabelFromDB(label)
 
-	err := l.loadComponents(tx)
+	err = l.loadComponents(tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -56,7 +56,7 @@ func newLabelsFromDB(labels []*db.Label) []*Label {
 	return ls
 }
 
-func BlankLabel() (*Monitor, error) {
+func BlankLabel() (*Label, error) {
 	var err error
 	l := &Label{}
 	l.Triggers = blankLabelTriggers()
@@ -83,7 +83,7 @@ func (l *Label) loadComponents(tx *db.Tx) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	l.Monitors, err = NewLabelMonitors(tx, l.LabelID)
+	l.Monitors, err = newLabelMonitors(tx, l.LabelID)
 	return errors.Trace(err)
 }
 
@@ -93,7 +93,7 @@ func (l *Label) Validate(db *db.DB) (errs []string) {
 	}
 
 	for _, lt := range l.Triggers {
-		errs = append(errs, lt.validate()...)
+		errs = append(errs, lt.validate(db)...)
 	}
 
 	for _, lm := range l.Monitors {
@@ -111,9 +111,9 @@ func (l *Label) Save(tx *db.DB) error {
 
 	var err error
 	if isCreate(l) {
-		l.LabelID, err = db.CreateLabel(label)
+		l.LabelID, err = tx.CreateLabel(label)
 	} else {
-		err = db.UpdateLabel(label)
+		err = tx.UpdateLabel(label)
 	}
 	if err != nil {
 		return errors.Trace(err)

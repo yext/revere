@@ -40,7 +40,7 @@ func NewSubprobe(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
 		return nil, errors.Errorf("Subprobe not found: %d", id)
 	}
 
-	return newSubprobeFromModel(db, s), nil
+	return newSubprobeFromModel(DB, s), nil
 }
 
 func newSubprobeFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {

@@ -44,7 +44,7 @@ func (_ Graphite) loadFromDb(ds string) (DataSource, error) {
 	}
 
 	return &GraphiteDataSource{
-		g.URL,
+		URL: g.URL,
 	}, nil
 }
 

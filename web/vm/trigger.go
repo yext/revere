@@ -11,7 +11,7 @@ import (
 )
 
 type Trigger struct {
-	TriggerID     TriggerID
+	TriggerID     db.TriggerID
 	Level         string
 	Period        int64
 	PeriodType    string

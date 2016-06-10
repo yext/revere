@@ -38,10 +38,10 @@ func (OutgoingEmail) loadFromParams(s string) (Setting, error) {
 	if err != nil {
 		return nil, err
 	}
-	return oe, nil
+	return &oe, nil
 }
 
-func (OutgoingEmail) loadFromDbds(s string) (Setting, error) {
+func (OutgoingEmail) loadFromDb(s string) (Setting, error) {
 	var oe OutgoingEmailSettingDBModel
 	err := json.Unmarshal([]byte(s), &oe)
 	if err != nil {

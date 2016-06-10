@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/juju/errors"
@@ -14,11 +13,14 @@ type LabelTrigger struct {
 	Delete  bool
 }
 
-func NewLabelTriggers(db *sql.DB, id db.LabelID) ([]LabelTrigger, error) {
-	labelTriggers := db.LoadLabelTriggers(db, id)
+func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
+	var err error
+	labelTriggers, err := tx.LoadTriggersForLabel(id)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
 
 	lts := make([]LabelTrigger, len(labelTriggers))
-	var err error
 	for i, labelTrigger := range labelTriggers {
 		lts[i].Trigger, err = newTriggerFromModel(labelTrigger.Trigger)
 		if err != nil {
@@ -27,10 +29,10 @@ func NewLabelTriggers(db *sql.DB, id db.LabelID) ([]LabelTrigger, error) {
 		lts[i].LabelID = labelTrigger.LabelID
 	}
 
-	return lts
+	return lts, nil
 }
 
-func BlankLabelTriggers() []LabelTrigger {
+func blankLabelTriggers() []*LabelTrigger {
 	return []LabelTrigger{}
 }
 
@@ -54,16 +56,23 @@ func (lt *LabelTrigger) validate(db *db.DB) (errs []string) {
 	return append(errs, lt.Trigger.Validate()...)
 }
 
-func (lt *LabelTrigger) save(tx *sql.Tx, id db.LabelID) error {
-	labelTrigger := &db.LabelTrigger{lt.Trigger.toModelTrigger(), lt.Subprobe}
+func (lt *LabelTrigger) save(tx *db.Tx) error {
 	var err error
+	trigger, err := lt.Trigger.toDBTrigger()
+	if err != nil {
+		return errors.Trace(err)
+	}
+	labelTrigger := &db.LabelTrigger{
+		LabelID: lt.LabelID,
+		Trigger: trigger,
+	}
 	if isCreate(lt) {
-		id, err := labelTrigger.create(tx, id)
+		id, err := tx.CreateLabelTrigger(labelTrigger)
 		lt.Trigger.setId(id)
 	} else if isDelete(lt) {
-		err = labelTrigger.delete(tx, id)
+		err = tx.DeleteLabelTrigger(labelTrigger)
 	} else {
-		err = labelTrigger.update(tx, id)
+		err = tx.UpdateLabelTrigger(labelTrigger)
 	}
 
 	return errors.Trace(err)

@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/juju/errors"
@@ -22,8 +21,8 @@ func (r *Reading) Id() int64 {
 	return int64(r.ReadingID)
 }
 
-func AllReadingsFromSubprobe(db *sql.DB, id db.SubprobeID) ([]*Reading, error) {
-	rs, err := db.LoadReadings(db, id)
+func AllReadingsFromSubprobe(DB *db.DB, id db.SubprobeID) ([]*Reading, error) {
+	rs, err := DB.LoadReadings(id)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
