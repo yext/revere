@@ -60,7 +60,7 @@ func (ml *MonitorLabel) validate(db *db.DB) (errs []string) {
 	return
 }
 
-func (ml *MonitorLabel) save(tx *db.Tx, id db.MonitorID) error {
+func (ml *MonitorLabel) save(tx *db.Tx) error {
 	monitorLabel := &db.MonitorLabel{
 		MonitorID: ml.MonitorID,
 		Subprobes: ml.Subprobes,
