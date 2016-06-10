@@ -92,11 +92,20 @@ func loadMonitorSilence(dt dbOrTx, id SilenceID) (*MonitorSilence, error) {
 }
 
 func (db *DB) LoadMonitorSilences() ([]*MonitorSilence, error) {
+	return loadMonitorSilences(db)
+}
+
+func (tx *Tx) LoadMonitorSilences() ([]*MonitorSilence, error) {
+	return loadMonitorSilences(tx)
+}
+
+func loadMonitorSilences(dt dbOrTx) ([]*MonitorSilence, error) {
+	//TODO(fchen): maybe put LIMIT or only filter for active silences because this could return quite a few
 	var silences []*MonitorSilence
 	q := `SELECT s.*, m.name AS monitorname
 		  FROM pfx_silences s
 		  JOIN pfx_monitors m USING (monitorid)`
-	if err := db.Select(&silences, cq(db, q)); err != nil {
+	if err := dt.Select(&silences, cq(dt, q)); err != nil {
 		return nil, errors.Trace(err)
 	}
 	return silences, nil
