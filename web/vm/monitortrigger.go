@@ -37,10 +37,6 @@ func blankMonitorTriggers() []MonitorTrigger {
 	return []MonitorTrigger{}
 }
 
-func (mt *MonitorTrigger) Del() {
-	return mt.Delete
-}
-
 func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
 	if !db.IsExistingMonitor(mt.MonitorID) {
 		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", mt.MonitorID))
