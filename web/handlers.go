@@ -1,14 +1,13 @@
 package web
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 
-	"github.com/yext/revere"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/settings"
 	"github.com/yext/revere/targets"
@@ -27,41 +26,50 @@ func init() {
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("probeTypes", probes.AllTypes)
-	tmpl.AddDefaultFunc("settings", settings.AllSettingTypes)
+	tmpl.AddDefaultFunc("settings", settings.AllTypes)
 	tmpl.SetPartialsLocation(partials)
 }
 
-func ActiveIssues(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func ActiveIssues(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		var (
-			subprobes []*vm.Subprobe
-			err       error
+			err           error
+			subprobes     []*vm.Subprobe
+			monitorLabels map[db.MonitorID][]*vm.MonitorLabel
+			allLabels     []*vm.Label
 		)
 
 		l := req.FormValue("label")
-		labelId, err := strconv.Atoi(l)
-		if err != nil {
-			subprobes, err = vm.AllAbnormalSubprobes(db)
-		} else {
-			subprobes, err = vm.AllAbnormalSubprobesForLabel(db, revere.LabelID(labelId))
-		}
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
+		labelID, noLabel := strconv.Atoi(l)
 
-		monitorLabels, err := vm.AllMonitorLabelsForSubprobes(db, subprobes)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
+		err = db.Tx(func(tx *db.Tx) (err error) {
+			if noLabel != nil {
+				subprobes, err = vm.AllAbnormalSubprobes(tx)
+			} else {
+				subprobes, err = vm.AllAbnormalSubprobesForLabel(tx, db.LabelID(labelID))
+			}
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
+					http.StatusInternalServerError)
+				return error.Trace(err)
+			}
 
-		allLabels, err := vm.AllLabels(db)
+			monitorLabels, err = vm.AllMonitorLabelsForSubprobes(tx, subprobes)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
+					http.StatusInternalServerError)
+				return error.Trace(err)
+			}
+
+			allLabels, err = vm.AllLabels(tx)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
+					http.StatusInternalServerError)
+				return error.Trace(err)
+			}
+			return nil
+		})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
-				http.StatusInternalServerError)
 			return
 		}
 

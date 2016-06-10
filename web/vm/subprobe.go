@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/state"
 )
@@ -100,12 +101,12 @@ func AllAbnormalSubprobesForLabel(tx *db.Tx, id db.LabelID) ([]*Subprobe, error)
 	return newSubprobesFromModel(ss), nil
 }
 
-func AllMonitorLabelsForSubprobes(subprobes []*Subprobe) (map[db.MonitorID][]*MonitorLabel, error) {
+func AllMonitorLabelsForSubprobes(tx *db.Tx, subprobes []*Subprobe) (map[db.MonitorID][]*MonitorLabel, error) {
 	mIds := make([]db.MonitorID, len(subprobes))
 	for i, subprobe := range subprobes {
 		mIds[i] = subprobe.MonitorID
 	}
-	return allMonitorLabels(mIds)
+	return allMonitorLabels(tx, mIds)
 }
 
 //TODO(fchen): maybe find this a better home
