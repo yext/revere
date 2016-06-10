@@ -106,7 +106,7 @@ func (l *Label) Create() bool {
 	return l.Id() == 0
 }
 
-func (l *Label) Save(tx *db.DB) error {
+func (l *Label) Save(tx *db.Tx) error {
 	label := l.toDBLabel()
 
 	var err error
