@@ -45,6 +45,37 @@ type MonitorVersionInfo struct {
 	Archived  *time.Time
 }
 
+func (tx *Tx) CreateMonitor(m *Monitor) (MonitorID, error) {
+	q := `INSERT INTO pfx_monitors (name, owner, description, response, probetype, probe, changed, version, archived)
+		VALUES (:name, :owner, :description, :response, :probetype, :probe, :changed, :version, :archived)`
+	result, err := tx.NamedExec(cq(tx, q), m)
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+	return MonitorID(id), nil
+}
+
+func (tx *Tx) UpdateMonitor(m *Monitor) error {
+	q := `UPDATE pfx_monitors
+	      SET name=:name,
+	          owner=:owner
+	          description=:description
+	          response=:response
+	          probetype=:probetype
+	          probe=:probe
+	          changed=:changed
+	          version=:version
+	          archived=:archived
+	      WHERE monitorid=:monitorid`
+	_, err := tx.NamedExec(cq(tx, q), m)
+	return errors.Trace(err)
+}
+
 func (db *DB) LoadMonitorVersionInfosUpdatedSince(t time.Time) ([]MonitorVersionInfo, error) {
 	var infos []MonitorVersionInfo
 	var err error
@@ -227,6 +258,14 @@ func (tx *Tx) UpdateMonitorLabel(ml MonitorLabel) error {
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_labels_monitors
 	      SET subprobe=:subprobe
+	      WHERE labelid=:labelid AND monitorid=:monitorid`
+	_, err := tx.NamedExec(cq(tx, q), ml)
+	return errors.Trace(err)
+}
+
+func (tx *Tx) DeleteMonitorLabel(ml MonitorLabel) error {
+	// TODO(psingh): Change field to subprobe once done renaming field
+	q := `DELETE FROM pfx_labels_monitors
 	      WHERE labelid=:labelid AND monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), ml)
 	return errors.Trace(err)
