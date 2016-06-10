@@ -44,7 +44,7 @@ func NewMonitor(tx *db.Tx, id db.MonitorID) (*Monitor, error) {
 		return nil, errors.Trace(err)
 	}
 
-	err := m.loadComponents(tx)
+	err = m.loadComponents(tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
