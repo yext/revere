@@ -64,7 +64,7 @@ func (mt *MonitorTrigger) Del() bool {
 	return mt.Delete
 }
 
-func (mt *MonitorTrigger) save(tx *db.Tx, id db.MonitorID) error {
+func (mt *MonitorTrigger) save(tx *db.Tx) error {
 	trigger, err := mt.Trigger.toDBTrigger()
 	if err != nil {
 		return errors.Trace(err)
