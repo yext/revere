@@ -18,7 +18,7 @@ type Trigger struct {
 	TargetType    db.TargetType
 	TargetParams  string
 	TriggerOnExit bool
-	Target        *Target
+	Target        *targets.Target
 }
 
 func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
