@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
@@ -24,6 +25,10 @@ type Monitor struct {
 	Probe    probes.Probe
 	Triggers []*MonitorTrigger
 	Labels   []*MonitorLabel
+}
+
+func (m *Monitor) Create() bool {
+	return m.Id() == 0
 }
 
 func (m *Monitor) Id() int64 {
@@ -61,7 +66,7 @@ func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
 		Description: monitor.Description,
 		Response:    monitor.Response,
 		ProbeType:   monitor.ProbeType,
-		ProbeParams: nil,
+		ProbeParams: "",
 		Changed:     monitor.Changed,
 		Version:     monitor.Version,
 		Archived:    monitor.Archived,
@@ -69,7 +74,7 @@ func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
 		Triggers:    nil,
 		Labels:      nil,
 	}
-	m.Probe, err = probes.LoadFromDb(monitor.ProbeType, monitor.ProbeJson)
+	m.Probe, err = probes.LoadFromDB(monitor.ProbeType, string(monitor.Probe))
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -77,21 +82,26 @@ func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
 	return m, nil
 }
 
-func newMonitorsFromDB(monitors []*db.Monitor) []*Monitor {
+func newMonitorsFromDB(monitors []*db.Monitor) ([]*Monitor, error) {
+	var err error
 	ms := make([]*Monitor, len(monitors))
 	for i, monitor := range monitors {
-		ms[i] = newMonitorFromDB(monitor)
+		ms[i], err = newMonitorFromDB(monitor)
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
 	}
-	return ms
+	return ms, nil
 }
 
-func BlankMonitor() *Monitor {
+func BlankMonitor() (*Monitor, error) {
+	var err error
 	m := &Monitor{}
 	m.Triggers = blankMonitorTriggers()
 	m.Labels = blankMonitorLabels()
-	m.Probe = probes.Default()
+	m.Probe, err = probes.Default()
 
-	return m
+	return m, errors.Trace(err)
 }
 
 func AllMonitors(tx *db.Tx) ([]*Monitor, error) {
@@ -100,16 +110,26 @@ func AllMonitors(tx *db.Tx) ([]*Monitor, error) {
 		return nil, errors.Trace(err)
 	}
 
-	return newMonitorsFromDB(monitors), nil
-}
-
-func AllMonitorsForLabel(tx *db.Tx, labelID db.LabelID) ([]*Monitor, error) {
-	monitors, err := tx.LoadMonitorsWithLabel(labelID)
+	dbMonitors, err := newMonitorsFromDB(monitors)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	return newMonitorsFromDB(monitors), nil
+	return dbMonitors, nil
+}
+
+func AllMonitorsForLabel(tx *db.Tx, labelID db.LabelID) ([]*Monitor, error) {
+	DBMonitors, err := tx.LoadMonitorsWithLabel(labelID)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	monitors, err := newMonitorsFromDB(DBMonitors)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	return monitors, nil
 }
 
 func PopulateLabelsForMonitors(tx *db.Tx, monitors []*Monitor) error {
@@ -139,7 +159,7 @@ func (m *Monitor) loadComponents(tx *db.Tx) error {
 	return errors.Trace(err)
 }
 
-func (m *Monitor) Validate(db *db.DB) (errs []string) {
+func (m *Monitor) Validate(DB *db.DB) (errs []string) {
 	if m.Name == "" {
 		errs = append(errs, fmt.Sprintf("Monitor name is required"))
 	}
@@ -152,12 +172,12 @@ func (m *Monitor) Validate(db *db.DB) (errs []string) {
 	errs = append(errs, m.Probe.Validate()...)
 
 	for _, mt := range m.Triggers {
-		errs = append(errs, mt.validate()...)
+		errs = append(errs, mt.validate(DB)...)
 	}
 
 	// TODO(fchen): rethink validation between Monitors and MonitorLabels
 	for _, ml := range m.Labels {
-		errs = append(errs, ml.validate(db)...)
+		errs = append(errs, ml.validate(DB)...)
 	}
 	return
 }
@@ -205,7 +225,7 @@ func (m *Monitor) toDBMonitor() (*db.Monitor, error) {
 	}
 
 	return &db.Monitor{
-		MonitorID:   m.MonitorId,
+		MonitorID:   m.MonitorID,
 		Name:        m.Name,
 		Owner:       m.Owner,
 		Description: m.Description,
@@ -213,7 +233,7 @@ func (m *Monitor) toDBMonitor() (*db.Monitor, error) {
 		ProbeType:   m.ProbeType,
 		// TODO(fchen): probably wont compile as Probe.Serialize() returns a string
 		// but db.Monitor.Probe expects types.JSONText
-		Probe:    probeJSON,
+		Probe:    types.JSONText(probeJSON),
 		Changed:  m.Changed,
 		Version:  m.Version,
 		Archived: m.Archived,

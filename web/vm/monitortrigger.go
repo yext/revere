@@ -14,13 +14,13 @@ type MonitorTrigger struct {
 	Delete    bool
 }
 
-func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]MonitorTrigger, error) {
+func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]*MonitorTrigger, error) {
 	monitorTriggers, err := tx.LoadTriggersForMonitor(id)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	mts := make([]MonitorTrigger, len(monitorTriggers))
+	mts := make([]*MonitorTrigger, len(monitorTriggers))
 	for i, monitorTrigger := range monitorTriggers {
 		mts[i].Trigger, err = newTriggerFromModel(monitorTrigger.Trigger)
 		if err != nil {
@@ -33,8 +33,8 @@ func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]MonitorTrigger, error) {
 	return mts
 }
 
-func blankMonitorTriggers() []MonitorTrigger {
-	return []MonitorTrigger{}
+func blankMonitorTriggers() []*MonitorTrigger {
+	return []*MonitorTrigger{}
 }
 
 func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {

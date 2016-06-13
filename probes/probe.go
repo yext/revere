@@ -4,12 +4,11 @@ import (
 	"fmt"
 
 	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/db"
 )
 
-type ProbeTypeId int16
-
 type ProbeType interface {
-	Id() ProbeTypeId
+	Id() db.ProbeType
 	Name() string
 	loadFromParams(probe string) (Probe, error)
 	loadFromDb(probe string) (Probe, error)
@@ -31,8 +30,8 @@ const (
 )
 
 var (
-	types       map[ProbeTypeId]ProbeType = make(map[ProbeTypeId]ProbeType)
-	defaultType                           = GraphiteThreshold{}
+	types       map[db.ProbeType]ProbeType = make(map[db.ProbeType]ProbeType)
+	defaultType                            = GraphiteThreshold{}
 )
 
 func Default() (Probe, error) {
@@ -44,7 +43,7 @@ func Default() (Probe, error) {
 	return probe, nil
 }
 
-func LoadFromParams(id ProbeTypeId, probeParams string) (Probe, error) {
+func LoadFromParams(id db.ProbeType, probeParams string) (Probe, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -53,7 +52,7 @@ func LoadFromParams(id ProbeTypeId, probeParams string) (Probe, error) {
 	return probeType.loadFromParams(probeParams)
 }
 
-func LoadFromDb(id ProbeTypeId, probeJson string) (Probe, error) {
+func LoadFromDB(id db.ProbeType, probeJson string) (Probe, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -62,16 +61,15 @@ func LoadFromDb(id ProbeTypeId, probeJson string) (Probe, error) {
 	return probeType.loadFromDb(probeJson)
 }
 
-func Blank(id ProbeTypeId) (Probe, error) {
+func Blank(id db.ProbeType) (Probe, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
 	}
-
 	return probeType.blank()
 }
 
-func getType(id ProbeTypeId) (ProbeType, error) {
+func getType(id db.ProbeType) (ProbeType, error) {
 	probeType, ok := types[id]
 	if !ok {
 		return nil, fmt.Errorf("No probe type with id %d exists", id)

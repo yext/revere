@@ -35,8 +35,8 @@ func newMonitorLabels(tx *db.Tx, id db.MonitorID) ([]*MonitorLabel, error) {
 	return mls, nil
 }
 
-func blankMonitorLabels() []MonitorLabel {
-	return []MonitorLabel{}
+func blankMonitorLabels() []*MonitorLabel {
+	return []*MonitorLabel{}
 }
 
 func (ml *MonitorLabel) Create() bool {

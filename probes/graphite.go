@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/probe"
 	"github.com/yext/revere/util"
 )
@@ -44,7 +45,7 @@ func init() {
 	addProbeType(GraphiteThreshold{})
 }
 
-func (GraphiteThreshold) Id() ProbeTypeId {
+func (GraphiteThreshold) Id() db.ProbeType {
 	return 1
 }
 
