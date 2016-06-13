@@ -1,22 +1,27 @@
 package web
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/yext/revere"
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func SilencesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		silences, err := vm.AllSilences(db)
+		var silences []*vm.Silence
+		err := DB.Tx(func(tx *db.Tx) error {
+			var err error
+			silences, err = vm.AllSilences(tx)
+			return errors.Trace(err)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silences: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -33,7 +38,7 @@ func SilencesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ 
 	}
 }
 
-func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SilencesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		if id == "new" {
@@ -41,7 +46,7 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		silence, err := loadSilenceViewModel(db, id)
+		silence, err := loadSilenceViewModel(DB, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -59,7 +64,7 @@ func SilencesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	}
 }
 
-func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SilencesEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		if id == "" {
@@ -67,14 +72,21 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		silence, err := loadSilenceViewModel(db, id)
+		silence, err := loadSilenceViewModel(DB, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		allMonitors, err := vm.AllMonitors(db)
+		// TODO(fchen): consider making single silence load take a tx, or dbOrTx?
+
+		var allMonitors []*vm.Monitor
+		err := DB.Tx(func(tx *db.Tx) error {
+			var err error
+			allMonitors, err = vm.AllMonitors(tx)
+			return errors.Trace(err)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -92,7 +104,7 @@ func SilencesEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	}
 }
 
-func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		var s *vm.Silence
 		err := json.NewDecoder(req.Body).Decode(&s)
@@ -102,13 +114,13 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		errs := s.Validate(db)
+		errs := s.Validate(DB)
 		if len(errs) > 0 {
 			writeJsonResponse(w, "save silence", map[string]interface{}{"errors": errs})
 			return
 		}
 
-		err = revere.Transact(db, func(tx *sql.Tx) error {
+		err = DB.Tx(func(tx *db.Tx) error {
 			return s.Save(tx)
 		})
 		if err != nil {
@@ -120,11 +132,11 @@ func SilencesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p h
 	}
 }
 
-func loadSilenceViewModel(db *sql.DB, unparsedId string) (*vm.Silence, error) {
+func loadSilenceViewModel(DB *db.DB, unparsedId string) (*vm.Silence, error) {
 	if unparsedId == "new" {
-		viewmodel, err := vm.BlankSilence(db)
+		viewmodel, err := vm.BlankSilence()
 		if err != nil {
-			return nil, err
+			return nil, errors.Trace(err)
 		}
 
 		return viewmodel, nil
@@ -132,12 +144,12 @@ func loadSilenceViewModel(db *sql.DB, unparsedId string) (*vm.Silence, error) {
 
 	id, err := strconv.Atoi(unparsedId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	viewmodel, err := vm.NewSilence(db, revere.SilenceID(id))
+	viewmodel, err := vm.NewSilence(DB, db.SilenceID(id))
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return viewmodel, nil
