@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/settings"
@@ -40,37 +41,40 @@ func ActiveIssues(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 		)
 
 		l := req.FormValue("label")
-		labelID, noLabel := strconv.Atoi(l)
+		labelID, err := strconv.Atoi(l)
+		labelUsed := err == nil
 
-		err = db.Tx(func(tx *db.Tx) (err error) {
-			if noLabel != nil {
-				subprobes, err = vm.AllAbnormalSubprobes(tx)
-			} else {
+		err = DB.Tx(func(tx *db.Tx) (err error) {
+			if labelUsed {
 				subprobes, err = vm.AllAbnormalSubprobesForLabel(tx, db.LabelID(labelID))
+			} else {
+				subprobes, err = vm.AllAbnormalSubprobes(tx)
 			}
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 					http.StatusInternalServerError)
-				return error.Trace(err)
+				return errors.Trace(err)
 			}
 
 			monitorLabels, err = vm.AllMonitorLabelsForSubprobes(tx, subprobes)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 					http.StatusInternalServerError)
-				return error.Trace(err)
+				return errors.Trace(err)
 			}
 
 			allLabels, err = vm.AllLabels(tx)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 					http.StatusInternalServerError)
-				return error.Trace(err)
+				return errors.Trace(err)
 			}
 			return nil
 		})
 		if err != nil {
-			return
+			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
+				http.StatusInternalServerError)
+			return errors.Trace(err)
 		}
 
 		renderable := renderables.NewActiveIssues(subprobes, allLabels, monitorLabels)
@@ -78,8 +82,10 @@ func ActiveIssues(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 				http.StatusInternalServerError)
-			return
+			return errors.Trace(err)
 		}
+
+		return nil
 	}
 }
 
