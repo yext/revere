@@ -22,7 +22,7 @@ func LoadProbeTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Request,
 			return
 		}
 
-		probe, err := vm.BlankProbe(db, probes.ProbeTypeId(pt))
+		probe, err := probes.Blank(db.ProbeType(pt))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -56,7 +56,7 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 		return
 	}
 
-	target, err := vm.BlankTarget(targets.TargetTypeId(tt))
+	target, err := targets.Blank(db.TargetType(tt))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)
