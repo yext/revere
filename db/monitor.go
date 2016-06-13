@@ -148,6 +148,19 @@ func (tx *Tx) LoadMonitorsWithLabel(id LabelID) ([]*Monitor, error) {
 	return monitors, nil
 }
 
+func (db *DB) IsExistingMonitor(id MonitorID) (exists bool) {
+	if id == 0 {
+		return false
+	}
+
+	q := `SELECT EXISTS (SELECT * FROM pfx_monitors WHERE monitorid = ?)`
+	err := db.Get(&exists, cq(db, q), id)
+	if err != nil {
+		return false
+	}
+	return
+}
+
 func (db *DB) LoadTriggersForMonitor(id MonitorID) ([]MonitorTrigger, error) {
 	return loadTriggersForMonitor(db, id)
 }
