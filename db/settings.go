@@ -15,6 +15,15 @@ type Setting struct {
 	Setting     string
 }
 
+func (db *DB) LoadSettings() (settings []*Setting, err error) {
+	q := "SELECT * FROM pfx_settings ORDER BY settingtype"
+	err = db.Select(&settings, cq(db, q))
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	return settings, nil
+}
+
 func (db *DB) LoadSettingsOfType(settingType SettingTypeId) (settings []*Setting, err error) {
 	q := "SELECT * FROM pfx_settings WHERE settingtype = ?"
 	err = db.Select(&settings, cq(db, q), settingType)
