@@ -1,19 +1,19 @@
 package web
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/yext/revere"
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SubprobesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id, err := strconv.Atoi(p.ByName("id"))
 		if err != nil {
@@ -22,16 +22,21 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 			return
 		}
 
-		subprobes, err := vm.AllSubprobesFromMonitor(db, revere.MonitorID(id))
+		var (
+			subprobes []*vm.Subprobe
+			monitor   *Monitor
+		)
+		err = DB.Tx(func(tx *db.Tx) error {
+			var err error
+			subprobes, err = vm.AllSubprobesFromMonitor(tx, db.MonitorID(id))
+			if err != nil {
+				return errors.Trace(err)
+			}
+			monitor, err = vm.NewMonitor(tx, db.MonitorID(id))
+			return errors.Trace(err)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobes: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
-
-		monitor, err := vm.NewMonitor(db, revere.MonitorID(id))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
@@ -46,7 +51,7 @@ func SubprobesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p
 	}
 }
 
-func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SubprobesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		mId, err := strconv.Atoi(p.ByName("id"))
 		if err != nil {
@@ -62,20 +67,20 @@ func SubprobesView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p 
 			return
 		}
 
-		subprobe, err := vm.NewSubprobe(db, revere.SubprobeID(id))
+		subprobe, err := vm.NewSubprobe(DB, db.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		if subprobe.MonitorId != revere.MonitorID(mId) {
+		if subprobe.MonitorID != db.MonitorID(mId) {
 			http.Error(w, fmt.Sprintf("Subprobe %d does not exist for monitor: %d", id, mId),
 				http.StatusNotFound)
 			return
 		}
 
-		readings, err := vm.AllReadingsFromSubprobe(db, revere.SubprobeID(id))
+		readings, err := vm.AllReadingsFromSubprobe(DB, db.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve readings: %s", err.Error()), http.StatusInternalServerError)
 			return
