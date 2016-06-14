@@ -1,21 +1,26 @@
 package web
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/juju/errors"
 	"github.com/julienschmidt/httprouter"
-	"github.com/yext/revere"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 )
 
-func LabelsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func LabelsIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		labels, err := vm.AllLabels(db)
+		var labels []*vm.Label
+		err := DB.Tx(func(tx *db.Tx) error {
+			var err error
+			labels, err = vm.AllLabels(tx)
+			return errors.Trace(err)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -32,7 +37,7 @@ func LabelsIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 	}
 }
 
-func LabelsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func LabelsView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 
@@ -41,7 +46,7 @@ func LabelsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 			return
 		}
 
-		viewmodel, err := loadLabelViewModel(db, id)
+		viewmodel, err := loadLabelViewModel(DB, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve label: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -59,7 +64,7 @@ func LabelsView(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 	}
 }
 
-func LabelsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func LabelsEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		id := p.ByName("id")
 		if id == "" {
@@ -67,14 +72,19 @@ func LabelsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 			return
 		}
 
-		viewmodel, err := loadLabelViewModel(db, id)
+		viewmodel, err := loadLabelViewModel(DB, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve label: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		monitors, err := vm.AllMonitors(db)
+		var monitors []*vm.Monitor
+		err = DB.Tx(func(tx *db.Tx) error {
+			var err error
+			monitors, err = vm.AllMonitors(tx)
+			return errors.Trace(err)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors for label: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -92,16 +102,16 @@ func LabelsEdit(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 	}
 }
 
-func LabelsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		var l *revere.Label
+		var l *vm.Label
 		err := json.NewDecoder(req.Body).Decode(&l)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
-		errs := l.Validate(db)
+		errs := l.Validate(DB)
 		if errs != nil {
 			errors, err := json.Marshal(map[string][]string{"errors": errs})
 			if err != nil {
@@ -114,14 +124,18 @@ func LabelsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 			w.Write(errors)
 			return
 		}
-		err = l.Save(db)
+
+		err = DB.Tx(func(tx *db.Tx) error {
+			err := l.Save(tx)
+			return errors.trace(err)
+		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
 
-		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/labels/%d", l.LabelId)})
+		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/labels/%d", l.LabelID)})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -133,23 +147,25 @@ func LabelsSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, p htt
 	}
 }
 
-func loadLabelViewModel(db *sql.DB, unparsedId string) (*vm.Label, error) {
+func loadLabelViewModel(DB *db.DB, unparsedId string) (*vm.Label, error) {
+	var viewmodel *vm.Label
 	if unparsedId == "new" {
-		viewmodel, err := vm.BlankLabel(db)
-		if err != nil {
-			return nil, err
-		}
+		viewmodel = vm.BlankLabel()
 		return viewmodel, nil
 	}
 
 	id, err := strconv.Atoi(unparsedId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	viewmodel, err := vm.NewLabel(db, revere.LabelID(id))
+	err = DB.Tx(func(tx *db.Tx) error {
+		var err error
+		viewmodel, err = vm.NewLabel(tx, db.LabelID(id))
+		return errors.Trace(err)
+	})
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return viewmodel, nil
