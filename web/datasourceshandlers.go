@@ -1,22 +1,21 @@
 package web
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/yext/revere"
+	"github.com/juju/errors"
 	"github.com/yext/revere/datasources"
-	"github.com/yext/revere/web/vm"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-func DataSourcesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func DataSourcesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		viewmodels, err := loadAllDataSourceTypeViewModels(db)
+		viewmodels, err := datasources.All(DB)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve data sources: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -32,20 +31,19 @@ func DataSourcesIndex(db *sql.DB) func(w http.ResponseWriter, req *http.Request,
 	}
 }
 
-func DataSourcesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		var dataSources []*revere.DataSource
-		err := json.NewDecoder(req.Body).Decode(&dataSources)
+		var dss []datasources.VM
+		err := json.NewDecoder(req.Body).Decode(&dss)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Data sources must be in correct format: %s", err), http.StatusInternalServerError)
 			return
 		}
 
 		var errs []string
-		for _, dataSource := range dataSources {
-			errs = append(errs, dataSource.Validate()...)
+		for _, ds := range dss {
+			errs = append(errs, ds.Validate()...)
 		}
-
 		if errs != nil {
 			errors, err := json.Marshal(map[string][]string{"errors": errs})
 			if err != nil {
@@ -59,26 +57,22 @@ func DataSourcesSave(db *sql.DB) func(w http.ResponseWriter, req *http.Request, 
 			return
 		}
 
-		for _, dataSource := range dataSources {
-			err = dataSource.Save(db)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
-					http.StatusInternalServerError)
-				return
+		err = DB.Tx(func(tx *db.Tx) error {
+			for _, ds := range dss {
+				err = ds.Save(tx)
+				if err != nil {
+					return errors.Trace(err)
+				}
 			}
+			return nil
+		})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
 		}
+
 		http.Redirect(w, req, "/datasources", http.StatusMovedPermanently)
 		return
 	}
-}
-
-func loadAllDataSourceTypeViewModels(db *sql.DB) (models []*vm.DataSourceType, err error) {
-	for _, dst := range datasources.GetDataSourceTypes() {
-		dstvm, err := vm.NewDataSourceTypeViewModel(db, dst)
-		if err != nil {
-			return nil, err
-		}
-		models = append(models, dstvm)
-	}
-	return
 }

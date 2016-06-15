@@ -3,7 +3,6 @@ package probes
 import (
 	"fmt"
 
-	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/db"
 )
 
@@ -15,7 +14,7 @@ type ProbeType interface {
 	blank() (Probe, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
-	AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId
+	AcceptedDataSourceTypeIds() []db.SourceType
 }
 
 type Probe interface {

@@ -5,7 +5,7 @@ import (
 )
 
 type DataSourceIndex struct {
-	viewmodels []*vm.DataSourceType
+	viewmodels []datasources.VM
 	subs       []Renderable
 }
 

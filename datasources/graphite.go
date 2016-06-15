@@ -1,6 +1,10 @@
 package datasources
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/yext/revere/db"
+)
 
 type Graphite struct{}
 
@@ -19,7 +23,7 @@ func init() {
 	addDataSourceType(Graphite{})
 }
 
-func (_ Graphite) Id() DataSourceTypeId {
+func (_ Graphite) Id() db.SourceType {
 	return 0
 }
 
@@ -36,7 +40,7 @@ func (_ Graphite) loadFromParams(ds string) (DataSource, error) {
 	return g, nil
 }
 
-func (_ Graphite) loadFromDb(ds string) (DataSource, error) {
+func (_ Graphite) loadFromDB(ds string) (DataSource, error) {
 	var g GraphiteDataSourceDBModel
 	err := json.Unmarshal([]byte(ds), &g)
 	if err != nil {

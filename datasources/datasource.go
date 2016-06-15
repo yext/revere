@@ -2,15 +2,24 @@ package datasources
 
 import (
 	"fmt"
+
+	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 )
 
-type DataSourceTypeId int16
+type VM struct {
+	DataSource
+	DataSourceParams string
+	SourceType       db.SourceType
+	SourceID         db.DatasourceID
+	Delete           bool
+}
 
 type DataSourceType interface {
-	Id() DataSourceTypeId
+	Id() db.SourceType
 	Name() string
 	loadFromParams(ds string) (DataSource, error)
-	loadFromDb(ds string) (DataSource, error)
+	loadFromDB(ds string) (DataSource, error)
 	blank() (DataSource, error)
 	Templates() string
 	Scripts() []string
@@ -29,7 +38,7 @@ const (
 
 var (
 	defaultType = Graphite{}
-	types       = make(map[DataSourceTypeId]DataSourceType)
+	types       = make(map[db.SourceType]DataSourceType)
 )
 
 func Default() (DataSource, error) {
@@ -41,7 +50,7 @@ func Default() (DataSource, error) {
 	return ds, nil
 }
 
-func LoadFromParams(id DataSourceTypeId, dsParams string) (DataSource, error) {
+func LoadFromParams(id db.SourceType, dsParams string) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -50,16 +59,16 @@ func LoadFromParams(id DataSourceTypeId, dsParams string) (DataSource, error) {
 	return dsType.loadFromParams(dsParams)
 }
 
-func LoadFromDb(id DataSourceTypeId, dsJson string) (DataSource, error) {
+func LoadFromDB(id db.SourceType, dsJson string) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return dsType.loadFromDb(dsJson)
+	return dsType.loadFromDB(dsJson)
 }
 
-func Blank(id DataSourceTypeId) (DataSource, error) {
+func Blank(id db.SourceType) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -68,7 +77,7 @@ func Blank(id DataSourceTypeId) (DataSource, error) {
 	return dsType.blank()
 }
 
-func getType(id DataSourceTypeId) (DataSourceType, error) {
+func getType(id db.SourceType) (DataSourceType, error) {
 	dsType, ok := types[id]
 	if !ok {
 		return nil, fmt.Errorf("No data source type with id %d exists", id)
@@ -91,4 +100,84 @@ func AllTypes() (dsts []DataSourceType) {
 		dsts = append(dsts, t)
 	}
 	return dsts
+}
+
+func All(DB *db.DB) ([]VM, error) {
+	datasources, err := DB.LoadDatasources()
+	if err != nil {
+		return nil, err
+	}
+
+	dss := make([]VM, len(datasources))
+	for i, datasource := range datasources {
+		dss[i], err = newVM(datasource)
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+	}
+
+	return dss, nil
+}
+
+func newVM(ds *db.Datasource) (VM, error) {
+	datasource, err := LoadFromDB(ds.SourceType, ds.Source)
+	if err != nil {
+		return VM{}, errors.Trace(err)
+	}
+
+	return VM{
+		DataSource: datasource,
+		SourceID:   ds.SourceID,
+		SourceType: ds.SourceType,
+	}, nil
+}
+
+func (vm *VM) IsCreate() bool {
+	return vm.SourceID == 0
+}
+
+func (vm *VM) IsDelete() bool {
+	return vm.Delete
+}
+
+func (vm *VM) Save(tx *db.Tx) error {
+	var err error
+	vm.DataSource, err = LoadFromParams(vm.SourceType, vm.DataSourceParams)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	dsJSON, err := vm.DataSource.Serialize()
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	datasource := &db.Datasource{
+		SourceID:   vm.SourceID,
+		SourceType: vm.SourceType,
+		Source:     dsJSON,
+	}
+
+	if vm.IsCreate() {
+		var id db.DatasourceID
+		id, err = tx.CreateDatasource(datasource)
+		datasource.SourceID = id
+	} else if vm.IsDelete() {
+		err = tx.DeleteDatasource(vm.SourceID)
+	} else {
+		err = tx.UpdateDatasource(datasource)
+	}
+
+	return errors.Trace(err)
+}
+
+func (vm *VM) Validate() (errs []string) {
+	var err error
+	vm.DataSource, err = LoadFromParams(vm.SourceType, vm.DataSourceParams)
+	if err != nil {
+		errs = append(errs, fmt.Sprintf("Unable to load setting %s", vm.DataSourceParams))
+		return errs
+	}
+
+	return vm.DataSource.Validate()
 }

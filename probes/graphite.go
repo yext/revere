@@ -108,8 +108,8 @@ func (GraphiteThreshold) Scripts() map[string][]string {
 	}
 }
 
-func (GraphiteThreshold) AcceptedDataSourceTypeIds() []datasources.DataSourceTypeId {
-	return []datasources.DataSourceTypeId{
+func (GraphiteThreshold) AcceptedDataSourceTypeIds() []db.SourceType {
+	return []db.SourceType{
 		datasources.Graphite{}.Id(),
 	}
 }
