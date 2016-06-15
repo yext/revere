@@ -41,10 +41,28 @@ func NewSubprobe(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
 		return nil, errors.Errorf("Subprobe not found: %d", id)
 	}
 
-	return newSubprobeFromModel(DB, s), nil
+	return newSubprobeFromDB(s), nil
 }
 
-func newSubprobeFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
+func newSubprobeFromDB(s *db.Subprobe) *Subprobe {
+	return &Subprobe{
+		SubprobeID:  s.SubprobeID,
+		MonitorID:   s.MonitorID,
+		MonitorName: "",
+		Archived:    s.Archived,
+		Status:      SubprobeStatus{},
+	}
+}
+
+func newSubprobesFromDB(ss []*db.Subprobe) []*Subprobe {
+	subprobes := make([]*Subprobe, len(ss))
+	for i, s := range ss {
+		subprobes[i] = newSubprobeFromDB(s)
+	}
+	return subprobes
+}
+
+func newSubprobeWithStatusFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
 	subprobeStatus := SubprobeStatus{
 		SubprobeID:   s.SubprobeID,
 		Recorded:     s.Recorded,
@@ -62,12 +80,12 @@ func newSubprobeFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
 	}
 }
 
-func newSubprobesFromModel(ss []*db.Subprobe) []*Subprobe {
-	subprobes := make([]*Subprobe, len(ss))
+func newSubprobesWithStatusFromDB(ss []*db.SubprobeWithStatusInfo) []*Subprobe {
+	subprobesWithStatus := make([]*Subprobe, len(ss))
 	for i, s := range ss {
-		subprobes[i] = newSubprobeFromModel(s)
+		subprobesWithStatus[i] = newSubprobeWithStatusFromDB(s)
 	}
-	return subprobes
+	return subprobesWithStatus
 }
 
 func BlankSubprobe() *Subprobe {
@@ -80,7 +98,7 @@ func AllSubprobesFromMonitor(tx *db.Tx, id db.MonitorID) ([]*Subprobe, error) {
 		return nil, err
 	}
 
-	return newSubprobesFromModel(ss), nil
+	return newSubprobesWithStatusFromDB(ss), nil
 }
 
 func AllAbnormalSubprobes(tx *db.Tx) ([]*Subprobe, error) {
@@ -89,7 +107,7 @@ func AllAbnormalSubprobes(tx *db.Tx) ([]*Subprobe, error) {
 		return nil, err
 	}
 
-	return newSubprobesFromModel(ss), nil
+	return newSubprobesWithStatusFromDB(ss), nil
 }
 
 func AllAbnormalSubprobesForLabel(tx *db.Tx, id db.LabelID) ([]*Subprobe, error) {
@@ -98,7 +116,7 @@ func AllAbnormalSubprobesForLabel(tx *db.Tx, id db.LabelID) ([]*Subprobe, error)
 		return nil, err
 	}
 
-	return newSubprobesFromModel(ss), nil
+	return newSubprobesWithStatusFromDB(ss), nil
 }
 
 func AllMonitorLabelsForSubprobes(tx *db.Tx, subprobes []*Subprobe) (map[db.MonitorID][]*MonitorLabel, error) {

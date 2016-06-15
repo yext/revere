@@ -38,27 +38,35 @@ func (db *DB) LoadSubprobe(subprobeID SubprobeID) (*Subprobe, error) {
 	return &s, nil
 }
 
-func (tx *Tx) LoadSubprobesByName(monitorID MonitorID) ([]SubprobeWithStatusInfo, error) {
+func (db *DB) LoadSubprobeWithStatusInfo(subprobeID SubprobeID) (*SubprobeWithStatusInfo, error) {
+	results, err := loadSubprobesWithStatus(db, fmt.Sprintf(`WHERE s.subprobeid = %d`, subprobeID))
+	if err != nil || len(results) != 1 {
+		return nil, errors.Trace(err)
+	}
+	return results[0], nil
+}
+
+func (tx *Tx) LoadSubprobesByName(monitorID MonitorID) ([]*SubprobeWithStatusInfo, error) {
 	return loadSubprobesWithStatus(tx, fmt.Sprintf(
 		`WHERE s.monitorid = %d
 		ORDER BY s.name`, monitorID))
 }
 
-func (tx *Tx) LoadSubprobesBySeverity() ([]SubprobeWithStatusInfo, error) {
+func (tx *Tx) LoadSubprobesBySeverity() ([]*SubprobeWithStatusInfo, error) {
 	return loadSubprobesWithStatus(tx, fmt.Sprintf(
 		`WHERE ss.state != %d
 		ORDER BY ss.state DESC, ss.enteredstate, s.name`, state.Normal))
 }
 
-func (tx *Tx) LoadSubprobesBySeverityForLabel(labelID LabelID) ([]SubprobeWithStatusInfo, error) {
+func (tx *Tx) LoadSubprobesBySeverityForLabel(labelID LabelID) ([]*SubprobeWithStatusInfo, error) {
 	return loadSubprobesWithStatus(tx, fmt.Sprintf(
 		`JOIN pfx_labels_monitors lm USING (monitorid)
 		WHERE ss.state != %d AND lm.labelid = %d
 		ORDER BY ss.state DESC, ss.enteredstate, s.name`, state.Normal, labelID))
 }
 
-func loadSubprobesWithStatus(dt dbOrTx, condition string) ([]SubprobeWithStatusInfo, error) {
-	var subprobes []SubprobeWithStatusInfo
+func loadSubprobesWithStatus(dt dbOrTx, condition string) ([]*SubprobeWithStatusInfo, error) {
+	var subprobes []*SubprobeWithStatusInfo
 	q := fmt.Sprintf(
 		`SELECT s.monitorid, s.name, s.archived, ss.*, m.name AS monitorname FROM pfx_subprobes s
 	     LEFT JOIN pfx_subprobe_statuses ss ON s.subprobeid = ss.subprobeid
