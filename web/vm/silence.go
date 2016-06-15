@@ -74,7 +74,7 @@ func (s *Silence) Create() bool {
 
 func (s *Silence) Validate(db *db.DB) (errs []string) {
 	errs = append(errs, s.validate()...)
-	if s.isCreate() {
+	if isCreate(s) {
 		errs = append(errs, s.validateNew()...)
 	} else {
 		old, err := NewSilence(db, s.SilenceID)
@@ -115,7 +115,7 @@ func (s *Silence) validateOld(old *Silence) (errs []string) {
 	if old.MonitorID != s.MonitorID {
 		errs = append(errs, "Monitor name cannot be changed. Create a new silence instead.")
 	}
-	if old.Subprobe != s.Subprobe {
+	if old.Subprobes != s.Subprobes {
 		errs = append(errs, "Subprobe cannot be changed. Create a new silence instead.")
 	}
 
@@ -145,11 +145,13 @@ func (s *Silence) Editable() bool {
 func (s *Silence) Save(tx *db.Tx) error {
 	monitorSilence := &db.MonitorSilence{
 		MonitorName: s.MonitorName,
-		SilenceID:   s.SilenceID,
-		MonitorID:   s.MonitorID,
-		Subprobes:   s.Subprobes,
-		Start:       s.Start,
-		End:         s.End,
+		Silence: &db.Silence{
+			SilenceID: s.SilenceID,
+			MonitorID: s.MonitorID,
+			Subprobes: s.Subprobes,
+			Start:     s.Start,
+			End:       s.End,
+		},
 	}
 	if isCreate(s) {
 		id, err := tx.CreateMonitorSilence(monitorSilence)
