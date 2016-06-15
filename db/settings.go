@@ -7,11 +7,11 @@ import (
 )
 
 type SettingID int32
-type SettingTypeId int16
+type SettingType int16
 
 type Setting struct {
 	SettingID   SettingID
-	SettingType SettingTypeId
+	SettingType SettingType
 	Setting     string
 }
 

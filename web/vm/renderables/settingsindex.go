@@ -1,11 +1,12 @@
 package renderables
 
 import (
+	"github.com/yext/revere/settings"
 	"github.com/yext/revere/web/vm"
 )
 
 type SettingsIndex struct {
-	settings []*vm.Setting
+	settings []settings.VM
 	subs     []Renderable
 }
 

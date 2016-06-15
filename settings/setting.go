@@ -10,15 +10,21 @@ import (
 	"fmt"
 
 	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 )
 
-type SettingTypeId int16
+type VM struct {
+	Setting
+	SettingParams string
+	SettingType   db.SettingType
+	SettingID     db.SettingID
+}
 
 type SettingType interface {
-	Id() SettingTypeId
+	Id() db.SettingType
 	Name() string
 	loadFromParams(ds string) (Setting, error)
-	loadFromDb(ds string) (Setting, error)
+	loadFromDB(ds string) (Setting, error)
 	blank() (Setting, error)
 	Template() string
 	Scripts() []string
@@ -37,7 +43,7 @@ const (
 
 var (
 	defaultType = OutgoingEmail{}
-	types       = make(map[SettingTypeId]SettingType)
+	types       = make(map[db.SettingType]SettingType)
 )
 
 func Default() (Setting, error) {
@@ -49,7 +55,7 @@ func Default() (Setting, error) {
 	return s, nil
 }
 
-func LoadFromParams(id SettingTypeId, sParams string) (Setting, error) {
+func LoadFromParams(id db.SettingType, sParams string) (Setting, error) {
 	sType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -58,16 +64,16 @@ func LoadFromParams(id SettingTypeId, sParams string) (Setting, error) {
 	return sType.loadFromParams(sParams)
 }
 
-func LoadFromDb(id SettingTypeId, sJson string) (Setting, error) {
+func LoadFromDB(id db.SettingType, sJson string) (Setting, error) {
 	sType, err := getType(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return sType.loadFromDb(sJson)
+	return sType.loadFromDB(sJson)
 }
 
-func Blank(id SettingTypeId) (Setting, error) {
+func Blank(id db.SettingType) (Setting, error) {
 	sType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -76,7 +82,7 @@ func Blank(id SettingTypeId) (Setting, error) {
 	return sType.blank()
 }
 
-func getType(id SettingTypeId) (SettingType, error) {
+func getType(id db.SettingType) (SettingType, error) {
 	if s, ok := types[id]; !ok {
 		return nil, errors.Errorf("Invalid setting type with id: %d", id)
 	} else {
@@ -97,4 +103,69 @@ func AllTypes() (sts []SettingType) {
 		sts = append(sts, t)
 	}
 	return sts
+}
+
+func All(DB *db.DB) ([]VM, error) {
+	settings, err := DB.LoadSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	ss := make([]VM, len(setting))
+	var err error
+	for i, setting := range settings {
+		ss[i], err = newVM(setting)
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+	}
+
+	return ss, nil
+}
+
+func newVM(s *db.Setting) (VM, error) {
+	setting, err := LoadFromDB(s.SettingType, s.Setting)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	return VM{
+		Setting:     setting,
+		SettingID:   s.SettingID,
+		SettingType: s.SettingType,
+	}, nil
+}
+
+func (vm *VM) Save(tx *DB.Tx) error {
+	var err error
+	vm.Setting, err = LoadFromParams(vm.SettingType, vm.SettingParams)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	settingJSON, err := vm.Setting.Serialize()
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	setting := &db.Setting{
+		SettingID:   vm.SettingID,
+		SettingType: vm.SettingType,
+		Setting:     settingJSON,
+	}
+
+	err = tx.UpdateSetting(setting)
+
+	return errors.Trace(err)
+}
+
+func (vm *VM) Validate() (errs []string) {
+	var err error
+	vm.Setting, err = LoadFromParams(vm.SettingType, vm.SettingParams)
+	if err != nil {
+		errs = append(errs, fmt.Sprintf("Unable to load setting %s", vm.SettingParams))
+		return errs
+	}
+
+	return vm.Setting.Validate()
 }
