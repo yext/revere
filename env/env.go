@@ -13,7 +13,8 @@ import (
 
 // Env provides runtime access to Revere's static environment.
 type Env struct {
-	DB *db.DB
+	DB   *db.DB
+	Port uint16
 }
 
 // New initializes an Env based on the configuration found in conf, which
@@ -39,6 +40,7 @@ func New(conf []byte) (*Env, error) {
 	if err != nil {
 		return nil, errors.Maskf(err, "load DB")
 	}
+	e.Port = model.Port
 
 	return &e, nil
 }
@@ -46,5 +48,6 @@ func New(conf []byte) (*Env, error) {
 // EnvJSONModel is the structure for Revere's environment configuration JSON
 // file.
 type EnvJSONModel struct {
-	DB db.DBJSONModel
+	DB   db.DBJSONModel
+	Port uint16
 }

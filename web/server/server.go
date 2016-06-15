@@ -1,58 +1,66 @@
-package main
+package server
 
 import (
-	"flag"
-	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/yext/revere"
+	"github.com/yext/revere/env"
 	"github.com/yext/revere/web"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 )
 
-func main() {
-	flag.Parse()
-	env, err := revere.BuildEnvFromFile(flag.Arg(0))
-	if err != nil {
-		fmt.Println("Unable to start web server.")
-		return
-	}
+type WebServer struct {
+	*env.Env
+	router *httprouter.Router
+}
 
-	db := env.Db()
-
+func New(env *env.Env) *WebServer {
 	router := httprouter.New()
-
-	router.GET("/", web.ActiveIssues(db))
-	router.GET("/datasources", web.DataSourcesIndex(db))
-	router.POST("/datasources", web.DataSourcesSave(db))
-	router.GET("/monitors", web.MonitorsIndex(db))
-	router.GET("/monitors/:id", web.MonitorsView(db))
-	router.GET("/monitors/:id/edit", web.MonitorsEdit(db))
-	router.POST("/monitors/:id/edit", web.MonitorsSave(db))
-	router.GET("/monitors/:id/subprobes", web.SubprobesIndex(db))
-	router.GET("/monitors/:id/subprobes/:subprobeId", web.SubprobesView(db))
-	router.GET("/monitors/:id/probe/edit/:probeType", web.LoadProbeTemplate(db))
+	router.GET("/", web.ActiveIssues(env.DB))
+	router.GET("/datasources", web.DataSourcesIndex(env.DB))
+	router.POST("/datasources", web.DataSourcesSave(env.DB))
+	router.GET("/monitors", web.MonitorsIndex(env.DB))
+	router.GET("/monitors/:id", web.MonitorsView(env.DB))
+	router.GET("/monitors/:id/edit", web.MonitorsEdit(env.DB))
+	router.POST("/monitors/:id/edit", web.MonitorsSave(env.DB))
+	router.GET("/monitors/:id/subprobes", web.SubprobesIndex(env.DB))
+	router.GET("/monitors/:id/subprobes/:subprobeId", web.SubprobesView(env.DB))
+	router.GET("/monitors/:id/probe/edit/:probeType", web.LoadProbeTemplate(env.DB))
 	router.GET("/monitors/:id/target/edit/:targetType", web.LoadTargetTemplate)
-	router.GET("/silences", web.SilencesIndex(db))
-	router.GET("/silences/:id", web.SilencesView(db))
-	router.GET("/silences/:id/edit", web.SilencesEdit(db))
-	router.POST("/silences/:id/edit", web.SilencesSave(db))
-	router.GET("/labels", web.LabelsIndex(db))
-	router.GET("/labels/:id", web.LabelsView(db))
-	router.GET("/labels/:id/edit", web.LabelsEdit(db))
-	router.POST("/labels/:id/edit", web.LabelsSave(db))
-	router.GET("/settings", web.SettingsIndex(db))
-	router.POST("/settings", web.SettingsSave(db))
+	router.GET("/silences", web.SilencesIndex(env.DB))
+	router.GET("/silences/:id", web.SilencesView(env.DB))
+	router.GET("/silences/:id/edit", web.SilencesEdit(env.DB))
+	router.POST("/silences/:id/edit", web.SilencesSave(env.DB))
+	router.GET("/labels", web.LabelsIndex(env.DB))
+	router.GET("/labels/:id", web.LabelsView(env.DB))
+	router.GET("/labels/:id/edit", web.LabelsEdit(env.DB))
+	router.POST("/labels/:id/edit", web.LabelsSave(env.DB))
+	router.GET("/settings", web.SettingsIndex(env.DB))
+	router.POST("/settings", web.SettingsSave(env.DB))
 	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
 	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))
 	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/favicon.ico")
 	})
 
-	port := strconv.Itoa(env.Port())
-	fmt.Printf("Listening on :%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	return &WebServer{
+		Env:    env,
+		router: router,
+	}
+}
+
+func (w *WebServer) run() {
+	port := strconv.Itoa(w.Port)
+	log.Info("Listening on :%s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, w.router))
+}
+
+func (w *WebServer) Start() {
+	go w.run()
+}
+
+func (w *WebServer) Stop() {
+	// TODO(fchen): implement graceful shutdown
 }

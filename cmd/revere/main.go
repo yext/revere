@@ -47,6 +47,7 @@ import (
 
 	"github.com/yext/revere/daemon"
 	"github.com/yext/revere/env"
+	"github.com/yext/revere/web/server"
 )
 
 var (
@@ -85,11 +86,9 @@ func main() {
 			d.Start()
 			defer d.Stop()
 		case "web":
-			// TODO(eefi): Start the web server.
-
-			defer func() {
-				// TODO(eefi): Stop the web server.
-			}()
+			w := server.New(env)
+			w.Start()
+			defer w.Stop()
 		}
 	}
 
