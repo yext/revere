@@ -20,7 +20,7 @@ func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
 		return nil, errors.Trace(err)
 	}
 
-	lts := make([]LabelTrigger, len(labelTriggers))
+	lts := make([]*LabelTrigger, len(labelTriggers))
 	for i, labelTrigger := range labelTriggers {
 		lts[i].Trigger, err = newTriggerFromModel(labelTrigger.Trigger)
 		if err != nil {
@@ -33,11 +33,11 @@ func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
 }
 
 func blankLabelTriggers() []*LabelTrigger {
-	return []LabelTrigger{}
+	return []*LabelTrigger{}
 }
 
-func (lt *LabelTrigger) Id() db.TriggerID {
-	return lt.TriggerID
+func (lt *LabelTrigger) Id() int64 {
+	return lt.Trigger.Id()
 }
 
 func (lt *LabelTrigger) Create() bool {
@@ -62,7 +62,7 @@ func (lt *LabelTrigger) save(tx *db.Tx) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	labelTrigger := &db.LabelTrigger{
+	labelTrigger := db.LabelTrigger{
 		LabelID: lt.LabelID,
 		Trigger: trigger,
 	}

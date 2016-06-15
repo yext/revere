@@ -198,18 +198,18 @@ func (tx *Tx) DeleteLabelTrigger(lt LabelTrigger) error {
 	return errors.Trace(err)
 }
 
-func (tx *Tx) CreateLabelTrigger(lt LabelTrigger) error {
+func (tx *Tx) CreateLabelTrigger(lt LabelTrigger) (TriggerID, error) {
 	var err error
 	lt.TriggerID, err = tx.createTrigger(lt.Trigger)
 	if err != nil {
-		return errors.Trace(err)
+		return 0, errors.Trace(err)
 	}
 
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_label_triggers (labelid, triggerid)
 	      VALUES (:labelid, :triggerid)`
-	_, err = tx.NamedExec(cq(tx, q), lt)
-	return errors.Trace(err)
+	_, err := tx.NamedExec(cq(tx, q), lt)
+	return lt.TriggerID, nil
 }
 
 func (tx *Tx) UpdateLabelTrigger(lt LabelTrigger) error {
