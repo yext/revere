@@ -45,7 +45,7 @@ func (t *Trigger) Id() int64 {
 	return int64(t.TriggerID)
 }
 
-func (t *Trigger) Validate() (errs []string) {
+func (t *Trigger) validate() (errs []string) {
 	var err error
 	t.Target, err = targets.LoadFromParams(t.TargetType, t.TargetParams)
 	if err != nil {

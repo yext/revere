@@ -30,7 +30,7 @@ func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]*MonitorTrigger, error) {
 		mts[i].Subprobes = monitorTrigger.Subprobes
 	}
 
-	return mts
+	return mts, nil
 }
 
 func blankMonitorTriggers() []*MonitorTrigger {
@@ -48,8 +48,8 @@ func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
 	return
 }
 
-func (mt *MonitorTrigger) Id() db.TriggerID {
-	return mt.TriggerID
+func (mt *MonitorTrigger) Id() int64 {
+	return mt.Trigger.Id()
 }
 
 func (mt *MonitorTrigger) Create() bool {
@@ -65,7 +65,7 @@ func (mt *MonitorTrigger) save(tx *db.Tx) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	monitorTrigger := &db.MonitorTrigger{
+	monitorTrigger := db.MonitorTrigger{
 		MonitorID: mt.MonitorID,
 		Subprobes: mt.Subprobes,
 		Trigger:   trigger,
