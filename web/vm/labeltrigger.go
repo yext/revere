@@ -53,7 +53,7 @@ func (lt *LabelTrigger) validate(db *db.DB) (errs []string) {
 		errs = append(errs, fmt.Sprintf("Invalid label: %d", lt.LabelID))
 	}
 
-	return append(errs, lt.Trigger.Validate()...)
+	return append(errs, lt.Trigger.validate()...)
 }
 
 func (lt *LabelTrigger) save(tx *db.Tx) error {

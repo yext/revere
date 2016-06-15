@@ -208,7 +208,7 @@ func (tx *Tx) CreateLabelTrigger(lt LabelTrigger) (TriggerID, error) {
 	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_label_triggers (labelid, triggerid)
 	      VALUES (:labelid, :triggerid)`
-	_, err := tx.NamedExec(cq(tx, q), lt)
+	_, err = tx.NamedExec(cq(tx, q), lt)
 	return lt.TriggerID, nil
 }
 

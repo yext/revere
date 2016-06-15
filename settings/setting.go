@@ -111,8 +111,7 @@ func All(DB *db.DB) ([]VM, error) {
 		return nil, err
 	}
 
-	ss := make([]VM, len(setting))
-	var err error
+	ss := make([]VM, len(settings))
 	for i, setting := range settings {
 		ss[i], err = newVM(setting)
 		if err != nil {
@@ -126,7 +125,7 @@ func All(DB *db.DB) ([]VM, error) {
 func newVM(s *db.Setting) (VM, error) {
 	setting, err := LoadFromDB(s.SettingType, s.Setting)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return VM{}, errors.Trace(err)
 	}
 
 	return VM{
@@ -136,7 +135,7 @@ func newVM(s *db.Setting) (VM, error) {
 	}, nil
 }
 
-func (vm *VM) Save(tx *DB.Tx) error {
+func (vm *VM) Save(tx *db.Tx) error {
 	var err error
 	vm.Setting, err = LoadFromParams(vm.SettingType, vm.SettingParams)
 	if err != nil {

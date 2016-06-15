@@ -1,6 +1,10 @@
 package settings
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/yext/revere/db"
+)
 
 type OutgoingEmail struct{}
 
@@ -24,7 +28,7 @@ func init() {
 	addSettingType(OutgoingEmail{})
 }
 
-func (OutgoingEmail) Id() SettingTypeId {
+func (OutgoingEmail) Id() db.SettingType {
 	return 0
 }
 
