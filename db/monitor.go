@@ -134,12 +134,12 @@ func loadMonitors(dt dbOrTx) ([]*Monitor, error) {
 
 func (tx *Tx) LoadMonitorsWithLabel(id LabelID) ([]*Monitor, error) {
 	var monitors []*Monitor
-	err := dt.Select(&monitors, cq(dt, `
+	err := tx.Select(&monitors, cq(tx, `
 		SELECT m.* FROM pfx_monitors m
 		JOIN labels_monitors l on l.monitorid = m.monitorid
 		WHERE l.labelid = ?
 		ORDER BY name
-	`, id))
+	`), id)
 
 	if err != nil {
 		return nil, errors.Trace(err)
