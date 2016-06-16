@@ -1,11 +1,13 @@
 package targets
 
-import "fmt"
+import (
+	"fmt"
 
-type TargetTypeId int16
+	"github.com/yext/revere/db"
+)
 
 type TargetType interface {
-	Id() TargetTypeId
+	Id() db.TargetType
 	Name() string
 	loadFromParams(target string) (Target, error)
 	loadFromDb(target string) (Target, error)
@@ -26,8 +28,8 @@ const (
 )
 
 var (
-	types       map[TargetTypeId]TargetType = make(map[TargetTypeId]TargetType)
-	defaultType                             = Email{}
+	types       map[db.TargetType]TargetType = make(map[db.TargetType]TargetType)
+	defaultType                              = Email{}
 )
 
 func Default() (Target, error) {
@@ -39,7 +41,7 @@ func Default() (Target, error) {
 	return target, nil
 }
 
-func LoadFromParams(id TargetTypeId, targetParams string) (Target, error) {
+func LoadFromParams(id db.TargetType, targetParams string) (Target, error) {
 	targetType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -48,7 +50,7 @@ func LoadFromParams(id TargetTypeId, targetParams string) (Target, error) {
 	return targetType.loadFromParams(targetParams)
 }
 
-func LoadFromDb(id TargetTypeId, targetJson string) (Target, error) {
+func LoadFromDb(id db.TargetType, targetJson string) (Target, error) {
 	targetType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -57,7 +59,7 @@ func LoadFromDb(id TargetTypeId, targetJson string) (Target, error) {
 	return targetType.loadFromDb(targetJson)
 }
 
-func Blank(id TargetTypeId) (Target, error) {
+func Blank(id db.TargetType) (Target, error) {
 	targetType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -66,7 +68,7 @@ func Blank(id TargetTypeId) (Target, error) {
 	return targetType.blank()
 }
 
-func getType(id TargetTypeId) (TargetType, error) {
+func getType(id db.TargetType) (TargetType, error) {
 	targetType, ok := types[id]
 	if !ok {
 		return nil, fmt.Errorf("No target type with id %d exists", id)

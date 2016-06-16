@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"regexp"
 
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/target"
 )
 
@@ -27,7 +28,7 @@ func init() {
 	addTargetType(Email{})
 }
 
-func (Email) Id() TargetTypeId {
+func (Email) Id() db.TargetType {
 	return 1
 }
 

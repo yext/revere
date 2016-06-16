@@ -54,21 +54,26 @@ const (
 	Critical
 )
 
+var stateToString = map[State]string{
+	Normal:   "Normal",
+	Warning:  "Warning",
+	Unknown:  "Unknown",
+	Error:    "ERROR",
+	Critical: "CRITICAL",
+}
+
 func (s State) String() string {
-	switch s {
-	case Normal:
-		return "Normal"
-	case Warning:
-		return "Warning"
-	case Unknown:
-		return "Unknown"
-	case Error:
-		return "ERROR"
-	case Critical:
-		return "CRITICAL"
-	default:
-		return fmt.Sprintf("Invalid(%d)", s)
+	if val, ok := stateToString[s]; ok {
+		return val
 	}
+	return fmt.Sprintf("Invalid(%d)", s)
+}
+
+func (s State) Validate() error {
+	if _, ok := stateToString[s]; ok {
+		return nil
+	}
+	return errors.Errorf("Invalid(%d)", s)
 }
 
 func FromString(s string) (State, error) {

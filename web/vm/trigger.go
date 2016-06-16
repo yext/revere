@@ -3,7 +3,9 @@ package vm
 import (
 	"fmt"
 
+	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
+
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/state"
 	"github.com/yext/revere/targets"
@@ -12,8 +14,8 @@ import (
 
 type Trigger struct {
 	TriggerID     db.TriggerID
-	Level         string
-	Period        int64
+	Level         state.State
+	Period        int32
 	PeriodType    string
 	TargetType    db.TargetType
 	TargetParams  string
@@ -22,22 +24,22 @@ type Trigger struct {
 }
 
 func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
-	target, err := targets.LoadFromDb(trigger.TargetType, trigger.Target)
+	target, err := targets.LoadFromDb(trigger.TargetType, string(trigger.Target))
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	period, periodType := util.GetPeriodAndType(trigger.PeriodMilli)
+	period, periodType := util.GetPeriodAndType(int64(trigger.PeriodMilli))
 
 	return &Trigger{
 		TriggerID:     trigger.TriggerID,
 		Level:         trigger.Level,
-		Period:        period,
+		Period:        int32(period),
 		PeriodType:    periodType,
 		TargetType:    trigger.TargetType,
-		TargetParams:  nil,
+		TargetParams:  "",
 		TriggerOnExit: trigger.TriggerOnExit,
-		Target:        target,
+		Target:        &target,
 	}, nil
 }
 
@@ -47,18 +49,18 @@ func (t *Trigger) Id() int64 {
 
 func (t *Trigger) validate() (errs []string) {
 	var err error
-	t.Target, err = targets.LoadFromParams(t.TargetType, t.TargetParams)
+	target, err := targets.LoadFromParams(t.TargetType, t.TargetParams)
 	if err != nil {
-		errs = append(errs, fmt.Sprintf("Unable to load probe for monitor: %s", m.ProbeParams))
+		errs = append(errs, fmt.Sprintf("Unable to load target for trigger: %s", t.TargetParams))
 	}
+	t.Target = &target
 	errs = append(errs, target.Validate()...)
 
-	errs = append(errs, m.Probe.Validate()...)
-	if _, err := state.ReverseStates(t.Level); err != nil {
-		errs = append(errs, fmt.Sprintf("Invalid state for trigger: %s", t.Level))
+	if err = t.Level.Validate(); err != nil {
+		errs = append(errs, fmt.Sprintf("Invalid state for trigger: %d", t.Level))
 	}
 
-	if util.GetMs(t.Period, t.PeriodType) == 0 {
+	if util.GetMs(int64(t.Period), t.PeriodType) == 0 {
 		errs = append(errs, fmt.Sprintf("Invalid period for trigger: %d %s", t.Period, t.PeriodType))
 	}
 
@@ -70,7 +72,7 @@ func (t *Trigger) setId(id db.TriggerID) {
 }
 
 func (t *Trigger) toDBTrigger() (*db.Trigger, error) {
-	triggerJSON, err := t.Target.Serialize()
+	triggerJSON, err := (*t.Target).Serialize()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -79,8 +81,8 @@ func (t *Trigger) toDBTrigger() (*db.Trigger, error) {
 		TriggerID:     t.TriggerID,
 		Level:         t.Level,
 		TriggerOnExit: t.TriggerOnExit,
-		PeriodMilli:   util.GetMs(t.Period, t.PeriodType),
+		PeriodMilli:   int32(util.GetMs(int64(t.Period), t.PeriodType)),
 		TargetType:    t.TargetType,
-		Target:        triggerJson,
+		Target:        types.JSONText(triggerJSON),
 	}, nil
 }
