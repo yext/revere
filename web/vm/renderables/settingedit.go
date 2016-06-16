@@ -18,11 +18,11 @@ func NewSettingEdit(s *settings.VM) *SettingEdit {
 }
 
 func (se *SettingEdit) name() string {
-	return se.SettingType.Name()
+	return se.Setting.Type().Name()
 }
 
 func (se *SettingEdit) template() string {
-	return path.Join(vm.SettingsDir, se.SettingType.Template())
+	return path.Join(settings.SettingDir, se.Setting.Type().Template())
 }
 
 func (se *SettingEdit) data() interface{} {
@@ -30,7 +30,7 @@ func (se *SettingEdit) data() interface{} {
 }
 
 func (se *SettingEdit) scripts() []string {
-	return vm.AppendDir(vm.SettingsDir, se.SettingType.Scripts())
+	return vm.AppendDir(settings.SettingDir, se.Setting.Type().Scripts())
 }
 
 func (se *SettingEdit) breadcrumbs() []vm.Breadcrumb {

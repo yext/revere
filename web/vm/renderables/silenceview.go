@@ -33,7 +33,7 @@ func (sv *SilenceView) scripts() []string {
 }
 
 func (sv *SilenceView) breadcrumbs() []vm.Breadcrumb {
-	return vm.SilencesViewBcs(sv.viewmodel.GetId(), sv.viewmodel.MonitorName)
+	return vm.SilencesViewBcs(sv.viewmodel.Id(), sv.viewmodel.MonitorName)
 }
 
 func (sv *SilenceView) subRenderables() []Renderable {

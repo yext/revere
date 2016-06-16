@@ -25,22 +25,22 @@ func (pv *ProbeView) name() string {
 }
 
 func (pv *ProbeView) template() string {
-	tmpl, ok := pv.viewmodel.ProbeType().Templates()["view"]
+	tmpl, ok := (*pv.viewmodel).Type().Templates()["view"]
 	if !ok {
-		panic(fmt.Sprintf("Unable to find templates for probe type %s", pv.viewmodel.Probe.ProbeType().Name()))
+		panic(fmt.Sprintf("Unable to find templates for probe type %s", (*pv.viewmodel).Type().Name()))
 	}
 
-	return path.Join(vm.ProbesDir, tmpl)
+	return path.Join(probes.ProbesDir, tmpl)
 }
 
 func (pv *ProbeView) data() interface{} {
-	return pv.viewmodel.Probe
+	return *pv.viewmodel
 }
 
 func (pv *ProbeView) scripts() []string {
-	scripts := pv.viewmodel.ProbeType().Scripts()["view"]
+	scripts := (*pv.viewmodel).Type().Scripts()["view"]
 
-	return vm.AppendDir(vm.ProbesDir, scripts)
+	return vm.AppendDir(probes.ProbesDir, scripts)
 }
 
 func (pv *ProbeView) breadcrumbs() []vm.Breadcrumb {
