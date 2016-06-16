@@ -67,7 +67,8 @@ func (lt *LabelTrigger) save(tx *db.Tx) error {
 		Trigger: trigger,
 	}
 	if isCreate(lt) {
-		id, err := tx.CreateLabelTrigger(labelTrigger)
+		var id db.TriggerID
+		id, err = tx.CreateLabelTrigger(labelTrigger)
 		lt.Trigger.setId(id)
 	} else if isDelete(lt) {
 		err = tx.DeleteLabelTrigger(labelTrigger)

@@ -25,14 +25,24 @@ func newMonitorLabels(tx *db.Tx, id db.MonitorID) ([]*MonitorLabel, error) {
 		return nil, errors.Trace(err)
 	}
 
+	mls := newMonitorLabelsFromDB(monitorLabels)
+	return mls, nil
+}
+
+func newMonitorLabelFromDB(monitorLabel *db.MonitorLabel) *MonitorLabel {
+	return &MonitorLabel{
+		Label:     newLabelFromDB(monitorLabel.Label),
+		MonitorID: monitorLabel.MonitorID,
+		Subprobes: monitorLabel.Subprobes,
+	}
+}
+
+func newMonitorLabelsFromDB(monitorLabels []*db.MonitorLabel) []*MonitorLabel {
 	mls := make([]*MonitorLabel, len(monitorLabels))
 	for i, monitorLabel := range monitorLabels {
-		mls[i].Label = newLabelFromDB(monitorLabel.Label)
-		mls[i].MonitorID = monitorLabel.MonitorID
-		mls[i].Subprobes = monitorLabel.Subprobes
+		mls[i] = newMonitorLabelFromDB(monitorLabel)
 	}
-
-	return mls, nil
+	return mls
 }
 
 func blankMonitorLabels() []*MonitorLabel {
@@ -83,7 +93,7 @@ func allMonitorLabels(tx *db.Tx, mIds []db.MonitorID) (map[db.MonitorID][]*Monit
 
 	mls := make(map[db.MonitorID][]*MonitorLabel)
 	for mId, labels := range labelsByMonitorId {
-		mls[mId], err = newMonitorLabels(tx, mId)
+		mls[mId] = newMonitorLabelsFromDB(labels)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}

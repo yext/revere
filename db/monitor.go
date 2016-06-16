@@ -184,18 +184,18 @@ func loadTriggersForMonitor(dt dbOrTx, id MonitorID) ([]MonitorTrigger, error) {
 	return mts, nil
 }
 
-func (db *DB) LoadLabelsForMonitor(id MonitorID) ([]MonitorLabel, error) {
+func (db *DB) LoadLabelsForMonitor(id MonitorID) ([]*MonitorLabel, error) {
 	return loadLabelsForMonitor(db, id)
 }
 
-func (tx *Tx) LoadLabelsForMonitor(id MonitorID) ([]MonitorLabel, error) {
+func (tx *Tx) LoadLabelsForMonitor(id MonitorID) ([]*MonitorLabel, error) {
 	return loadLabelsForMonitor(tx, id)
 }
 
-func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]MonitorLabel, error) {
+func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]*MonitorLabel, error) {
 	dt = unsafe(dt)
 
-	var mls []MonitorLabel
+	var mls []*MonitorLabel
 	q := `SELECT *
 	      FROM pfx_labels_monitors
 	      JOIN pfx_labels USING (labelid)
@@ -207,7 +207,7 @@ func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]MonitorLabel, error) {
 	return mls, nil
 }
 
-func (tx *Tx) BatchLoadMonitorLabels(mIDs []MonitorID) (map[MonitorID][]MonitorLabel, error) {
+func (tx *Tx) BatchLoadMonitorLabels(mIDs []MonitorID) (map[MonitorID][]*MonitorLabel, error) {
 	if len(mIDs) == 0 {
 		return nil, nil
 	}
@@ -228,13 +228,13 @@ func (tx *Tx) BatchLoadMonitorLabels(mIDs []MonitorID) (map[MonitorID][]MonitorL
 		return nil, err
 	}
 
-	monitorLabels := make(map[MonitorID][]MonitorLabel)
+	monitorLabels := make(map[MonitorID][]*MonitorLabel)
 	for rows.Next() {
 		var ml MonitorLabel
 		if err = rows.StructScan(&ml); err != nil {
 			return nil, err
 		}
-		monitorLabels[ml.MonitorID] = append(monitorLabels[ml.MonitorID], ml)
+		monitorLabels[ml.MonitorID] = append(monitorLabels[ml.MonitorID], &ml)
 	}
 	rows.Close()
 	if err = rows.Err(); err != nil {

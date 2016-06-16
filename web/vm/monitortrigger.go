@@ -71,7 +71,8 @@ func (mt *MonitorTrigger) save(tx *db.Tx) error {
 		Trigger:   trigger,
 	}
 	if isCreate(mt) {
-		id, err := tx.CreateMonitorTrigger(monitorTrigger)
+		var id db.TriggerID
+		id, err = tx.CreateMonitorTrigger(monitorTrigger)
 		mt.Trigger.setId(id)
 	} else if isDelete(mt) {
 		err = tx.DeleteMonitorTrigger(monitorTrigger.TriggerID)
