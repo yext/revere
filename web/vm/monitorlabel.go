@@ -43,7 +43,7 @@ func (ml *MonitorLabel) IsCreate() bool {
 	return ml.Create
 }
 
-func (ml *MonitorLabel) IsDelele() bool {
+func (ml *MonitorLabel) IsDelete() bool {
 	return ml.Delete
 }
 
@@ -78,14 +78,14 @@ func (ml *MonitorLabel) save(tx *db.Tx) error {
 func allMonitorLabels(tx *db.Tx, mIds []db.MonitorID) (map[db.MonitorID][]*MonitorLabel, error) {
 	labelsByMonitorId, err := tx.BatchLoadMonitorLabels(mIds)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	mls := make(map[db.MonitorID][]*MonitorLabel)
 	for mId, labels := range labelsByMonitorId {
 		mls[mId], err = newMonitorLabels(tx, mId)
 		if err != nil {
-			return nil, err
+			return nil, errors.Trace(err)
 		}
 	}
 	return mls, nil
