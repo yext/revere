@@ -9,7 +9,6 @@ import (
 type VM struct {
 	Target
 	TargetParams string
-	TargetType   db.TargetType
 }
 
 type TargetType interface {

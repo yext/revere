@@ -25,22 +25,22 @@ func (te *TargetEdit) name() string {
 }
 
 func (te *TargetEdit) template() string {
-	tmpl, ok := te.viewmodel.TargetType().Templates()["edit"]
+	tmpl, ok := te.viewmodel.Type().Templates()["edit"]
 	if !ok {
-		panic(fmt.Sprintf("Unable to find templates for target type %s", te.viewmodel.Target.TargetType().Name()))
+		panic(fmt.Sprintf("Unable to find templates for target type %s", te.viewmodel.Type().Name()))
 	}
 
-	return path.Join(vm.TargetsDir, tmpl)
+	return path.Join(targets.TargetsDir, tmpl)
 }
 
 func (te *TargetEdit) data() interface{} {
-	return te.viewmodel.Target
+	return te.viewmodel
 }
 
 func (te *TargetEdit) scripts() []string {
-	scripts := te.viewmodel.TargetType().Scripts()["edit"]
+	scripts := te.viewmodel.Type().Scripts()["edit"]
 
-	return vm.AppendDir(vm.TargetsDir, scripts)
+	return vm.AppendDir(targets.TargetsDir, scripts)
 }
 
 func (te *TargetEdit) breadcrumbs() []vm.Breadcrumb {
