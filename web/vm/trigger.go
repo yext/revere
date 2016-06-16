@@ -43,6 +43,10 @@ func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
 	}, nil
 }
 
+func BlankTrigger() *Trigger {
+	return &Trigger{}
+}
+
 func (t *Trigger) Id() int64 {
 	return int64(t.TriggerID)
 }

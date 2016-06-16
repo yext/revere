@@ -13,9 +13,9 @@ type TargetEdit struct {
 	subs      []Renderable
 }
 
-func NewTargetEdit(t targets.Target) *TargetEdit {
+func NewTargetEdit(t *targets.Target) *TargetEdit {
 	te := TargetEdit{}
-	te.viewmodel = t
+	te.viewmodel = *t
 	te.subs = []Renderable{}
 	return &te
 }

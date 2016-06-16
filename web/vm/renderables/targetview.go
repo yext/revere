@@ -13,9 +13,9 @@ type TargetView struct {
 	subs      []Renderable
 }
 
-func NewTargetView(t *vm.Target) *TargetView {
+func NewTargetView(t *targets.Target) *TargetView {
 	tv := TargetView{}
-	tv.viewmodel = t
+	tv.viewmodel = *t
 	tv.subs = []Renderable{}
 	return &tv
 }
@@ -25,22 +25,22 @@ func (tv *TargetView) name() string {
 }
 
 func (tv *TargetView) template() string {
-	tmpl, ok := tv.viewmodel.TargetType().Templates()["view"]
+	tmpl, ok := tv.viewmodel.Type().Templates()["view"]
 	if !ok {
-		panic(fmt.Sprintf("Unable to find templates for target type %s", tv.viewmodel.Target.TargetType().Name()))
+		panic(fmt.Sprintf("Unable to find templates for target type %s", tv.viewmodel.Type().Name()))
 	}
 
-	return path.Join(vm.TargetsDir, tmpl)
+	return path.Join(targets.TargetsDir, tmpl)
 }
 
 func (tv *TargetView) data() interface{} {
-	return tv.viewmodel.Target
+	return tv.viewmodel
 }
 
 func (tv *TargetView) scripts() []string {
-	scripts := tv.viewmodel.TargetType().Scripts()["view"]
+	scripts := tv.viewmodel.Type().Scripts()["view"]
 
-	return vm.AppendDir(vm.TargetsDir, scripts)
+	return vm.AppendDir(targets.TargetsDir, scripts)
 }
 
 func (tv *TargetView) breadcrumbs() []vm.Breadcrumb {
