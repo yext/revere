@@ -6,11 +6,6 @@ import (
 	"github.com/yext/revere/db"
 )
 
-type VM struct {
-	Target
-	TargetParams string
-}
-
 type TargetType interface {
 	Id() db.TargetType
 	Name() string

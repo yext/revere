@@ -9,11 +9,11 @@ import (
 )
 
 type TargetEdit struct {
-	viewmodel *targets.VM
+	viewmodel targets.Target
 	subs      []Renderable
 }
 
-func NewTargetEdit(t *targets.VM) *TargetEdit {
+func NewTargetEdit(t targets.Target) *TargetEdit {
 	te := TargetEdit{}
 	te.viewmodel = t
 	te.subs = []Renderable{}

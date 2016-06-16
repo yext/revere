@@ -9,7 +9,7 @@ import (
 )
 
 type TargetView struct {
-	viewmodel *targets.VM
+	viewmodel targets.Target
 	subs      []Renderable
 }
 
