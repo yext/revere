@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbeEdit struct {
-	viewmodel *vm.Probe
+	viewmodel *probes.Probe
 	subs      []Renderable
 }
 
-func NewProbeEdit(p *vm.Probe) *ProbeEdit {
+func NewProbeEdit(p *probes.Probe) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.viewmodel = p
 	pe.subs = []Renderable{}

@@ -3,14 +3,15 @@ package renderables
 import (
 	"path"
 
+	"github.com/yext/revere/settings"
 	"github.com/yext/revere/web/vm"
 )
 
 type SettingEdit struct {
-	*vm.Setting
+	*settings.VM
 }
 
-func NewSettingEdit(s *vm.Setting) *SettingEdit {
+func NewSettingEdit(s *settings.VM) *SettingEdit {
 	se := new(SettingEdit)
 	se.Setting = s
 	return se

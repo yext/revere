@@ -1,6 +1,7 @@
 package renderables
 
 import (
+	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -9,7 +10,7 @@ type DataSourceIndex struct {
 	subs       []Renderable
 }
 
-func NewDataSourceIndex(dstvms []*vm.DataSourceType) *DataSourceIndex {
+func NewDataSourceIndex(dstvms []*datasources.DataSourceType) *DataSourceIndex {
 	dsi := DataSourceIndex{}
 	dsi.viewmodels = dstvms
 	dsi.subs = make([]Renderable, 0)

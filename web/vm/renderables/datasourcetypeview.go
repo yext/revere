@@ -3,14 +3,15 @@ package renderables
 import (
 	"path"
 
+	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/web/vm"
 )
 
 type DataSourceTypeView struct {
-	*vm.DataSourceType
+	*datasources.VM
 }
 
-func NewDataSourceTypeView(dst *vm.DataSourceType) *DataSourceTypeView {
+func NewDataSourceTypeView(dst *datasources.DataSourceType) *DataSourceTypeView {
 	dstv := DataSourceTypeView{}
 	dstv.DataSourceType = dst
 	return &dstv

@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbeView struct {
-	viewmodel *vm.Probe
+	viewmodel *probes.Probe
 	subs      []Renderable
 }
 
-func NewProbeView(p *vm.Probe) *ProbeView {
+func NewProbeView(p *probes.Probe) *ProbeView {
 	pv := ProbeView{}
 	pv.viewmodel = p
 	pv.subs = []Renderable{}

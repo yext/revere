@@ -10,7 +10,7 @@ type SettingsIndex struct {
 	subs     []Renderable
 }
 
-func NewSettingsIndex(ss []*vm.Setting) *SettingsIndex {
+func NewSettingsIndex(ss []*settings.VM) *SettingsIndex {
 	si := new(SettingsIndex)
 	si.settings = ss
 	si.subs = make([]Renderable, len(ss))

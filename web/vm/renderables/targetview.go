@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/vm"
 )
 
 type TargetView struct {
-	viewmodel *vm.Target
+	viewmodel *targets.VM
 	subs      []Renderable
 }
 

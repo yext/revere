@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/yext/revere/targets"
 	"github.com/yext/revere/web/vm"
 )
 
 type TargetEdit struct {
-	viewmodel *vm.Target
+	viewmodel *targets.VM
 	subs      []Renderable
 }
 
-func NewTargetEdit(t *vm.Target) *TargetEdit {
+func NewTargetEdit(t *targets.VM) *TargetEdit {
 	te := TargetEdit{}
 	te.viewmodel = t
 	te.subs = []Renderable{}
