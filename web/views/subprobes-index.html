@@ -12,13 +12,13 @@
     </div>
     {{range .Subprobes}}
       <div class="revere-row
-      {{if eq .Status.State $States.NORMAL}}
+      {{if eq .Status.State.String "Normal"}}
         bg-success
-      {{else if eq .Status.State $States.WARNING}}
+      {{else if eq .Status.State.String "Warning"}}
         bg-warning
-      {{else if eq .Status.State $States.ERROR}}
+      {{else if eq .Status.State.String "ERROR"}}
         bg-danger
-      {{else if eq .Status.State $States.CRITICAL}}
+      {{else if eq .Status.State.String "CRITICAL"}}
         bg-critical
       {{else}}
         bg-unknown

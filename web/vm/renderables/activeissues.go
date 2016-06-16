@@ -1,18 +1,18 @@
 package renderables
 
 import (
-	"github.com/yext/revere"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm"
 )
 
 type ActiveIssues struct {
 	labels        []*vm.Label
 	subprobes     []*vm.Subprobe
-	monitorLabels map[revere.MonitorID][]*vm.MonitorLabel
+	monitorLabels map[db.MonitorID][]*vm.MonitorLabel
 	subs          []Renderable
 }
 
-func NewActiveIssues(ss []*vm.Subprobe, ls []*vm.Label, mls map[revere.MonitorID][]*vm.MonitorLabel) *ActiveIssues {
+func NewActiveIssues(ss []*vm.Subprobe, ls []*vm.Label, mls map[db.MonitorID][]*vm.MonitorLabel) *ActiveIssues {
 	return &ActiveIssues{ls, ss, mls, nil}
 }
 
@@ -29,7 +29,6 @@ func (ai *ActiveIssues) data() interface{} {
 		"Labels":        ai.labels,
 		"Subprobes":     ai.subprobes,
 		"MonitorLabels": ai.monitorLabels,
-		"States":        revere.ReverseStates,
 	}
 }
 

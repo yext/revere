@@ -1,7 +1,6 @@
 package renderables
 
 import (
-	"github.com/yext/revere"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -31,7 +30,6 @@ func (ssi *SubprobesIndex) data() interface{} {
 	return map[string]interface{}{
 		"Subprobes": ssi.subprobes,
 		"Monitor":   ssi.monitor,
-		"States":    revere.ReverseStates,
 	}
 }
 

@@ -10,13 +10,13 @@
       <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
       {{range $Readings}}
         <div class="revere-row
-        {{if eq .State $States.NORMAL}}
+        {{if eq .State.String "Normal"}}
           bg-success
-        {{else if eq .State $States.WARNING}}
+        {{else if eq .State.String "Warning"}}
           bg-warning
-        {{else if eq .State $States.ERROR}}
+        {{else if eq .State.String "ERROR"}}
           bg-danger
-        {{else if eq .State $States.CRITICAL}}
+        {{else if eq .State.String "CRITICAL"}}
           bg-critical
         {{else}}
           bg-unknown
