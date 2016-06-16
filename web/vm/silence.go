@@ -68,7 +68,7 @@ func AllSilences(tx *db.Tx) ([]*Silence, error) {
 	return ss, nil
 }
 
-func (s *Silence) Create() bool {
+func (s *Silence) IsCreate() bool {
 	return s.Id() == 0
 }
 

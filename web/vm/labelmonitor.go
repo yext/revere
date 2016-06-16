@@ -11,8 +11,8 @@ type LabelMonitor struct {
 	Monitor   *Monitor
 	LabelID   db.LabelID
 	Subprobes string
-	create    bool
-	delete    bool
+	Create    bool
+	Delete    bool
 }
 
 func (lm *LabelMonitor) Id() int64 {
@@ -42,12 +42,12 @@ func blankLabelMonitors() []*LabelMonitor {
 	return []*LabelMonitor{}
 }
 
-func (lm *LabelMonitor) Create() bool {
-	return lm.create
+func (lm *LabelMonitor) IsCreate() bool {
+	return lm.Create
 }
 
-func (lm *LabelMonitor) Del() bool {
-	return lm.delete
+func (lm *LabelMonitor) IsDelete() bool {
+	return lm.Delete
 }
 
 func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {

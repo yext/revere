@@ -102,7 +102,7 @@ func (l *Label) Validate(db *db.DB) (errs []string) {
 	return
 }
 
-func (l *Label) Create() bool {
+func (l *Label) IsCreate() bool {
 	return l.Id() == 0
 }
 

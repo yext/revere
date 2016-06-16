@@ -52,11 +52,11 @@ func (mt *MonitorTrigger) Id() int64 {
 	return mt.Trigger.Id()
 }
 
-func (mt *MonitorTrigger) Create() bool {
+func (mt *MonitorTrigger) IsCreate() bool {
 	return mt.Id() == 0
 }
 
-func (mt *MonitorTrigger) Del() bool {
+func (mt *MonitorTrigger) IsDelete() bool {
 	return mt.Delete
 }
 

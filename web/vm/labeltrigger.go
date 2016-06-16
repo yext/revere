@@ -40,11 +40,11 @@ func (lt *LabelTrigger) Id() int64 {
 	return lt.Trigger.Id()
 }
 
-func (lt *LabelTrigger) Create() bool {
+func (lt *LabelTrigger) IsCreate() bool {
 	return lt.Id() == 0
 }
 
-func (lt *LabelTrigger) Del() bool {
+func (lt *LabelTrigger) IsDelete() bool {
 	return lt.Delete
 }
 

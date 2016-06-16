@@ -5,17 +5,17 @@ type Component interface {
 }
 
 type CreatableComponent interface {
-	Create() bool
+	IsCreate() bool
 }
 
 type DeletableComponent interface {
-	Del() bool
+	IsDelete() bool
 }
 
 func isCreate(c CreatableComponent) bool {
-	return c.Create()
+	return c.IsCreate()
 }
 
 func isDelete(c DeletableComponent) bool {
-	return c.Del()
+	return c.IsDelete()
 }

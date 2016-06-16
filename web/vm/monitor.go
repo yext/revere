@@ -27,7 +27,7 @@ type Monitor struct {
 	Labels   []*MonitorLabel
 }
 
-func (m *Monitor) Create() bool {
+func (m *Monitor) IsCreate() bool {
 	return m.Id() == 0
 }
 

@@ -39,11 +39,11 @@ func blankMonitorLabels() []*MonitorLabel {
 	return []*MonitorLabel{}
 }
 
-func (ml *MonitorLabel) Create() bool {
+func (ml *MonitorLabel) IsCreate() bool {
 	return ml.Create
 }
 
-func (ml *MonitorLabel) Del() bool {
+func (ml *MonitorLabel) IsDelele() bool {
 	return ml.Delete
 }
 
