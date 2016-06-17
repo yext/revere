@@ -32,22 +32,24 @@ func MonitorsIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
 					http.StatusInternalServerError)
-				return
+				return errors.Trace(err)
 			}
 
 			err = vm.PopulateLabelsForMonitors(tx, monitors)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 					http.StatusInternalServerError)
-				return
+				return errors.Trace(err)
 			}
 
 			labels, err = vm.AllLabels(tx)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Unable to retrieve labels: %s", err.Error()),
 					http.StatusInternalServerError)
-				return
+				return errors.Trace(err)
 			}
+
+			return nil
 		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitors: %s", err.Error()),
@@ -76,7 +78,7 @@ func MonitorsView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 
 		var monitor *vm.Monitor
 		err := DB.Tx(func(tx *db.Tx) (err error) {
-			monitor, err = loadMonitorViewModel(DB, id)
+			monitor, err = loadMonitorViewModel(tx, id)
 			return errors.Trace(err)
 		})
 		if err != nil {
@@ -122,6 +124,8 @@ func MonitorsEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 					http.StatusInternalServerError)
 				return
 			}
+
+			return nil
 		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve monitor: %s", err.Error()),
@@ -150,7 +154,7 @@ func MonitorsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			return
 		}
 
-		errs := m.Validate(db)
+		errs := m.Validate(DB)
 		if errs != nil {
 			errors, err := json.Marshal(map[string][]string{"errors": errs})
 			if err != nil {
@@ -173,7 +177,7 @@ func MonitorsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			return
 		}
 
-		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/monitors/%d", m.MonitorId)})
+		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/monitors/%d", m.MonitorID)})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -187,7 +191,11 @@ func MonitorsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 
 func loadMonitorViewModel(tx *db.Tx, unparsedId string) (*vm.Monitor, error) {
 	if unparsedId == "new" {
-		return vm.BlankMonitor(), nil
+		blankMonitor, err := vm.BlankMonitor()
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+		return blankMonitor, nil
 	}
 
 	id, err := strconv.Atoi(unparsedId)

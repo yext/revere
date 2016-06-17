@@ -82,7 +82,7 @@ func SilencesEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 		// TODO(fchen): consider making single silence load take a tx, or dbOrTx?
 
 		var allMonitors []*vm.Monitor
-		err := DB.Tx(func(tx *db.Tx) error {
+		err = DB.Tx(func(tx *db.Tx) error {
 			var err error
 			allMonitors, err = vm.AllMonitors(tx)
 			return errors.Trace(err)
@@ -128,17 +128,13 @@ func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			return
 		}
 
-		writeJsonResponse(w, "save silence", map[string]interface{}{"id": s.SilenceId})
+		writeJsonResponse(w, "save silence", map[string]interface{}{"id": s.SilenceID})
 	}
 }
 
 func loadSilenceViewModel(DB *db.DB, unparsedId string) (*vm.Silence, error) {
 	if unparsedId == "new" {
-		viewmodel, err := vm.BlankSilence()
-		if err != nil {
-			return nil, errors.Trace(err)
-		}
-
+		viewmodel := vm.BlankSilence()
 		return viewmodel, nil
 	}
 
