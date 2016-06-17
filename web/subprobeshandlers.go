@@ -24,7 +24,7 @@ func SubprobesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p 
 
 		var (
 			subprobes []*vm.Subprobe
-			monitor   *Monitor
+			monitor   *vm.Monitor
 		)
 		err = DB.Tx(func(tx *db.Tx) error {
 			var err error

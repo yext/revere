@@ -56,16 +56,12 @@ func newLabelsFromDB(labels []*db.Label) []*Label {
 	return ls
 }
 
-func BlankLabel() (*Label, error) {
-	var err error
+func BlankLabel() *Label {
 	l := &Label{}
 	l.Triggers = blankLabelTriggers()
 	l.Monitors = blankLabelMonitors()
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
 
-	return l, nil
+	return l
 }
 
 func AllLabels(tx *db.Tx) ([]*Label, error) {

@@ -58,7 +58,7 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 			return
 		}
 
-		err = DB.Tx(func(tx *DB.Tx) error {
+		err = DB.Tx(func(tx *db.Tx) error {
 			for _, s := range ss {
 				err := s.Save(tx)
 				if err != nil {

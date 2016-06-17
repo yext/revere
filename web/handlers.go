@@ -74,7 +74,7 @@ func ActiveIssues(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 				http.StatusInternalServerError)
-			return errors.Trace(err)
+			return
 		}
 
 		renderable := renderables.NewActiveIssues(subprobes, allLabels, monitorLabels)
@@ -82,10 +82,10 @@ func ActiveIssues(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve active issues: %s", err.Error()),
 				http.StatusInternalServerError)
-			return errors.Trace(err)
+			return
 		}
 
-		return nil
+		return
 	}
 }
 

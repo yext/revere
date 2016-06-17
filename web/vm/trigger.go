@@ -20,7 +20,7 @@ type Trigger struct {
 	TargetType    db.TargetType
 	TargetParams  string
 	TriggerOnExit bool
-	Target        *targets.Target
+	Target        targets.Target
 }
 
 func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
@@ -39,7 +39,7 @@ func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
 		TargetType:    trigger.TargetType,
 		TargetParams:  "",
 		TriggerOnExit: trigger.TriggerOnExit,
-		Target:        &target,
+		Target:        target,
 	}, nil
 }
 
@@ -57,7 +57,7 @@ func (t *Trigger) validate() (errs []string) {
 	if err != nil {
 		errs = append(errs, fmt.Sprintf("Unable to load target for trigger: %s", t.TargetParams))
 	}
-	t.Target = &target
+	t.Target = target
 	errs = append(errs, target.Validate()...)
 
 	if err = t.Level.Validate(); err != nil {
@@ -76,7 +76,7 @@ func (t *Trigger) setId(id db.TriggerID) {
 }
 
 func (t *Trigger) toDBTrigger() (*db.Trigger, error) {
-	triggerJSON, err := (*t.Target).Serialize()
+	triggerJSON, err := t.Target.Serialize()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

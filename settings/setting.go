@@ -105,13 +105,13 @@ func AllTypes() (sts []SettingType) {
 	return sts
 }
 
-func All(DB *db.DB) ([]VM, error) {
+func All(DB *db.DB) ([]*VM, error) {
 	settings, err := DB.LoadSettings()
 	if err != nil {
 		return nil, err
 	}
 
-	ss := make([]VM, len(settings))
+	ss := make([]*VM, len(settings))
 	for i, setting := range settings {
 		ss[i], err = newVM(setting)
 		if err != nil {
@@ -122,13 +122,13 @@ func All(DB *db.DB) ([]VM, error) {
 	return ss, nil
 }
 
-func newVM(s *db.Setting) (VM, error) {
+func newVM(s *db.Setting) (*VM, error) {
 	setting, err := LoadFromDB(s.SettingType, s.Setting)
 	if err != nil {
-		return VM{}, errors.Trace(err)
+		return &VM{}, errors.Trace(err)
 	}
 
-	return VM{
+	return &VM{
 		Setting:     setting,
 		SettingID:   s.SettingID,
 		SettingType: s.SettingType,

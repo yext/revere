@@ -13,9 +13,9 @@ type TargetView struct {
 	subs      []Renderable
 }
 
-func NewTargetView(t *targets.Target) *TargetView {
+func NewTargetView(t targets.Target) *TargetView {
 	tv := TargetView{}
-	tv.viewmodel = *t
+	tv.viewmodel = t
 	tv.subs = []Renderable{}
 	return &tv
 }

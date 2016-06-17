@@ -102,13 +102,13 @@ func AllTypes() (dsts []DataSourceType) {
 	return dsts
 }
 
-func All(DB *db.DB) ([]VM, error) {
+func All(DB *db.DB) ([]*VM, error) {
 	datasources, err := DB.LoadDatasources()
 	if err != nil {
 		return nil, err
 	}
 
-	dss := make([]VM, len(datasources))
+	dss := make([]*VM, len(datasources))
 	for i, datasource := range datasources {
 		dss[i], err = newVM(datasource)
 		if err != nil {
@@ -119,13 +119,13 @@ func All(DB *db.DB) ([]VM, error) {
 	return dss, nil
 }
 
-func newVM(ds *db.Datasource) (VM, error) {
+func newVM(ds *db.Datasource) (*VM, error) {
 	datasource, err := LoadFromDB(ds.SourceType, ds.Source)
 	if err != nil {
-		return VM{}, errors.Trace(err)
+		return &VM{}, errors.Trace(err)
 	}
 
-	return VM{
+	return &VM{
 		DataSource: datasource,
 		SourceID:   ds.SourceID,
 		SourceType: ds.SourceType,

@@ -127,7 +127,7 @@ func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 
 		err = DB.Tx(func(tx *db.Tx) error {
 			err := l.Save(tx)
-			return errors.trace(err)
+			return errors.Trace(err)
 		})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
