@@ -32,6 +32,10 @@ func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
 	return lts, nil
 }
 
+func BlankLabelTrigger() *LabelTrigger {
+	return &LabelTrigger{}
+}
+
 func blankLabelTriggers() []*LabelTrigger {
 	return []*LabelTrigger{}
 }

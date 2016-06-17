@@ -13,7 +13,7 @@ func NewLabelView(l *vm.Label) *LabelView {
 	lv := LabelView{}
 	lv.viewmodel = l
 	lv.subs = []Renderable{
-		NewTriggersView(l.Triggers),
+		NewLabelTriggersView(l.Triggers),
 		NewLabelMonitorsView(l.Monitors),
 	}
 	return &lv
@@ -36,7 +36,7 @@ func (lv *LabelView) scripts() []string {
 }
 
 func (lv *LabelView) breadcrumbs() []vm.Breadcrumb {
-	return vm.LabelViewBcs(lv.viewmodel.GetName(), lv.viewmodel.GetId())
+	return vm.LabelViewBcs(lv.viewmodel.Name, lv.viewmodel.Id())
 }
 
 func (lv *LabelView) subRenderables() []Renderable {
