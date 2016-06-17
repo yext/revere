@@ -52,7 +52,7 @@ func New(env *env.Env) *WebServer {
 }
 
 func (w *WebServer) run() {
-	port := strconv.Itoa(w.Port)
+	port := strconv.Itoa(int(w.Port))
 	log.Info("Listening on :%s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, w.router))
 }
