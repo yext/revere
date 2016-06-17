@@ -6,16 +6,16 @@ import (
 )
 
 type DataSourceIndex struct {
-	viewmodels []datasources.VM
-	subs       []Renderable
+	datasources []*datasources.VM
+	subs        []Renderable
 }
 
-func NewDataSourceIndex(dstvms []*datasources.DataSourceType) *DataSourceIndex {
+func NewDataSourceIndex(dss []*datasources.VM) *DataSourceIndex {
 	dsi := DataSourceIndex{}
-	dsi.viewmodels = dstvms
-	dsi.subs = make([]Renderable, 0)
-	for _, dstvm := range dstvms {
-		dsi.subs = append(dsi.subs, NewDataSourceTypeView(dstvm))
+	dsi.datasources = dss
+	dsi.subs = make([]Renderable, len(dss))
+	for i, ds := range dss {
+		dsi.subs[i] = NewDataSourceView(ds)
 	}
 	return &dsi
 }
@@ -29,7 +29,7 @@ func (dsi *DataSourceIndex) template() string {
 }
 
 func (dsi *DataSourceIndex) data() interface{} {
-	return dsi.viewmodels
+	return nil
 }
 
 func (dsi *DataSourceIndex) scripts() []string {
@@ -47,7 +47,7 @@ func (dsi *DataSourceIndex) subRenderables() []Renderable {
 }
 
 func (dsi *DataSourceIndex) renderPropagate() (*renderResult, error) {
-	return renderPropagateImmediate(dsi)
+	return renderPropagate(dsi)
 }
 
 func (dsi *DataSourceIndex) aggregatePipelineData(parent *renderResult, child *renderResult) {
