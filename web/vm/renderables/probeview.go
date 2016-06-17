@@ -9,11 +9,11 @@ import (
 )
 
 type ProbeView struct {
-	viewmodel *probes.Probe
+	viewmodel probes.Probe
 	subs      []Renderable
 }
 
-func NewProbeView(p *probes.Probe) *ProbeView {
+func NewProbeView(p probes.Probe) *ProbeView {
 	pv := ProbeView{}
 	pv.viewmodel = p
 	pv.subs = []Renderable{}
@@ -25,20 +25,20 @@ func (pv *ProbeView) name() string {
 }
 
 func (pv *ProbeView) template() string {
-	tmpl, ok := (*pv.viewmodel).Type().Templates()["view"]
+	tmpl, ok := pv.viewmodel.Type().Templates()["view"]
 	if !ok {
-		panic(fmt.Sprintf("Unable to find templates for probe type %s", (*pv.viewmodel).Type().Name()))
+		panic(fmt.Sprintf("Unable to find templates for probe type %s", pv.viewmodel.Type().Name()))
 	}
 
 	return path.Join(probes.ProbesDir, tmpl)
 }
 
 func (pv *ProbeView) data() interface{} {
-	return *pv.viewmodel
+	return pv.viewmodel
 }
 
 func (pv *ProbeView) scripts() []string {
-	scripts := (*pv.viewmodel).Type().Scripts()["view"]
+	scripts := pv.viewmodel.Type().Scripts()["view"]
 
 	return vm.AppendDir(probes.ProbesDir, scripts)
 }

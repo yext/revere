@@ -14,7 +14,7 @@ func NewMonitorEdit(m *vm.Monitor, ls []*vm.Label) *MonitorEdit {
 	me.viewmodel = m
 	me.subs = []Renderable{
 		NewProbeEdit(m.Probe),
-		NewTriggersEdit(m.Triggers),
+		NewMonitorTriggersEdit(m.Triggers),
 		NewMonitorLabelsEdit(m.Labels, ls),
 	}
 	return &me

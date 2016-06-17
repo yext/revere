@@ -9,11 +9,11 @@ import (
 )
 
 type ProbeEdit struct {
-	viewmodel *probes.Probe
+	viewmodel probes.Probe
 	subs      []Renderable
 }
 
-func NewProbeEdit(p *probes.Probe) *ProbeEdit {
+func NewProbeEdit(p probes.Probe) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.viewmodel = p
 	pe.subs = []Renderable{}
@@ -25,9 +25,9 @@ func (pe *ProbeEdit) name() string {
 }
 
 func (pe *ProbeEdit) template() string {
-	tmpl, ok := (*pe.viewmodel).Type().Templates()["edit"]
+	tmpl, ok := pe.viewmodel.Type().Templates()["edit"]
 	if !ok {
-		panic(fmt.Sprintf("Unable to find templates for probe type %s", (*pe.viewmodel).Type().Name()))
+		panic(fmt.Sprintf("Unable to find templates for probe type %s", pe.viewmodel.Type().Name()))
 	}
 
 	return path.Join(probes.ProbesDir, tmpl)
@@ -38,7 +38,7 @@ func (pe *ProbeEdit) data() interface{} {
 }
 
 func (pe *ProbeEdit) scripts() []string {
-	scripts := (*pe.viewmodel).Type().Scripts()["edit"]
+	scripts := pe.viewmodel.Type().Scripts()["edit"]
 
 	return vm.AppendDir(probes.ProbesDir, scripts)
 }

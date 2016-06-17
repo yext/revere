@@ -14,7 +14,7 @@ func NewMonitorView(m *vm.Monitor) *MonitorView {
 	mv.viewmodel = m
 	mv.subs = []Renderable{
 		NewProbeView(m.Probe),
-		NewTriggersView(m.Triggers),
+		NewMonitorTriggersView(m.Triggers),
 		NewMonitorLabelsView(m.Labels),
 	}
 	return &mv
@@ -37,7 +37,7 @@ func (mv *MonitorView) scripts() []string {
 }
 
 func (mv *MonitorView) breadcrumbs() []vm.Breadcrumb {
-	return vm.MonitorViewBcs(mv.viewmodel.GetName(), mv.viewmodel.GetId())
+	return vm.MonitorViewBcs(mv.viewmodel.Name, mv.viewmodel.Id())
 }
 
 func (mv *MonitorView) subRenderables() []Renderable {

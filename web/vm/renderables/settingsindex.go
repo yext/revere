@@ -6,7 +6,7 @@ import (
 )
 
 type SettingsIndex struct {
-	settings []settings.VM
+	settings []*settings.VM
 	subs     []Renderable
 }
 

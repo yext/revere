@@ -37,7 +37,7 @@ func (sv *SubprobeView) scripts() []string {
 }
 
 func (sv *SubprobeView) breadcrumbs() []vm.Breadcrumb {
-	return vm.SubprobeViewBcs(sv.subprobe.Subprobe)
+	return vm.SubprobeViewBcs(sv.subprobe)
 }
 
 func (sv *SubprobeView) subRenderables() []Renderable {

@@ -33,6 +33,10 @@ func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]*MonitorTrigger, error) {
 	return mts, nil
 }
 
+func BlankMonitorTrigger() *MonitorTrigger {
+	return &MonitorTrigger{}
+}
+
 func blankMonitorTriggers() []*MonitorTrigger {
 	return []*MonitorTrigger{}
 }
