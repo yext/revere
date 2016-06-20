@@ -14,11 +14,49 @@ var silencesEdit = function() {
   s.init = function() {
     initDtps();
     initForm();
+    initEndNow();
+    initSilenceBounds();
+  };
+
+  var initSilenceBounds = function() {
+    var $startDtp = $('.js-datetimepicker-start'),
+      $endDtp = $('.js-datetimepicker-end');
+
+    if ($startDtp.data('time') === revere.goTimeZero()) {
+      $startDtp.data('DateTimePicker').disable();
+      $endDtp.data('DateTimePicker').disable();
+      $('#js-start-now, #js-end-duration').prop('checked', true);
+    } else {
+      $('#js-start-dtp, #js-end-dtp').prop('checked', true);
+    }
+
+    $('input[type=radio][name=startType]').on('change', function() {
+      switch($(this).val()) {
+        case 'now':
+          $startDtp.data('DateTimePicker').disable();
+          break;
+        case 'dtp':
+          $startDtp.data('DateTimePicker').enable();
+          break;
+      }
+    });
+
+    $('input[type=radio][name=endType]').on('change', function() {
+      switch($(this).val()) {
+        case 'duration':
+          $endDtp.data('DateTimePicker').disable();
+          break;
+        case 'dtp':
+          $endDtp.data('DateTimePicker').enable();
+          break;
+      }
+    });
   };
 
   var initDtps = function() {
     var $startDtp = $('.js-datetimepicker-start'),
-      $endDtp = $('.js-datetimepicker-end');
+      $endDtp = $('.js-datetimepicker-end'),
+      $startDateType = $('.js-start-type');
 
     var nowEpoch = moment().seconds(0).format(revere.modelDateTimeFormat()),
       modelStart = $startDtp.data('time'),
@@ -39,7 +77,7 @@ var silencesEdit = function() {
         start = e.date,
         end = $endDtp.data('DateTimePicker').date();
 
-      if (end.isBefore(start)) {
+      if (end.isSameOrBefore(start)) {
         end = moment(start);
         end.add(1, 'hour');
       }
@@ -49,61 +87,82 @@ var silencesEdit = function() {
     });
 
     if (moment(start).isBefore(now)) {
+      $startDateType.attr('disabled', true);
       $startDtp.data('DateTimePicker').disable();
-      if (moment(end).isBefore(now)) {
+      if (moment(end).isSameOrBefore(now)) {
         $endDtp.data('DateTimePicker').disable();
         return;
       }
     }
-
   };
 
   var initForm = function() {
     $('.js-submit-btn').click(function(e) {
       e.preventDefault();
-      var $invalidInput = $('.js-invalid-input')
-        .addClass('hidden').empty();
-      var $validInput = $('.js-valid-input')
-        .addClass('hidden').empty();
-      var $serverError = $('.js-server-error')
-        .addClass('hidden').empty();
+      saveSilence();
+    });
+  };
 
-      var $startDtp = $('.js-datetimepicker-start').data('DateTimePicker'),
-        $endDtp = $('.js-datetimepicker-end').data('DateTimePicker');
-      var startDtpMoment = $startDtp.date(),
-        endDtpMoment = $endDtp.date();
-      var data = getSilenceData();
-      var id = data['id'];
-      data.Start = localTimeToUtc(startDtpMoment);
-      data.End = localTimeToUtc(endDtpMoment);
-      $.ajax({
-        method: 'POST',
-        url: '/silences/'+ id + '/edit',
-        data: JSON.stringify(data),
-        contentType: 'application/json; charset=UTF-8'
-      }).success(function(d) {
-        if (d.errors) {
-          $.each(d.errors, function(i, v) {
-            $invalidInput.append('<p>' + v + '</p>');
-          });
-          $invalidInput.removeClass('hidden');
+  var initEndNow = function() {
+    $('#js-end-silence').click(function(e) {
+      e.preventDefault();
+      $('.js-datetimepicker-end').data('DateTimePicker').date(moment());
+      $('#js-end-dtp').prop('checked', true);
+      saveSilence();
+    });
+  };
+
+  var saveSilence = function() {
+    var $invalidInput = $('.js-invalid-input')
+      .addClass('hidden').empty();
+    var $validInput = $('.js-valid-input')
+      .addClass('hidden').empty();
+    var $serverError = $('.js-server-error')
+      .addClass('hidden').empty();
+
+    var $startDtp = $('.js-datetimepicker-start'),
+      $endDtp = $('.js-datetimepicker-end');
+
+    var startMoment = ($('.js-start-type:checked').val() === 'now') ?
+      moment() : $startDtp.data('DateTimePicker').date();
+
+    var endMoment = ($('.js-end-type:checked').val() == 'duration') ?
+      getEndMomentFromDuration() : $endDtp.data('DateTimePicker').date();
+
+    // Prevents serialization from picking up fields
+    disableBoundFields();
+
+    var data = getSilenceData(),
+      id = data['SilenceId'];
+    data.Start = localTimeToUtc(startMoment);
+    data.End = localTimeToUtc(endMoment);
+    $.ajax({
+      method: 'POST',
+      url: '/silences/'+ id + '/edit',
+      data: JSON.stringify(data),
+      contentType: 'application/json; charset=UTF-8'
+    }).success(function(d) {
+      if (d.errors) {
+        $.each(d.errors, function(i, v) {
+          $invalidInput.append('<p>' + v + '</p>');
+        });
+        $invalidInput.removeClass('hidden');
+      } else {
+        var $validInput = $('.js-valid-input');
+        if (id === 'new') {
+          $validInput.append('<p>Successfully created silence</p>');
         } else {
-          var $validInput = $('.js-valid-input');
-          if (id === 'new') {
-            $validInput.append('<p>Successfully created silence</p>');
-          } else {
-            $validInput.append('<p>Successfully updated silence</p>');
-          }
-          $validInput.removeClass('hidden');
-          var timeout = window.setTimeout(function() {
-            window.location.replace('/silences/'+d.id);
-          }, 200);
+          $validInput.append('<p>Successfully updated silence</p>');
         }
-      }).fail(function(jqXHR, status) {
-        $serverError.append('<h4>Server Error</h4>');
-        $serverError.append('<p>' + jqXHR.responseText + '</p>');
-        $serverError.removeClass('hidden');
-      });
+        $validInput.removeClass('hidden');
+        var timeout = window.setTimeout(function() {
+          window.location.replace('/silences/'+d.id);
+        }, 200);
+      }
+    }).fail(function(jqXHR, status) {
+      $serverError.append('<h4>Server Error</h4>');
+      $serverError.append('<p>' + jqXHR.responseText + '</p>');
+      $serverError.removeClass('hidden');
     });
   };
 
@@ -123,6 +182,18 @@ var silencesEdit = function() {
     $dtpObj.maxDate(moment(start).add(2, 'week').format(revere.displayDateTimeFormat()));
     $dtpObj.date(end);
   }
+
+  var getEndMomentFromDuration = function() {
+    var $duration = $('input[name="duration"]'),
+      $durationType = $('select[name="durationType"]');
+    $duration.prop('disabled', true);
+    $durationType.prop('disabled', true);
+    return moment().add($duration.val(), $durationType.val());
+  };
+
+  var disableBoundFields = function() {
+    $('#silence-bounds').find(':input').prop('disabled', true);
+  };
 
   var defaultToNow = function(now, time) {
     return time === revere.goTimeZero() ? now : time;
