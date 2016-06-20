@@ -42,7 +42,7 @@ var datasources = function() {
 
   var clearInputs = function(newField) {
     newField.find('input[type="text"]').val('');
-    newField.find('input[name="SourceId"]').val(0);
+    newField.find('input[name="SourceID"]').val(0);
     newField.find('input[name="Delete"]').val(false);
   };
 
@@ -61,7 +61,7 @@ var datasources = function() {
     $(document.body).on('click', '.js-remove-datasource', function(e) {
       e.preventDefault();
       $dataSource = $(this).parents('.js-datasource');
-      var id = $dataSource.find('input[name="SourceId"]').val();
+      var id = $dataSource.find('input[name="SourceID"]').val();
       if(id == '0'){
         $dataSource.remove();
       } else if (datasourcesLeft === 1) {
