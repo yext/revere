@@ -7,16 +7,18 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
+	"github.com/yext/revere/durationfmt"
 	"github.com/yext/revere/state"
 )
 
 type SubprobeStatus struct {
-	SubprobeID   db.SubprobeID
-	Recorded     time.Time
-	State        state.State
-	Silenced     bool
-	EnteredState time.Time
-	LastNormal   time.Time
+	SubprobeID      db.SubprobeID
+	Recorded        time.Time
+	State           state.State
+	Silenced        bool
+	EnteredState    time.Time
+	FmtEnteredState string
+	LastNormal      time.Time
 }
 
 type Subprobe struct {
@@ -64,13 +66,17 @@ func newSubprobesFromDB(ss []*db.Subprobe) []*Subprobe {
 
 func newSubprobeWithStatusFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
 	subprobeStatus := SubprobeStatus{
+		// TODO(fchen): maybe not hardcode in the time zone? TBD
 		SubprobeID:   s.SubprobeID,
 		Recorded:     s.Recorded,
 		State:        s.State,
 		Silenced:     s.Silenced,
 		EnteredState: s.EnteredState,
 		LastNormal:   s.LastNormal,
+		FmtEnteredState: durationfmt.MostSigUnit().Format(
+			time.Now().UTC().Sub(s.EnteredState)),
 	}
+
 	return &Subprobe{
 		SubprobeID:  s.SubprobeID,
 		MonitorID:   s.MonitorID,
