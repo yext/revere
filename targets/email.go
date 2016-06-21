@@ -55,10 +55,10 @@ func (Email) loadFromDb(encodedTarget string) (Target, error) {
 	var et EmailTarget
 	et.Addresses = make([]*EmailAddress, len(e.Addresses))
 	for i, _ := range e.Addresses {
-		et.Addresses = append(et.Addresses, &EmailAddress{
+		et.Addresses[i] = &EmailAddress{
 			To:      e.Addresses[i].To,
 			ReplyTo: e.Addresses[i].ReplyTo,
-		})
+		}
 	}
 
 	return et, nil

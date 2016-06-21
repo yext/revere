@@ -22,11 +22,14 @@ func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
 
 	lts := make([]*LabelTrigger, len(labelTriggers))
 	for i, labelTrigger := range labelTriggers {
-		lts[i].Trigger, err = newTriggerFromModel(labelTrigger.Trigger)
+		t, err := newTriggerFromModel(labelTrigger.Trigger)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
-		lts[i].LabelID = labelTrigger.LabelID
+		lts[i] = &LabelTrigger{
+			Trigger: t,
+			LabelID: labelTrigger.LabelID,
+		}
 	}
 
 	return lts, nil

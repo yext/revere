@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io"
 
+	"github.com/juju/errors"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
@@ -33,7 +34,7 @@ type renderResult struct {
 func Render(w io.Writer, r Renderable) error {
 	result, err := r.renderPropagate()
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
 
 	return execute(w, result)
@@ -42,7 +43,7 @@ func Render(w io.Writer, r Renderable) error {
 func RenderPartial(r Renderable) (template.HTML, error) {
 	result, err := renderPropagateImmediate(r)
 	if err != nil {
-		return "", err
+		return "", errors.Trace(err)
 	}
 
 	return template.HTML(fmt.Sprintf("%s", result.data["_Render"])), nil
@@ -54,7 +55,7 @@ func renderPropagate(r Renderable) (*renderResult, error) {
 	for _, subrenderable := range r.subRenderables() {
 		child, err := subrenderable.renderPropagate()
 		if err != nil {
-			return nil, err
+			return nil, errors.Trace(err)
 		}
 
 		parent.addSubRender(child)
@@ -67,11 +68,14 @@ func renderPropagate(r Renderable) (*renderResult, error) {
 func renderPropagateImmediate(r Renderable) (*renderResult, error) {
 	result, err := renderPropagate(r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	b := bytes.Buffer{}
-	executeImmediate(&b, result)
+	err = executeImmediate(&b, result)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
 
 	result.data["_Render"] = template.HTML(b.String())
 
@@ -143,7 +147,7 @@ func prepareScripts(scripts []string) []string {
 
 func prepareTemplates(templates []string) (*tmpl.Template, error) {
 	if len(templates) == 0 {
-		return nil, fmt.Errorf("Got error rendering views - no templates found")
+		return nil, errors.Errorf("Got error rendering views - no templates found")
 	}
 
 	t := tmpl.NewTemplate(templates[0])
@@ -155,7 +159,7 @@ func prepareTemplates(templates []string) (*tmpl.Template, error) {
 func execute(w io.Writer, r *renderResult) error {
 	t, err := prepareTemplates(r.templates)
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
 
 	data := r.data
@@ -171,7 +175,7 @@ func execute(w io.Writer, r *renderResult) error {
 func executeImmediate(w io.Writer, r *renderResult) error {
 	t, err := prepareTemplates(r.templates)
 	if err != nil {
-		return err
+		return errors.Trace(err)
 	}
 
 	data := r.data["_"]

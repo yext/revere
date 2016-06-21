@@ -19,11 +19,11 @@ func NewLabelTriggerEdit(t *vm.LabelTrigger) *LabelTriggerEdit {
 }
 
 func (te *LabelTriggerEdit) name() string {
-	return "LabelTrigger"
+	return "Trigger"
 }
 
 func (te *LabelTriggerEdit) template() string {
-	return "partials/labeltrigger-edit.html"
+	return "partials/trigger-edit.html"
 }
 
 func (te *LabelTriggerEdit) data() interface{} {

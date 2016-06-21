@@ -19,11 +19,11 @@ func NewLabelTriggerView(t *vm.LabelTrigger) *LabelTriggerView {
 }
 
 func (tv *LabelTriggerView) name() string {
-	return "LabelTrigger"
+	return "Trigger"
 }
 
 func (tv *LabelTriggerView) template() string {
-	return "partials/labeltrigger-view.html"
+	return "partials/trigger-view.html"
 }
 
 func (tv *LabelTriggerView) data() interface{} {

@@ -22,11 +22,11 @@ func NewLabelTriggersEdit(ts []*vm.LabelTrigger) *LabelTriggersEdit {
 }
 
 func (tse *LabelTriggersEdit) name() string {
-	return "LabelTriggers"
+	return "Triggers"
 }
 
 func (tse *LabelTriggersEdit) template() string {
-	return "partials/labeltriggers-edit.html"
+	return "partials/triggers-edit.html"
 }
 
 func (tse *LabelTriggersEdit) data() interface{} {
@@ -35,7 +35,7 @@ func (tse *LabelTriggersEdit) data() interface{} {
 
 func (tse *LabelTriggersEdit) scripts() []string {
 	return []string{
-		"labeltriggers-edit.js",
+		"triggers-edit.js",
 	}
 }
 

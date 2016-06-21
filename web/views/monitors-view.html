@@ -1,4 +1,10 @@
 {{template "_header.html" setTitle . "Monitors"}}
+{{define "subprobe"}}
+  <div class="row">
+    <div class="col-sm-2 field-label">Subprobe</div>
+    <div class="col-sm-10">{{.Subprobe}}</div>
+  </div>
+{{end}}
 {{with ._}}
   <h1 class="monitor-header">
     <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>

@@ -22,12 +22,15 @@ func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]*MonitorTrigger, error) {
 
 	mts := make([]*MonitorTrigger, len(monitorTriggers))
 	for i, monitorTrigger := range monitorTriggers {
-		mts[i].Trigger, err = newTriggerFromModel(monitorTrigger.Trigger)
+		t, err := newTriggerFromModel(monitorTrigger.Trigger)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
-		mts[i].MonitorID = monitorTrigger.MonitorID
-		mts[i].Subprobes = monitorTrigger.Subprobes
+		mts[i] = &MonitorTrigger{
+			Trigger:   t,
+			MonitorID: monitorTrigger.MonitorID,
+			Subprobes: monitorTrigger.Subprobes,
+		}
 	}
 
 	return mts, nil
