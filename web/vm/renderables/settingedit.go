@@ -13,7 +13,7 @@ type SettingEdit struct {
 
 func NewSettingEdit(s *settings.VM) *SettingEdit {
 	se := new(SettingEdit)
-	se.Setting = s
+	se.VM = s
 	return se
 }
 
