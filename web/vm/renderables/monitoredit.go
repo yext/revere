@@ -1,6 +1,7 @@
 package renderables
 
 import (
+	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -13,7 +14,8 @@ func NewMonitorEdit(m *vm.Monitor, ls []*vm.Label) *MonitorEdit {
 	me := MonitorEdit{}
 	me.viewmodel = m
 	me.subs = []Renderable{
-		NewProbeEdit(m.Probe),
+		// TODO(fchen) temp fix to get to compile... will fix along with monitors
+		NewProbeEdit(m.Probe, []*datasources.VM{}),
 		NewMonitorTriggersEdit(m.Triggers),
 		NewMonitorLabelsEdit(m.Labels, ls),
 	}

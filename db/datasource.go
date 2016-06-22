@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/juju/errors"
 )
 
@@ -64,6 +65,19 @@ func (db *DB) LoadDatasources() ([]*Datasource, error) {
 	var datasources []*Datasource
 	q := `SELECT * FROM pfx_data_sources`
 	if err := db.Select(&datasources, cq(db, q)); err != nil {
+		return nil, errors.Trace(err)
+	}
+	return datasources, nil
+}
+
+func (db *DB) LoadDatasourcesOfTypes(ids []SourceType) ([]*Datasource, error) {
+	var datasources []*Datasource
+	q, args, err := sqlx.In(`SELECT * FROM pfx_data_sources WHERE sourcetype IN (?)`, ids)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	if err := db.Select(&datasources, cq(db, q), args...); err != nil {
 		return nil, errors.Trace(err)
 	}
 	return datasources, nil

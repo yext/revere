@@ -44,7 +44,7 @@ var (
 func Default() (DataSource, error) {
 	ds, err := defaultType.blank()
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return ds, nil
@@ -53,7 +53,7 @@ func Default() (DataSource, error) {
 func LoadFromParams(id db.SourceType, dsParams string) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return dsType.loadFromParams(dsParams)
@@ -62,7 +62,7 @@ func LoadFromParams(id db.SourceType, dsParams string) (DataSource, error) {
 func LoadFromDB(id db.SourceType, dsJson string) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return dsType.loadFromDB(dsJson)
@@ -71,7 +71,7 @@ func LoadFromDB(id db.SourceType, dsJson string) (DataSource, error) {
 func Blank(id db.SourceType) (DataSource, error) {
 	dsType, err := getType(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return dsType.blank()
@@ -95,28 +95,26 @@ func addDataSourceType(dataSourceType DataSourceType) {
 	}
 }
 
-func AllTypes() (dsts []DataSourceType) {
-	for _, t := range types {
-		dsts = append(dsts, t)
+func AllOfTypes(DB *db.DB, ids []db.SourceType) ([]*VM, error) {
+	datasources, err := DB.LoadDatasourcesOfTypes(ids)
+	if err != nil {
+		return nil, errors.Trace(err)
 	}
-	return dsts
+
+	dss, err := newVMs(datasources)
+
+	return dss, errors.Trace(err)
 }
 
 func All(DB *db.DB) ([]*VM, error) {
 	datasources, err := DB.LoadDatasources()
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
-	dss := make([]*VM, len(datasources))
-	for i, datasource := range datasources {
-		dss[i], err = newVM(datasource)
-		if err != nil {
-			return nil, errors.Trace(err)
-		}
-	}
+	dss, err := newVMs(datasources)
 
-	return dss, nil
+	return dss, errors.Trace(err)
 }
 
 func newVM(ds *db.Datasource) (*VM, error) {
@@ -130,6 +128,19 @@ func newVM(ds *db.Datasource) (*VM, error) {
 		SourceID:   ds.SourceID,
 		SourceType: ds.SourceType,
 	}, nil
+}
+
+func newVMs(datasources []*db.Datasource) ([]*VM, error) {
+	dss := make([]*VM, len(datasources))
+	var err error
+	for i, datasource := range datasources {
+		dss[i], err = newVM(datasource)
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+	}
+
+	return dss, nil
 }
 
 func (vm *VM) IsCreate() bool {

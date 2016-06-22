@@ -4,18 +4,21 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbeEdit struct {
-	viewmodel probes.Probe
-	subs      []Renderable
+	probe       probes.Probe
+	datasources []*datasources.VM
+	subs        []Renderable
 }
 
-func NewProbeEdit(p probes.Probe) *ProbeEdit {
+func NewProbeEdit(p probes.Probe, dss []*datasources.VM) *ProbeEdit {
 	pe := ProbeEdit{}
-	pe.viewmodel = p
+	pe.probe = p
+	pe.datasources = dss
 	pe.subs = []Renderable{}
 	return &pe
 }
@@ -25,20 +28,23 @@ func (pe *ProbeEdit) name() string {
 }
 
 func (pe *ProbeEdit) template() string {
-	tmpl, ok := pe.viewmodel.Type().Templates()["edit"]
+	tmpl, ok := pe.probe.Templates()["edit"]
 	if !ok {
-		panic(fmt.Sprintf("Unable to find templates for probe type %s", pe.viewmodel.Type().Name()))
+		panic(fmt.Sprintf("Unable to find templates for probe type %s", pe.probe.Name()))
 	}
 
 	return path.Join(probes.ProbesDir, tmpl)
 }
 
 func (pe *ProbeEdit) data() interface{} {
-	return pe.viewmodel
+	return map[string]interface{}{
+		"Probe":       pe.probe,
+		"DataSources": pe.datasources,
+	}
 }
 
 func (pe *ProbeEdit) scripts() []string {
-	scripts := pe.viewmodel.Type().Scripts()["edit"]
+	scripts := pe.probe.Scripts()["edit"]
 
 	return vm.AppendDir(probes.ProbesDir, scripts)
 }

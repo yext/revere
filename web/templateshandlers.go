@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/targets"
@@ -29,7 +30,14 @@ func LoadProbeTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Request,
 				http.StatusInternalServerError)
 			return
 		}
-		pe := renderables.NewProbeEdit(probe)
+		acceptedTypes := probe.AcceptedDataSourceTypeIds()
+		sources, err := datasources.AllOfTypes(DB, acceptedTypes)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load data sources: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		pe := renderables.NewProbeEdit(probe, sources)
 
 		tmpl, err := renderables.RenderPartial(pe)
 		if err != nil {
