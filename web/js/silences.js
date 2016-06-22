@@ -11,6 +11,12 @@ var silencesEdit = function() {
   };
   var defaultStartEndOffset = 60 * 60; // 1 hour offset in unix timestamp
 
+  var $startDtp = $('.js-datetimepicker-start'),
+    $endDtp = $('.js-datetimepicker-end');
+
+  // Determines whether the request is creating or editing a silence
+  var isNew = $startDtp.data('time') === revere.goTimeZero();
+
   s.init = function() {
     initDtps();
     initForm();
@@ -19,45 +25,17 @@ var silencesEdit = function() {
   };
 
   var initSilenceBounds = function() {
-    var $startDtp = $('.js-datetimepicker-start'),
-      $endDtp = $('.js-datetimepicker-end');
+    var startDtp = $startDtp.data('DateTimePicker'),
+      endDtp = $endDtp.data('DateTimePicker');
 
-    if ($startDtp.data('time') === revere.goTimeZero()) {
-      $startDtp.data('DateTimePicker').disable();
-      $endDtp.data('DateTimePicker').disable();
+    if (isNew) {
       $('#js-start-now, #js-end-duration').prop('checked', true);
     } else {
       $('#js-start-dtp, #js-end-dtp').prop('checked', true);
     }
-
-    $('input[type=radio][name=startType]').on('change', function() {
-      switch($(this).val()) {
-        case 'now':
-          $startDtp.data('DateTimePicker').disable();
-          break;
-        case 'dtp':
-          $startDtp.data('DateTimePicker').enable();
-          break;
-      }
-    });
-
-    $('input[type=radio][name=endType]').on('change', function() {
-      switch($(this).val()) {
-        case 'duration':
-          $endDtp.data('DateTimePicker').disable();
-          break;
-        case 'dtp':
-          $endDtp.data('DateTimePicker').enable();
-          break;
-      }
-    });
   };
 
   var initDtps = function() {
-    var $startDtp = $('.js-datetimepicker-start'),
-      $endDtp = $('.js-datetimepicker-end'),
-      $startDateType = $('.js-start-type');
-
     var nowEpoch = moment().seconds(0).format(revere.modelDateTimeFormat()),
       modelStart = $startDtp.data('time'),
       modelEnd = $endDtp.data('time');
@@ -69,31 +47,27 @@ var silencesEdit = function() {
       start = epochToLocalTimeString(startEpoch),
       end = epochToLocalTimeString(endEpoch);
 
-    setStartDtp($startDtp, now, start);
-    setEndDtp($endDtp, now, start, end);
+    setStartDtp(now, start);
+    setEndDtp(now, start, end);
+
+    var startDtp = $startDtp.data('DateTimePicker'),
+      endDtp = $endDtp.data('DateTimePicker');
 
     $startDtp.on('dp.change', function(e) {
       var now = moment(),
         start = e.date,
-        end = $endDtp.data('DateTimePicker').date();
+        end = endDtp.date();
 
       if (end.isSameOrBefore(start)) {
         end = moment(start);
         end.add(1, 'hour');
       }
 
-      setStartDtp($startDtp, now, start);
-      setEndDtp($endDtp, now, start, end.format(revere.displayDateTimeFormat()));
+      setStartDtp(now, start);
+      setEndDtp(now, start, end.format(revere.displayDateTimeFormat()));
     });
 
-    if (moment(start).isBefore(now)) {
-      $startDateType.attr('disabled', true);
-      $startDtp.data('DateTimePicker').disable();
-      if (moment(end).isSameOrBefore(now)) {
-        $endDtp.data('DateTimePicker').disable();
-        return;
-      }
-    }
+    disableInvalidBoundFields(startDtp, endDtp);
   };
 
   var initForm = function() {
@@ -106,7 +80,7 @@ var silencesEdit = function() {
   var initEndNow = function() {
     $('#js-end-silence').click(function(e) {
       e.preventDefault();
-      $('.js-datetimepicker-end').data('DateTimePicker').date(moment());
+      $endDtp.data('DateTimePicker').date(moment());
       $('#js-end-dtp').prop('checked', true);
       saveSilence();
     });
@@ -120,17 +94,17 @@ var silencesEdit = function() {
     var $serverError = $('.js-server-error')
       .addClass('hidden').empty();
 
-    var $startDtp = $('.js-datetimepicker-start'),
-      $endDtp = $('.js-datetimepicker-end');
+    var startDtp = $startDtp.data('DateTimePicker'),
+      endDtp = $endDtp.data('DateTimePicker');
 
     var startMoment = ($('.js-start-type:checked').val() === 'now') ?
-      moment() : $startDtp.data('DateTimePicker').date();
+      moment() : startDtp.date();
 
     var endMoment = ($('.js-end-type:checked').val() == 'duration') ?
-      getEndMomentFromDuration() : $endDtp.data('DateTimePicker').date();
+      getEndMomentFromDuration() : endDtp.date();
 
     // Prevents serialization from picking up fields
-    disableBoundFields();
+    disableAllBoundFields();
 
     var data = getSilenceData(),
       id = data['SilenceId'];
@@ -147,6 +121,8 @@ var silencesEdit = function() {
           $invalidInput.append('<p>' + v + '</p>');
         });
         $invalidInput.removeClass('hidden');
+        enableBoundFields();
+        disableInvalidBoundFields(startDtp, endDtp);
       } else {
         var $validInput = $('.js-valid-input');
         if (id === 'new') {
@@ -163,25 +139,27 @@ var silencesEdit = function() {
       $serverError.append('<h4>Server Error</h4>');
       $serverError.append('<p>' + jqXHR.responseText + '</p>');
       $serverError.removeClass('hidden');
+      enableBoundFields();
+      disableInvalidBoundFields(startDtp, endDtp);
     });
   };
 
-  var setStartDtp = function($startDtp, now, start) {
+  var setStartDtp = function(now, start) {
     $startDtp.datetimepicker(defaultDtpSettings);
     var $dtpObj = $startDtp.data('DateTimePicker');
     $dtpObj.defaultDate(start);
     $dtpObj.minDate(now)
     $dtpObj.date(start);
-  }
+  };
 
-  var setEndDtp = function($endDtp, now, start, end) {
+  var setEndDtp = function(now, start, end) {
     $endDtp.datetimepicker(defaultDtpSettings);
     var $dtpObj = $endDtp.data('DateTimePicker');
     $dtpObj.defaultDate(end);
     $dtpObj.minDate(start);
     $dtpObj.maxDate(moment(start).add(2, 'week').format(revere.displayDateTimeFormat()));
     $dtpObj.date(end);
-  }
+  };
 
   var getEndMomentFromDuration = function() {
     var $duration = $('input[name="duration"]'),
@@ -191,8 +169,27 @@ var silencesEdit = function() {
     return moment().add($duration.val(), $durationType.val());
   };
 
-  var disableBoundFields = function() {
+  var disableAllBoundFields = function() {
     $('#silence-bounds').find(':input').prop('disabled', true);
+  };
+
+  var disableInvalidBoundFields = function(startDtp, endDtp) {
+    if (isNew) {
+      return;
+    }
+    var now = moment().seconds(0);
+    if (moment(startDtp.date()).isBefore(now)) {
+      if (moment(endDtp.date()).isSameOrBefore(now)) {
+        disableAllBoundFields();
+        return;
+      }
+      $('.js-start-type').attr('disabled', true);
+      startDtp.disable();
+    }
+  };
+
+  var enableBoundFields = function() {
+    $('#silence-bounds').find(':input').prop('disabled', false);
   };
 
   var defaultToNow = function(now, time) {
@@ -205,15 +202,15 @@ var silencesEdit = function() {
 
   var addDefaultOffsetToEpoch = function(epoch) {
     return (parseInt(epoch) + parseInt(defaultStartEndOffset)).toString();
-  }
+  };
 
   var getSilenceData = function() {
     return $('#js-silence-info').find(':input').serializeObject();
-  }
+  };
 
   var localTimeToUtc = function(time) {
     return moment.tz(time.format(revere.displayDateTimeFormat()), revere.localTimeZone()).tz(revere.serverTimeZone());
-  }
+  };
 
   return s;
 }();
