@@ -16,6 +16,7 @@
             {{if not $new}}
               <a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a>
               <input id="monitor" name="MonitorId" class="form-control" value="{{.MonitorId}}" type="hidden" data-json-type="Number">
+              <button id="js-end-silence" class="btn btn-primary">End now</button>
             {{else}}
               <div class="silence-form">
                 <select id="monitor" name="MonitorId" class="form-control" data-json-type="Number">
@@ -43,22 +44,54 @@
         <div id="silence-bounds">
           <div class="form-group">
             <label class="col-sm-2 control-label" for="Start">Start</label>
-            <div class="col-sm-4 input-group date js-datetimepicker-start" data-time="{{.Start.Unix}}">
-              <input id="start" type="text" class="form-control" name="Start">
-              <span class="input-group-addon">
-                <span class="glyphicon glyphicon-calendar"></span>
-              </span>
+            <div class="col-sm-1">
+              <label class="radio-inline" for="startType">
+                  <input id="js-start-now" name="startType" type="radio" class="js-start-type" value="now">now
+              </label>
             </div>
+            <div class="col-sm-3">
+              <label class="radio-inline" for="startType">
+                <input id="js-start-dtp" name="startType" type="radio" class="js-start-type" value="dtp">
+                <div class="col-sm-9 input-group date js-datetimepicker-start" data-time="{{.Start.Unix}}">
+                  <input id="start" type="text" class="form-control" name="Start">
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="End">End</label>
-            <div class="col-sm-4 input-group date js-datetimepicker-end" data-time="{{.End.Unix}}">
-              <input id="end" type="text" class="form-control" name="End">
-              <span class="input-group-addon">
-                <span class="glyphicon glyphicon-calendar"></span>
-              </span>
+            <div class="col-sm-3">
+              <label class="radio-inline" for="endType">
+                <input id="js-end-duration" name="endType" type="radio" class="js-end-type" value="duration">
+                <div class="col-sm-5">
+                  <input type="number" min="1" class="form-control" name="duration" value="1">
+                </div>
+                <div class="col-sm-7">
+                  <select class="form-control" name="durationType">
+                    <option value="minutes">Minute(s)</option>
+                    <option value="hours" selected>Hour(s)</option>
+                    <option value="days">Day(s)</option>
+                  </select>
+                </div>
+              </label>
+            </div>
+            <div class="col-sm-3">
+              <label class="radio-inline" for="endType">
+                <input id="js-end-dtp" name="endType" type="radio" class="js-end-type" value="dtp">
+                <div class="col-sm-9 input-group date js-datetimepicker-end" data-time="{{.End.Unix}}">
+                  <input id="end" type="text" class="form-control" name="End">
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
         </div>
-        <input type="submit" class="btn js-submit-btn" {{if not (or $new .Editable)}}disabled{{end}}>
+        <input type="submit" class="btn-lg btn-success js-submit-btn" {{if not (or $new .Editable)}}disabled{{end}} value="Save">
       </div>
     </form>
   {{end}}
