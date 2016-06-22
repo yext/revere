@@ -2,11 +2,11 @@
 {{with ._}}
   {{$monitors := .Monitors}}
   {{with .Silence}}
-    {{$new := eq .SilenceId 0}}
+    {{$new := eq .SilenceID 0}}
     <h1>{{if not $new}}Edit Silence{{else}}New Silence{{end}}</h1>
     <form id="js-silence-form" class="form-horizontal">
       <div id="js-silence-info">
-        <input type="hidden" class="form-control" data-json-type="Number" name="SilenceId" value="{{.SilenceId}}">
+        <input type="hidden" class="form-control" data-json-type="Number" name="SilenceID" value="{{.SilenceID}}">
         <div class="js-invalid-input alert alert-danger hidden"></div>
         <div class="js-server-error alert alert-warning hidden"></div>
         <div class="js-valid-input alert alert-success hidden"></div>
@@ -14,31 +14,31 @@
           <h2 class="silences-header">
             Silence for 
             {{if not $new}}
-              <a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a>
-              <input id="monitor" name="MonitorId" class="form-control" value="{{.MonitorId}}" type="hidden" data-json-type="Number">
+              <a href="/monitors/{{.MonitorID}}">{{.MonitorName}}</a>
+              <input id="monitor" name="MonitorID" class="form-control" value="{{.MonitorID}}" type="hidden" data-json-type="Number">
               <button id="js-end-silence" class="btn btn-primary">End now</button>
             {{else}}
               <div class="silence-form">
-                <select id="monitor" name="MonitorId" class="form-control" data-json-type="Number">
+                <select id="monitor" name="MonitorID" class="form-control" data-json-type="Number">
                   {{range $monitors}}
-                    <option value="{{.MonitorId}}">{{.Name}}</option>
+                    <option value="{{.MonitorID}}">{{.Name}}</option>
                   {{end}}
                 </select>
               </div>
             {{end}}
           </h2>
         </div>
-        <h4 class="silence-subheader">Subprobe: 
+        <h4 class="silence-subheader">Subprobes: 
           {{if $new}}
             <div class="silence-form">
-              <input type="text" name="Subprobe" class="form-control" placeholder="Subprobe">
+              <input type="text" name="Subprobes" class="form-control" placeholder="Subprobes">
             </div>
-          {{else if .Subprobe}}
-            {{.Subprobe}}
-            <input id="subprobe" name="Subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
+          {{else if .Subprobes}}
+            {{.Subprobes}}
+            <input id="subprobe" name="Subprobes" class="form-control" value="{{.Subprobes}}" type="hidden">
           {{else}}
             &lt;all&gt;
-            <input id="subprobe" name="Subprobe" class="form-control" value="{{.Subprobe}}" type="hidden">
+            <input id="subprobe" name="Subprobes" class="form-control" value="{{.Subprobes}}" type="hidden">
           {{end}}
         </h4>
         <div id="silence-bounds">
