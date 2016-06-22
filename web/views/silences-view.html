@@ -2,11 +2,11 @@
 {{with ._}}
   <div class="silences-headers">
     <h1 class="silences-header">
-      silence for <a href="/monitors/{{.MonitorId}}">{{.MonitorName}}</a>
-      <span><a class="btn btn-primary" href="/silences/{{.SilenceId}}/edit" role="button">Edit</a></span>
+      silence for <a href="/monitors/{{.MonitorID}}">{{.MonitorName}}</a>
+      <span><a class="btn btn-primary" href="/silences/{{.SilenceID}}/edit" role="button">Edit</a></span>
     </h1>
   </div>
-  <h4 class="silence-subheader">Subprobe: {{if .Subprobe}}{{.Subprobe}}{{else}}&lt;all&gt;{{end}}</h4>
+  <h4 class="silence-subheader">Subprobe: {{if .Subprobes}}{{.Subprobes}}{{else}}&lt;all&gt;{{end}}</h4>
 
   <h4>silence time:</h4>
   <span>{{.Start}}</span>
