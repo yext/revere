@@ -1,12 +1,12 @@
-<h4>Probe - {{.ProbeType.Name}}</h4>
+<h4>Probe - {{.Name}}</h4>
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-2 field-label">Graphite Expression</div>
     <div class="col-sm-10">{{.Expression}}</div>
   </div>
   <div class="row">
-    <div class="col-sm-2 field-label">Graphite Url</div>
-    <div class="col-sm-10">{{.Url}}</div>
+    <div class="col-sm-2 field-label">Graphite URL</div>
+    <div class="col-sm-10">{{.URL}}</div>
   </div>
   <div class="row">
     <div class="col-sm-2 field-label">Check Every</div>
@@ -33,19 +33,19 @@
         <div class="col-sm-2">
           <div class="col-sm-11 col-offset-1 field-label">Warning</div>
         </div>
-        <div class="col-sm-10">{{.Warning}}</div>
+        <div class="col-sm-10">{{.Thresholds.Warning}}</div>
       </div>
       <div class="row">
         <div class="col-sm-2">
           <div class="col-sm-11 col-offset-1 field-label">Error</div>
         </div>
-        <div class="col-sm-10">{{.Error}}</div>
+        <div class="col-sm-10">{{.Thresholds.Error}}</div>
       </div>
       <div class="row">
         <div class="col-sm-2">
           <div class="col-sm-11 col-offset-1 field-label">Critical</div>
         </div>
-        <div class="col-sm-10">{{.Critical}}</div>
+        <div class="col-sm-10">{{.Thresholds.Critical}}</div>
       </div>
     </div>
   </div>

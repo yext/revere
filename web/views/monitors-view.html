@@ -1,15 +1,15 @@
 {{template "_header.html" setTitle . "Monitors"}}
-{{define "subprobe"}}
+{{define "subprobes"}}
   <div class="row">
-    <div class="col-sm-2 field-label">Subprobe</div>
-    <div class="col-sm-10">{{.Subprobe}}</div>
+    <div class="col-sm-2 field-label">Subprobes</div>
+    <div class="col-sm-10">{{with .Subprobes}}{{.}}{{else}}&lt;all&gt;{{end}}</div>
   </div>
 {{end}}
 {{with ._}}
   <h1 class="monitor-header">
     <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>
     <span class="monitor-version">v{{.Version}}</span>
-    <span><a class="btn btn-primary" href="/monitors/{{.MonitorId}}/edit" role="button">Edit</a></span>
+    <span><a class="btn btn-primary" href="/monitors/{{.MonitorID}}/edit" role="button">Edit</a></span>
   </h1>
   <div class="monitor-subheading">
     <h5>{{.Owner}}</h5>
@@ -26,9 +26,9 @@
     <p>{{.}}</p>
   {{else}}
     <h4>Probe:</h4>
-    <p><a href="{{.MonitorId}}/edit">Not yet configured</a></p>
+    <p><a href="{{.MonitorID}}/edit">Not yet configured</a></p>
   {{end}}
-  <h3><a href="{{.MonitorId}}/subprobes">Subprobes</a></h3>
+  <h3><a href="{{.MonitorID}}/subprobes">Subprobes</a></h3>
   <h2>Triggers</h2>
   {{template "triggers-view.html" $.Triggers}}
   <h2>Labels</h2>

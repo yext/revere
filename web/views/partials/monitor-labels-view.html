@@ -6,9 +6,9 @@
   </div>
   {{range .MonitorLabels}}
     <div class="revere-row">
-      <div class="col-md-3"><a href="/labels/{{.Id}}">{{.Name}}</a></div>
-      <div class="col-md-3">{{with .Subprobe}}{{.}}{{else}}&lt;all&gt;{{end}}</div>
-      <div class="col-md-6">{{.Description}}</div>
+      <div class="col-md-3"><a href="/labels/{{.Label.LabelID}}">{{.Label.Name}}</a></div>
+      <div class="col-md-3">{{with .Subprobes}}{{.}}{{else}}&lt;all&gt;{{end}}</div>
+      <div class="col-md-6">{{.Label.Description}}</div>
     </div>
   {{else}}
     <h4>There are no labels associated with this component.</h4>

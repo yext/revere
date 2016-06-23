@@ -1,4 +1,4 @@
-# Active Issues
+# Labels
 
 ##### Path:
 "/labels/<id>"
