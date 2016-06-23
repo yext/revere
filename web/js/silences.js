@@ -48,7 +48,7 @@ var silencesEdit = function() {
       end = epochToLocalTimeString(endEpoch);
 
     setStartDtp(now, start);
-    setEndDtp(now, start, end);
+    setEndDtp(start, end);
 
     var startDtp = $startDtp.data('DateTimePicker'),
       endDtp = $endDtp.data('DateTimePicker');
@@ -64,7 +64,7 @@ var silencesEdit = function() {
       }
 
       setStartDtp(now, start);
-      setEndDtp(now, start, end.format(revere.displayDateTimeFormat()));
+      setEndDtp(start, end.format(revere.displayDateTimeFormat()));
     });
 
     disableInvalidBoundFields(startDtp, endDtp);
@@ -78,10 +78,19 @@ var silencesEdit = function() {
   };
 
   var initEndNow = function() {
+    var now = moment(),
+      endDtp = $endDtp.data('DateTimePicker');
+
+    var $startNow = $('#js-start-now');
     $('#js-end-silence').click(function(e) {
       e.preventDefault();
-      $endDtp.data('DateTimePicker').date(moment());
+      if ($startNow.is(':enabled')) {
+        $startNow.prop('checked', true);
+      }
       $('#js-end-dtp').prop('checked', true);
+
+      endDtp.minDate(now);
+      endDtp.date(now);
       saveSilence();
     });
   };
@@ -101,7 +110,7 @@ var silencesEdit = function() {
       moment() : startDtp.date();
 
     var endMoment = ($('.js-end-type:checked').val() == 'duration') ?
-      getEndMomentFromDuration() : endDtp.date();
+      getEndMomentFromDuration(startMoment) : endDtp.date();
 
     // Prevents serialization from picking up fields
     disableAllBoundFields();
@@ -152,7 +161,7 @@ var silencesEdit = function() {
     $dtpObj.date(start);
   };
 
-  var setEndDtp = function(now, start, end) {
+  var setEndDtp = function(start, end) {
     $endDtp.datetimepicker(defaultDtpSettings);
     var $dtpObj = $endDtp.data('DateTimePicker');
     $dtpObj.defaultDate(end);
@@ -161,12 +170,12 @@ var silencesEdit = function() {
     $dtpObj.date(end);
   };
 
-  var getEndMomentFromDuration = function() {
+  var getEndMomentFromDuration = function(startMoment) {
     var $duration = $('input[name="duration"]'),
       $durationType = $('select[name="durationType"]');
     $duration.prop('disabled', true);
     $durationType.prop('disabled', true);
-    return moment().add($duration.val(), $durationType.val());
+    return moment(startMoment).add($duration.val(), $durationType.val());
   };
 
   var disableAllBoundFields = function() {
