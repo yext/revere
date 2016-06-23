@@ -136,7 +136,7 @@ func (tx *Tx) LoadMonitorsWithLabel(id LabelID) ([]*Monitor, error) {
 	var monitors []*Monitor
 	err := tx.Select(&monitors, cq(tx, `
 		SELECT m.* FROM pfx_monitors m
-		JOIN labels_monitors l on l.monitorid = m.monitorid
+		JOIN pfx_labels_monitors l on l.monitorid = m.monitorid
 		WHERE l.labelid = ?
 		ORDER BY name
 	`), id)

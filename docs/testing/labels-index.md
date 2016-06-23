@@ -1,4 +1,4 @@
-# Active Issues
+# Labels Index
 
 ##### Path:
 "/labels"
