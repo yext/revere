@@ -5,13 +5,13 @@ import (
 )
 
 type LabelTriggerView struct {
-	viewmodel *vm.Trigger
-	subs      []Renderable
+	labelTrigger *vm.LabelTrigger
+	subs         []Renderable
 }
 
 func NewLabelTriggerView(t *vm.LabelTrigger) *LabelTriggerView {
 	tv := LabelTriggerView{}
-	tv.viewmodel = t.Trigger
+	tv.labelTrigger = t
 	tv.subs = []Renderable{
 		NewTargetView(t.Trigger.Target),
 	}
@@ -27,7 +27,7 @@ func (tv *LabelTriggerView) template() string {
 }
 
 func (tv *LabelTriggerView) data() interface{} {
-	return tv.viewmodel
+	return tv.labelTrigger
 }
 
 func (tv *LabelTriggerView) scripts() []string {

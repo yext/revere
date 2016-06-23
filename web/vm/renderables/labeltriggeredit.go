@@ -5,13 +5,13 @@ import (
 )
 
 type LabelTriggerEdit struct {
-	viewmodel *vm.Trigger
-	subs      []Renderable
+	labelTrigger *vm.LabelTrigger
+	subs         []Renderable
 }
 
 func NewLabelTriggerEdit(t *vm.LabelTrigger) *LabelTriggerEdit {
 	te := LabelTriggerEdit{}
-	te.viewmodel = t.Trigger
+	te.labelTrigger = t
 	te.subs = []Renderable{
 		NewTargetEdit(t.Trigger.Target),
 	}
@@ -27,7 +27,7 @@ func (te *LabelTriggerEdit) template() string {
 }
 
 func (te *LabelTriggerEdit) data() interface{} {
-	return te.viewmodel
+	return te.labelTrigger
 }
 
 func (te *LabelTriggerEdit) scripts() []string {
