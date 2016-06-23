@@ -64,8 +64,8 @@ func (Email) loadFromDb(encodedTarget string) (Target, error) {
 	return et, nil
 }
 
-func (Email) blank() (Target, error) {
-	return EmailTarget{}, nil
+func (Email) blank() Target {
+	return EmailTarget{}
 }
 
 func (Email) Templates() map[string]string {

@@ -15,12 +15,14 @@ import (
 type Trigger struct {
 	TriggerID     db.TriggerID
 	Level         state.State
+	LevelText     string
 	Period        int32
 	PeriodType    string
 	TargetType    db.TargetType
 	TargetParams  string
 	TriggerOnExit bool
 	Target        targets.Target
+	Delete        bool
 }
 
 func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
@@ -44,7 +46,9 @@ func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
 }
 
 func BlankTrigger() *Trigger {
-	return &Trigger{}
+	return &Trigger{
+		Target: targets.Default(),
+	}
 }
 
 func (t *Trigger) Id() int64 {
@@ -81,9 +85,14 @@ func (t *Trigger) toDBTrigger() (*db.Trigger, error) {
 		return nil, errors.Trace(err)
 	}
 
+	level, err := state.FromString(t.LevelText)
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
 	return &db.Trigger{
 		TriggerID:     t.TriggerID,
-		Level:         t.Level,
+		Level:         level,
 		TriggerOnExit: t.TriggerOnExit,
 		PeriodMilli:   int32(util.GetMs(int64(t.Period), t.PeriodType)),
 		TargetType:    t.TargetType,

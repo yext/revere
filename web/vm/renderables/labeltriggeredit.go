@@ -23,7 +23,7 @@ func (te *LabelTriggerEdit) name() string {
 }
 
 func (te *LabelTriggerEdit) template() string {
-	return "partials/trigger-edit.html"
+	return "partials/label-trigger-edit.html"
 }
 
 func (te *LabelTriggerEdit) data() interface{} {
@@ -31,7 +31,9 @@ func (te *LabelTriggerEdit) data() interface{} {
 }
 
 func (te *LabelTriggerEdit) scripts() []string {
-	return nil
+	return []string{
+		"trigger-edit.js",
+	}
 }
 
 func (te *LabelTriggerEdit) breadcrumbs() []vm.Breadcrumb {

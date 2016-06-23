@@ -11,7 +11,6 @@ type MonitorTrigger struct {
 	Trigger   *Trigger
 	MonitorID db.MonitorID
 	Subprobes string
-	Delete    bool
 }
 
 func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]*MonitorTrigger, error) {
@@ -64,7 +63,7 @@ func (mt *MonitorTrigger) IsCreate() bool {
 }
 
 func (mt *MonitorTrigger) IsDelete() bool {
-	return mt.Delete
+	return mt.Trigger.Delete
 }
 
 func (mt *MonitorTrigger) save(tx *db.Tx) error {

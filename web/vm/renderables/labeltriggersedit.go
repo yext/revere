@@ -5,8 +5,7 @@ import (
 )
 
 type LabelTriggersEdit struct {
-	viewmodel []*vm.Trigger
-	subs      []Renderable
+	subs []Renderable
 }
 
 func NewLabelTriggersEdit(ts []*vm.LabelTrigger) *LabelTriggersEdit {
@@ -26,15 +25,16 @@ func (tse *LabelTriggersEdit) name() string {
 }
 
 func (tse *LabelTriggersEdit) template() string {
-	return "partials/triggers-edit.html"
+	return "partials/label-triggers-edit.html"
 }
 
 func (tse *LabelTriggersEdit) data() interface{} {
-	return tse.viewmodel
+	return nil
 }
 
 func (tse *LabelTriggersEdit) scripts() []string {
 	return []string{
+		"label-triggers-edit.js",
 		"triggers-edit.js",
 	}
 }

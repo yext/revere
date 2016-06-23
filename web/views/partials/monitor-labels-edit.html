@@ -10,10 +10,10 @@
       <button class="js-remove-new-label-monitor btn btn-default btn-block">x</button>
     </div>
     <div class="col-sm-3 name">
-      <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="LabelId">
+      <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="LabelID">
         <option></option>
         {{range .AllLabels}}
-          <option value="{{.LabelId}}" data-description="{{.Description}}">{{.Name}}</option>
+          <option value="{{.LabelID}}" data-description="{{.Description}}">{{.Name}}</option>
         {{end}}
       </select>
     </div>
@@ -26,7 +26,7 @@
   </div>
   {{range .MonitorLabels}}
     <div class="form-group js-label-monitor">
-      <input type="hidden" class="form-control js-id" data-json-type="Number" name="LabelId" value="{{.LabelId}}">
+      <input type="hidden" class="form-control js-id" data-json-type="Number" name="LabelID" value="{{.LabelID}}">
       <div class="col-sm-1">
         <input type="checkbox" class="form-control hide" name="Delete" data-json-type="Boolean">
         <button class="js-remove-label-monitor btn btn-default btn-block">x</button>

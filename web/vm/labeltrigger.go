@@ -10,7 +10,6 @@ import (
 type LabelTrigger struct {
 	Trigger *Trigger
 	LabelID db.LabelID
-	Delete  bool
 }
 
 func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
@@ -36,7 +35,9 @@ func newLabelTriggers(tx *db.Tx, id db.LabelID) ([]*LabelTrigger, error) {
 }
 
 func BlankLabelTrigger() *LabelTrigger {
-	return &LabelTrigger{}
+	return &LabelTrigger{
+		Trigger: BlankTrigger(),
+	}
 }
 
 func blankLabelTriggers() []*LabelTrigger {
@@ -52,7 +53,7 @@ func (lt *LabelTrigger) IsCreate() bool {
 }
 
 func (lt *LabelTrigger) IsDelete() bool {
-	return lt.Delete
+	return lt.Trigger.Delete
 }
 
 func (lt *LabelTrigger) validate(db *db.DB) (errs []string) {
@@ -78,7 +79,7 @@ func (lt *LabelTrigger) save(tx *db.Tx) error {
 		id, err = tx.CreateLabelTrigger(labelTrigger)
 		lt.Trigger.setId(id)
 	} else if isDelete(lt) {
-		err = tx.DeleteLabelTrigger(labelTrigger)
+		err = tx.DeleteLabelTrigger(labelTrigger.TriggerID)
 	} else {
 		err = tx.UpdateLabelTrigger(labelTrigger)
 	}

@@ -9,7 +9,15 @@ var labelMonitors = function() {
     var data = [];
     $.each($.merge($('.js-label-monitor'),
         $('.js-new-label-monitor:visible')), function() {
-      data.push($(this).find(':input').serializeObject());
+      labelMonitor = $(this).find(':input').serializeObject()
+
+      labelMonitor.Monitor = {
+        MonitorID: labelMonitor.MonitorID
+      }
+      delete labelMonitor.MonitorID
+
+      labelID = parseInt($('input[name=LabelID]').val())
+      data.push($.extend(labelMonitor, {"LabelID": labelID}));
     });
     return data;
   };

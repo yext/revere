@@ -8,6 +8,7 @@ import (
 )
 
 type LabelMonitor struct {
+	// TODO(fchen): Organize struct fields between db-only fields, front-end-only fields, and shared fields
 	Monitor   *Monitor
 	LabelID   db.LabelID
 	Subprobes string
@@ -54,6 +55,8 @@ func (lm *LabelMonitor) IsDelete() bool {
 }
 
 func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {
+	// TODO(fchen) should really do this check at the label level, and make sure labelID matches all labelmonitor labelIDs
+	// same with monitorlabels, also validate monitor ID valid here
 	if !db.IsExistingLabel(lm.LabelID) {
 		errs = append(errs, fmt.Sprintf("Invalid label: %d", lm.LabelID))
 	}
@@ -64,15 +67,15 @@ func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {
 }
 
 func (lm *LabelMonitor) save(tx *db.Tx) error {
-	monitor, err := lm.Monitor.toDBMonitor()
-	if err != nil {
-		return errors.Trace(err)
-	}
 	labelMonitor := db.LabelMonitor{
 		LabelID:   lm.LabelID,
 		Subprobes: lm.Subprobes,
-		Monitor:   monitor,
+		Monitor: &db.Monitor{
+			MonitorID: lm.Monitor.MonitorID,
+		},
 	}
+
+	var err error
 	if isCreate(lm) {
 		err = tx.CreateLabelMonitor(labelMonitor)
 	} else if isDelete(lm) {

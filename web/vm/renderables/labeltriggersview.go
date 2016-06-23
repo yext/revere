@@ -5,8 +5,7 @@ import (
 )
 
 type LabelTriggersView struct {
-	viewmodel []*vm.Trigger
-	subs      []Renderable
+	subs []Renderable
 }
 
 func NewLabelTriggersView(ts []*vm.LabelTrigger) *LabelTriggersView {
@@ -27,7 +26,7 @@ func (tsv *LabelTriggersView) template() string {
 }
 
 func (tsv *LabelTriggersView) data() interface{} {
-	return tsv.viewmodel
+	return nil
 }
 
 func (tsv *LabelTriggersView) scripts() []string {

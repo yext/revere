@@ -6,13 +6,9 @@ var labelsEdit = function() {
   var le = {};
 
   le.init = function() {
-    initLabelTriggers();
+    labelTriggersEdit.init();
     labelMonitors.init();
     initForm();
-  };
-
-  var initLabelTriggers = function() {
-    triggersEdit.init();
   };
 
   var initForm = function() {
@@ -24,7 +20,7 @@ var labelsEdit = function() {
       data = $.extend(
         getLabelData(),
         {'Monitors': labelMonitors.getData()},
-        {'Triggers': triggersEdit.getData()}
+        {'Triggers': labelTriggersEdit.getData()}
       );
 
       $.ajax({
@@ -39,7 +35,7 @@ var labelsEdit = function() {
         if (response.redirect) {
           window.location.replace(response.redirect);
         } else {
-          window.location.replace('/labels/' + data['LabelId']);
+          window.location.replace('/labels/' + data['LabelID']);
         }
       }).fail(function(jqXHR, textStatus, errorThrown) {
         revere.showErrors([jqXHR.responseText || textStatus]);

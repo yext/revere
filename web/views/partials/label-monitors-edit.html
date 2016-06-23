@@ -10,10 +10,10 @@
       <button class="js-remove-new-label-monitor btn btn-default btn-block">x</button>
     </div>
     <div class="col-sm-3 name">
-      <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="MonitorId">
+      <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="MonitorID">
         <option></option>
         {{range .AllMonitors}}
-          <option value="{{.MonitorId}}" data-description="{{.Description}}">{{.Name}}</option>
+          <option value="{{.MonitorID}}" data-description="{{.Description}}">{{.Name}}</option>
         {{end}}
       </select>
     </div>
@@ -26,19 +26,19 @@
   </div>
   {{range .LabelMonitors}}
     <div class="form-group js-label-monitor">
-      <input type="hidden" class="form-control js-id" data-json-type="Number" name="MonitorId" value="{{.MonitorId}}">
+      <input type="hidden" class="form-control js-id" data-json-type="Number" name="MonitorID" value="{{.Monitor.MonitorID}}">
       <div class="col-sm-1">
         <input type="checkbox" class="form-control hide" name="Delete" data-json-type="Boolean">
         <button class="js-remove-label-monitor btn btn-default btn-block">x</button>
       </div>
       <div class="col-sm-3">
-        <p>{{.Name}}</p>
+        <p>{{.Monitor.Name}}</p>
       </div>
       <div class="col-sm-3">
-        <input type="text" class="form-control" name="Subprobe" value="{{.Subprobe}}" placeholder="all">
+        <input type="text" class="form-control" name="Subprobes" value="{{.Subprobes}}" placeholder="all">
       </div>
       <div class="col-sm-5">
-        <p>{{.Description}}</p>
+        <p>{{.Monitor.Description}}</p>
       </div>
     </div>
   {{else}}

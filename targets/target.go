@@ -11,7 +11,7 @@ type TargetType interface {
 	Name() string
 	loadFromParams(target string) (Target, error)
 	loadFromDb(target string) (Target, error)
-	blank() (Target, error)
+	blank() Target
 	Templates() map[string]string
 	Scripts() map[string][]string
 }
@@ -32,13 +32,8 @@ var (
 	defaultType                              = Email{}
 )
 
-func Default() (Target, error) {
-	target, err := defaultType.blank()
-	if err != nil {
-		return nil, err
-	}
-
-	return target, nil
+func Default() Target {
+	return defaultType.blank()
 }
 
 func LoadFromParams(id db.TargetType, targetParams string) (Target, error) {
@@ -65,7 +60,7 @@ func Blank(id db.TargetType) (Target, error) {
 		return nil, err
 	}
 
-	return targetType.blank()
+	return targetType.blank(), nil
 }
 
 func getType(id db.TargetType) (TargetType, error) {

@@ -1,22 +1,7 @@
-var targets = function() {
-  var t = {};
-  var fns = {};
-
-  t.addSerializeFn = function(targetType, fn) {
-    fns[targetType] = fn;
-  };
-
-  t.getSerializeFn = function(targetType) {
-    return fns[targetType];
-  };
-
-  return t;
-}();
-
 var triggersEdit = function() {
-  var te = {};
+  var tse = {};
 
-  te.init = function() {
+  tse.init = function() {
     initTriggers();
   };
 
@@ -49,7 +34,7 @@ var triggersEdit = function() {
     $(document.body).on('click', '.js-remove-trigger', function(e) {
       e.preventDefault();
       $trigger = $(this).parents('.js-trigger');
-      var id = $trigger.find('input[name="TriggerId"]').val();
+      var id = $trigger.find('input[name="TriggerID"]').val();
       if(id == '0'){
         $trigger.remove();
       } else {
@@ -78,23 +63,5 @@ var triggersEdit = function() {
     });
   };
 
-  te.getData = function() {
-    var data = []
-    $.each($('.js-trigger').not(':first'), function() {
-      var triggerOptions = $(this).find('.js-trigger-options :input').serializeObject(),
-        targetFn = targets.getSerializeFn(triggerOptions['TargetType']),
-        target;
-      if (targetFn !== undefined) {
-        target = targetFn($(this).find('.js-target'));
-      }
-
-      if (target === undefined) {
-        target = JSON.stringify($(this).find('.js-target :input').serializeObject());
-      }
-      data.push($.extend(triggerOptions, {'TargetJson':target}));
-    });
-    return data;
-  };
-
-  return te;
+  return tse;
 }();
