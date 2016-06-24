@@ -35,7 +35,7 @@ func (s *Subprobe) Id() int64 {
 }
 
 func NewSubprobe(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
-	s, err := DB.LoadSubprobe(id)
+	s, err := DB.LoadSubprobeWithStatusInfo(id)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -43,7 +43,7 @@ func NewSubprobe(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
 		return nil, errors.Errorf("Subprobe not found: %d", id)
 	}
 
-	return newSubprobeFromDB(s), nil
+	return newSubprobeWithStatusFromDB(s), nil
 }
 
 func newSubprobeFromDB(s *db.Subprobe) *Subprobe {
@@ -51,6 +51,7 @@ func newSubprobeFromDB(s *db.Subprobe) *Subprobe {
 		SubprobeID:  s.SubprobeID,
 		MonitorID:   s.MonitorID,
 		MonitorName: "",
+		Name:        s.Name,
 		Archived:    s.Archived,
 		Status:      SubprobeStatus{},
 	}
@@ -81,6 +82,7 @@ func newSubprobeWithStatusFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
 		SubprobeID:  s.SubprobeID,
 		MonitorID:   s.MonitorID,
 		MonitorName: s.MonitorName,
+		Name:        s.Name,
 		Archived:    s.Archived,
 		Status:      subprobeStatus,
 	}

@@ -24,9 +24,9 @@
         bg-unknown
       {{end}}">
         <div class="col-md-6">
-          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorId}}/subprobes/{{.SubprobeId}}">{{.Name}}</a>
+          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorID}}/subprobes/{{.SubprobeID}}">{{.Name}}</a>
         </div>
-        <div class="col-md-3">{{.Status.StateStr}}</div>
+        <div class="col-md-3">{{.Status.State}}</div>
         <div class="col-md-3">
           <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
         </div>

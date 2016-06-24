@@ -2,32 +2,30 @@
 {{with ._}}
   {{$States := .States}}
   {{$Readings := .Readings}}
-  {{with .Subprobe}}
-    <div class="subprobes-headers">
-      <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
-    </div>
-    <div>
-      <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
-      {{range $Readings}}
-        <div class="revere-row
-        {{if eq .State.String "Normal"}}
-          bg-success
-        {{else if eq .State.String "Warning"}}
-          bg-warning
-        {{else if eq .State.String "ERROR"}}
-          bg-danger
-        {{else if eq .State.String "CRITICAL"}}
-          bg-critical
-        {{else}}
-          bg-unknown
-        {{end}}">
-          <div class="col-md-6">{{.StateStr}}</div>
-          <div class="col-md-6">{{.Recorded}}</div>
-        </div>
+  <div class="subprobes-headers">
+    <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
+  </div>
+  <div>
+    <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
+    {{range $Readings}}
+      <div class="revere-row
+      {{if eq .State.String "Normal"}}
+        bg-success
+      {{else if eq .State.String "Warning"}}
+        bg-warning
+      {{else if eq .State.String "ERROR"}}
+        bg-danger
+      {{else if eq .State.String "CRITICAL"}}
+        bg-critical
       {{else}}
-        None yet!
-      {{end}}
-    </div>
-  {{end}}
+        bg-unknown
+      {{end}}">
+        <div class="col-md-6">{{.StateStr}}</div>
+        <div class="col-md-6">{{.Recorded}}</div>
+      </div>
+    {{else}}
+      None yet!
+    {{end}}
+  </div>
 {{end}}
 {{template "_footer.html" .}}
