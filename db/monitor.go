@@ -199,7 +199,8 @@ func loadLabelsForMonitor(dt dbOrTx, id MonitorID) ([]*MonitorLabel, error) {
 	q := `SELECT *
 	      FROM pfx_labels_monitors
 	      JOIN pfx_labels USING (labelid)
-	      WHERE pfx_labels_monitors.monitorid = ?`
+	      WHERE pfx_labels_monitors.monitorid = ?
+		  ORDER BY pfx_labels.name`
 	err := dt.Select(&mls, cq(dt, q), id)
 	if err != nil {
 		return nil, errors.Trace(err)
