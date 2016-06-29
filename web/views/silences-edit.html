@@ -45,14 +45,21 @@
           <div class="form-group">
             <label class="col-sm-2 control-label" for="Start">Start</label>
             <div class="col-sm-1">
-              <label class="radio-inline" for="startType">
-                  <input id="js-start-now" name="startType" type="radio" class="js-start-type" value="now">now
+              <label class="radio-inline">
+                <div class="col-sm-2">
+                    <input id="js-start-now" name="startType" type="radio" class="js-start-type" value="now">
+                </div>
+                <div class="col-sm-10">
+                  <p>now</p>
+                </div>
               </label>
             </div>
             <div class="col-sm-3">
               <label class="radio-inline" for="startType">
-                <input id="js-start-dtp" name="startType" type="radio" class="js-start-type" value="dtp">
-                <div class="col-sm-9 input-group date js-datetimepicker-start" data-time="{{.Start.Unix}}">
+                <div class="col-sm-2">
+                  <input id="js-start-dtp" name="startType" type="radio" class="js-start-type" value="dtp">
+                </div>
+                <div class="col-sm-10 input-group date js-datetimepicker-start" data-time="{{.Start.Unix}}">
                   <input id="start" type="text" class="form-control" name="Start">
                   <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
@@ -63,10 +70,12 @@
           </div>
           <div class="form-group">
             <label class="col-sm-2 control-label" for="End">End</label>
-            <div class="col-sm-3">
-              <label class="radio-inline" for="endType">
-                <input id="js-end-duration" name="endType" type="radio" class="js-end-type" value="duration">
-                <div class="col-sm-5">
+            <div class="col-sm-4">
+              <label class="radio-inline">
+                <div class="col-sm-1">
+                  <input id="js-end-duration" name="endType" type="radio" class="js-end-type" value="duration">
+                </div>
+                <div class="col-sm-3">
                   <input type="number" min="1" class="form-control" name="duration" value="1">
                 </div>
                 <div class="col-sm-7">
@@ -80,8 +89,10 @@
             </div>
             <div class="col-sm-3">
               <label class="radio-inline" for="endType">
-                <input id="js-end-dtp" name="endType" type="radio" class="js-end-type" value="dtp">
-                <div class="col-sm-9 input-group date js-datetimepicker-end" data-time="{{.End.Unix}}">
+                <div class="col-sm-2">
+                  <input id="js-end-dtp" name="endType" type="radio" class="js-end-type" value="dtp">
+                </div>
+                <div class="col-sm-10 input-group date js-datetimepicker-end" data-time="{{.End.Unix}}">
                   <input id="end" type="text" class="form-control" name="End">
                   <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
