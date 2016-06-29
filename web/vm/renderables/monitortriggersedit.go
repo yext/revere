@@ -5,8 +5,7 @@ import (
 )
 
 type MonitorTriggersEdit struct {
-	viewmodel []*vm.Trigger
-	subs      []Renderable
+	subs []Renderable
 }
 
 func NewMonitorTriggersEdit(mts []*vm.MonitorTrigger) *MonitorTriggersEdit {
@@ -26,15 +25,16 @@ func (tse *MonitorTriggersEdit) name() string {
 }
 
 func (tse *MonitorTriggersEdit) template() string {
-	return "partials/triggers-edit.html"
+	return "partials/monitor-triggers-edit.html"
 }
 
 func (tse *MonitorTriggersEdit) data() interface{} {
-	return tse.viewmodel
+	return nil
 }
 
 func (tse *MonitorTriggersEdit) scripts() []string {
 	return []string{
+		"monitor-triggers-edit.js",
 		"triggers-edit.js",
 	}
 }

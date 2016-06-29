@@ -36,7 +36,10 @@ func newMonitorTriggers(tx *db.Tx, id db.MonitorID) ([]*MonitorTrigger, error) {
 }
 
 func BlankMonitorTrigger() *MonitorTrigger {
-	return &MonitorTrigger{}
+	return &MonitorTrigger{
+		Trigger:   BlankTrigger(),
+		Subprobes: "",
+	}
 }
 
 func blankMonitorTriggers() []*MonitorTrigger {

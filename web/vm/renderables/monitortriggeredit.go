@@ -5,15 +5,15 @@ import (
 )
 
 type MonitorTriggerEdit struct {
-	viewmodel *vm.MonitorTrigger
-	subs      []Renderable
+	monitorTrigger *vm.MonitorTrigger
+	subs           []Renderable
 }
 
-func NewMonitorTriggerEdit(mt *vm.MonitorTrigger) *MonitorTriggerEdit {
+func NewMonitorTriggerEdit(t *vm.MonitorTrigger) *MonitorTriggerEdit {
 	te := MonitorTriggerEdit{}
-	te.viewmodel = mt
+	te.monitorTrigger = t
 	te.subs = []Renderable{
-		NewTargetEdit(mt.Trigger.Target),
+		NewTargetEdit(t.Trigger.Target),
 	}
 	return &te
 }
@@ -23,15 +23,17 @@ func (te *MonitorTriggerEdit) name() string {
 }
 
 func (te *MonitorTriggerEdit) template() string {
-	return "partials/trigger-edit.html"
+	return "partials/monitor-trigger-edit.html"
 }
 
 func (te *MonitorTriggerEdit) data() interface{} {
-	return nil
+	return te.monitorTrigger
 }
 
 func (te *MonitorTriggerEdit) scripts() []string {
-	return nil
+	return []string{
+		"trigger-edit.js",
+	}
 }
 
 func (te *MonitorTriggerEdit) breadcrumbs() []vm.Breadcrumb {

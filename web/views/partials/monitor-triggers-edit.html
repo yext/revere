@@ -1,0 +1,9 @@
+{{with ._Array}}
+  {{range .}}
+    {{template "monitor-trigger-edit.html" .}}
+  {{end}}
+{{end}}
+<h4 class="js-empty-triggers hidden">There are no triggers associated with this component.</h4>
+<div class="form-group">
+  <button id="js-add-trigger" class="btn btn-default">+ Add</button>
+</div>
