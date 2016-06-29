@@ -32,6 +32,7 @@ func (lme *LabelMonitorsEdit) data() interface{} {
 
 func (lme *LabelMonitorsEdit) scripts() []string {
 	return []string{
+		"component-list-edit.js",
 		"label-monitors-edit.js",
 	}
 }

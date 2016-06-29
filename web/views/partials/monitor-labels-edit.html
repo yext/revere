@@ -4,13 +4,13 @@
     <label class="col-sm-3">Subprobe</label>
     <label class="col-sm-5">Description</label>
   </div>
-  <div class="form-group js-new-label-monitor hidden">
+  <div class="form-group js-new-monitor-label hidden">
     <input type="checkbox" class="form-control hide" name="Create" data-json-type="Boolean" checked>
     <div class="col-sm-1">
-      <button class="js-remove-new-label-monitor btn btn-default btn-block">x</button>
+      <button class="js-remove-new-monitor-label btn btn-default btn-block">x</button>
     </div>
     <div class="col-sm-3 name">
-      <select class="form-control js-label-monitor-name" data-json-type="Number" data-id="" name="LabelID">
+      <select class="form-control js-monitor-label-name" data-json-type="Number" data-id="" name="LabelID">
         <option></option>
         {{range .AllLabels}}
           <option value="{{.LabelID}}" data-description="{{.Description}}">{{.Name}}</option>
@@ -18,33 +18,33 @@
       </select>
     </div>
     <div class="col-sm-3">
-      <input type="text" class="form-control" name="Subprobe" value="" placeholder="all">
+      <input type="text" class="form-control" name="Subprobes" value="" placeholder="all">
     </div>
     <div class="col-sm-5">
       <p class="description"></p>
     </div>
   </div>
   {{range .MonitorLabels}}
-    <div class="form-group js-label-monitor">
-      <input type="hidden" class="form-control js-id" data-json-type="Number" name="LabelID" value="{{.LabelID}}">
+    <div class="form-group js-monitor-label">
+      <input type="hidden" class="form-control js-id" data-json-type="Number" name="LabelID" value="{{.Label.LabelID}}">
       <div class="col-sm-1">
         <input type="checkbox" class="form-control hide" name="Delete" data-json-type="Boolean">
-        <button class="js-remove-label-monitor btn btn-default btn-block">x</button>
+        <button class="js-remove-monitor-label btn btn-default btn-block">x</button>
       </div>
       <div class="col-sm-3">
-        <p>{{.Name}}</p>
+        <p>{{.Label.Name}}</p>
       </div>
       <div class="col-sm-3">
-        <input type="text" class="form-control" name="Subprobe" value="{{.Subprobe}}" placeholder="all">
+        <input type="text" class="form-control" name="Subprobes" value="{{.Subprobes}}" placeholder="all">
       </div>
       <div class="col-sm-5">
-        <p>{{.Description}}</p>
+        <p>{{.Label.Description}}</p>
       </div>
     </div>
   {{else}}
-    <h4 class="js-empty-label-monitor">There are no labels associated with this component</h4>
+    <h4 class="js-empty-monitor-label">There are no labels associated with this component</h4>
   {{end}}
   <div class="form-group">
-    <button id="js-add-label-monitor" class="btn btn-default">+ Add</button>
+    <button id="js-add-monitor-label" class="btn btn-default">+ Add</button>
   </div>
 {{end}}

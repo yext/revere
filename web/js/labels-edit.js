@@ -7,7 +7,7 @@ var labelsEdit = function() {
 
   le.init = function() {
     labelTriggersEdit.init();
-    labelMonitors.init();
+    labelMonitorsEdit.init();
     initForm();
   };
 
@@ -19,7 +19,7 @@ var labelsEdit = function() {
 
       data = $.extend(
         getLabelData(),
-        {'Monitors': labelMonitors.getData()},
+        {'Monitors': labelMonitorsEdit.getData()},
         {'Triggers': labelTriggersEdit.getData()}
       );
 

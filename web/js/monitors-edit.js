@@ -22,7 +22,7 @@ var monitorsEdit = function() {
 
   m.init = function() {
     monitorTriggersEdit.init();
-    monitorLabels.init();
+    monitorLabelsEdit.init();
     initProbe();
     initForm();
   };
@@ -54,7 +54,7 @@ var monitorsEdit = function() {
         data = $.extend(
           getMonitorData(),
           {'Triggers': monitorTriggersEdit.getData()},
-          {'Labels': monitorLabels.getData()}
+          {'Labels': monitorLabelsEdit.getData()}
         );
       $.ajax({
         url: url,
