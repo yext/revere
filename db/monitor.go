@@ -47,7 +47,7 @@ type MonitorVersionInfo struct {
 
 func (tx *Tx) CreateMonitor(m *Monitor) (MonitorID, error) {
 	q := `INSERT INTO pfx_monitors (name, owner, description, response, probetype, probe, changed, version, archived)
-		VALUES (:name, :owner, :description, :response, :probetype, :probe, :changed, :version, :archived)`
+		VALUES (:name, :owner, :description, :response, :probetype, :probe, NOW(), 1, :archived)`
 	result, err := tx.NamedExec(cq(tx, q), m)
 	if err != nil {
 		return 0, errors.Trace(err)
@@ -63,13 +63,13 @@ func (tx *Tx) CreateMonitor(m *Monitor) (MonitorID, error) {
 func (tx *Tx) UpdateMonitor(m *Monitor) error {
 	q := `UPDATE pfx_monitors
 	      SET name=:name,
-	          owner=:owner
-	          description=:description
-	          response=:response
-	          probetype=:probetype
-	          probe=:probe
-	          changed=:changed
-	          version=:version
+	          owner=:owner,
+	          description=:description,
+	          response=:response,
+	          probetype=:probetype,
+	          probe=:probe,
+	          changed=NOW(),
+	          version=version+1,
 	          archived=:archived
 	      WHERE monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), m)
