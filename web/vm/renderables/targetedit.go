@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"github.com/yext/revere/targets"
+	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -40,7 +41,7 @@ func (te *TargetEdit) data() interface{} {
 func (te *TargetEdit) scripts() []string {
 	scripts := te.viewmodel.Type().Scripts()["edit"]
 
-	return vm.AppendDir(targets.TargetsDir, scripts)
+	return tmpl.AppendDir(targets.TargetsDir, scripts)
 }
 
 func (te *TargetEdit) breadcrumbs() []vm.Breadcrumb {

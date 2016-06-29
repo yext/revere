@@ -22,6 +22,7 @@ func New(env *env.Env) *WebServer {
 	router.GET("/datasources", web.DataSourcesIndex(env.DB))
 	router.GET("/datasources/probe/:probeType", web.LoadValidDataSources(env.DB))
 	router.POST("/datasources", web.DataSourcesSave(env.DB))
+	router.GET("/datasourcetype/:id", web.LoadDataSourceTemplate(env.DB))
 	router.GET("/monitors", web.MonitorsIndex(env.DB))
 	router.GET("/monitors/:id", web.MonitorsView(env.DB))
 	router.GET("/monitors/:id/edit", web.MonitorsEdit(env.DB))

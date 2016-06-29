@@ -139,7 +139,7 @@ func prepareScripts(scripts []string) []string {
 	copy(result, scripts)
 
 	for i, script := range scripts {
-		result[i] = vm.GetScript(script)
+		result[i] = tmpl.GetScript(script)
 	}
 
 	return result

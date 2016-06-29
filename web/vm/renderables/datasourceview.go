@@ -30,7 +30,7 @@ func (dsv *DataSourceView) data() interface{} {
 }
 
 func (dsv *DataSourceView) scripts() []string {
-	return vm.AppendDir(datasources.DataSourceDir, dsv.datasource.Scripts())
+	return nil
 }
 
 func (dsv *DataSourceView) breadcrumbs() []vm.Breadcrumb {

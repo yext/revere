@@ -16,7 +16,9 @@ var (
 )
 
 const (
-	templatesDir string = "web/views/"
+	baseServingPath        = "static/js"
+	baseDir                = "web/js"
+	templatesDir    string = "web/views/"
 )
 
 func (t *Template) Name() string {
@@ -86,4 +88,16 @@ func StrEq(a, b interface{}) bool {
 		return true
 	}
 	return false
+}
+
+func GetScript(filepath string) string {
+	return path.Join(baseServingPath, filepath)
+}
+
+func AppendDir(dir string, scripts []string) []string {
+	result := make([]string, len(scripts))
+	for i, script := range scripts {
+		result[i] = path.Join(dir, script)
+	}
+	return result
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
+	"github.com/yext/revere/web/tmpl"
 )
 
 type VM struct {
@@ -34,6 +35,7 @@ type DataSource interface {
 
 const (
 	DataSourceDir = "datasources"
+	MainScript    = "datasources.js"
 )
 
 var (
@@ -48,6 +50,26 @@ func Default() (DataSource, error) {
 	}
 
 	return ds, nil
+}
+
+func AllScripts() []string {
+	scripts := make([]string, 0)
+	for _, dst := range types {
+		for _, script := range dst.Scripts() {
+			scripts = append(scripts, script)
+		}
+	}
+	scripts = tmpl.AppendDir(DataSourceDir, scripts)
+	scripts = append(scripts, MainScript)
+	return scripts
+}
+
+func AllTypes() map[db.SourceType]string {
+	typeIds := make(map[db.SourceType]string)
+	for id, dst := range types {
+		typeIds[id] = dst.Name()
+	}
+	return typeIds
 }
 
 func LoadFromParams(id db.SourceType, dsParams string) (DataSource, error) {

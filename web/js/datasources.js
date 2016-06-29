@@ -46,17 +46,6 @@ var datasources = function() {
     newField.find('input[name="Delete"]').val(false);
   };
 
-  var initAddButtons = function() {
-    $('.js-add-source').click(function(e) {
-      e.preventDefault();
-      var type = $(this).data('sourceref');
-      newField = $('.' + type).first()
-        .clone()
-        .insertAfter('.' + type + ':last');
-      clearInputs(newField);
-    });
-  };
-
   var initDeleteButtons = function() {
     $(document.body).on('click', '.js-remove-datasource', function(e) {
       e.preventDefault();
@@ -78,10 +67,46 @@ var datasources = function() {
     return $('.' + type).not('hidden').length;
   }
 
+  var sortAndArrangeDataSources = function() {
+      // Get datasources as they are displayed
+      var $datasources = $('.js-datasource');
+      idToHtmlMap = {};
+      var id;
+      $.each($datasources, function(_index, sourceHtml) {
+          id = parseInt($(sourceHtml).find('input[name="SourceType"]').val());
+          if (idToHtmlMap[id]) {
+              idToHtmlMap[id].push(sourceHtml);
+          } else {
+              idToHtmlMap[id] = [];
+              idToHtmlMap[id].push(sourceHtml);
+          }
+      });
+      var $typeDivs = $('.js-source-type');
+
+      $('#js-sources').remove();
+      $.each($typeDivs, function(_index, div) {
+          idStr = $(div).attr('js-source-type');
+          id = parseInt(idStr);
+          $button = $(div).find('button');
+          if (idToHtmlMap[id]) {
+            for (var i = 0; i < idToHtmlMap[id].length; i++) {
+              $button.before(idToHtmlMap[id][i]);
+            }
+          }
+          $button.click(function() {
+              $.ajax('datasourcetype/'+idStr, {
+                  success: function(data) {
+                    $button.before(data['template']);
+                  }
+              });
+          });
+      });
+  };
+
   dsi.init = function() {
     initForm();
-    initAddButtons();
     initDeleteButtons();
+    sortAndArrangeDataSources();
   };
   return dsi;
 }();

@@ -29,13 +29,11 @@ func (dsi *DataSourceIndex) template() string {
 }
 
 func (dsi *DataSourceIndex) data() interface{} {
-	return nil
+	return datasources.AllTypes()
 }
 
 func (dsi *DataSourceIndex) scripts() []string {
-	return []string{
-		"datasources.js",
-	}
+	return datasources.AllScripts()
 }
 
 func (dsi *DataSourceIndex) breadcrumbs() []vm.Breadcrumb {

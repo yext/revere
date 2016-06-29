@@ -7,11 +7,19 @@
 </div>
 <div>
   <form id="js-datasources-form" class="form-horizontal" method="post" action="/datasources">
-    {{range ._Array}}
-      <div>
-        {{._Render}}
-      </div>
-    {{end}}
+    <div id="js-sources" class="hidden">
+      {{range $._Array}}
+         {{._Render}}
+      {{end}}
+    </div>
+    <div>
+      {{range $id, $name := ._}}
+          <div class="js-source-type" js-source-type={{$id}}>
+                <h2>{{$name}}</h2>
+                <button type="button" class="js-add-source btn btn-default">+ Add</button>
+          </div>
+      {{end}}
+    </div>
     <br/>
     <div class="form-group">
       <input type="submit" class="btn-lg btn-success" value="Save">

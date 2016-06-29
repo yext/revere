@@ -4,6 +4,7 @@ import (
 	"path"
 
 	"github.com/yext/revere/settings"
+	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -30,7 +31,7 @@ func (se *SettingEdit) data() interface{} {
 }
 
 func (se *SettingEdit) scripts() []string {
-	return vm.AppendDir(settings.SettingDir, se.Setting.Type().Scripts())
+	return tmpl.AppendDir(settings.SettingDir, se.Setting.Type().Scripts())
 }
 
 func (se *SettingEdit) breadcrumbs() []vm.Breadcrumb {

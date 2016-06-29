@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"github.com/yext/revere/probes"
+	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -40,7 +41,7 @@ func (pv *ProbeView) data() interface{} {
 func (pv *ProbeView) scripts() []string {
 	scripts := pv.viewmodel.Type().Scripts()["view"]
 
-	return vm.AppendDir(probes.ProbesDir, scripts)
+	return tmpl.AppendDir(probes.ProbesDir, scripts)
 }
 
 func (pv *ProbeView) breadcrumbs() []vm.Breadcrumb {
