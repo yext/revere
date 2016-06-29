@@ -1,10 +1,10 @@
-{{template "_header.html" setTitle . "Monitors"}}
 {{define "subprobe"}}
   <label class="col-sm-2 control-label" for="Subprobes">Subprobes</label>
   <div class="col-sm-4">
-    <input type="text" class="form-control" name="Subprobes" value="{{.Subprobes}}">
+    <input type="text" class="form-control" name="Subprobes" value="{{._.Subprobes}}">
   </div>
 {{end}}
+{{template "_header.html" setTitle . "Monitors"}}
 {{with ._}}
   <h1>{{if .Name}}Edit{{else}}New{{end}} Monitor</h1>
   <div id="js-errors">
@@ -13,7 +13,7 @@
   <form id="js-monitor-form" action="/monitors/new/edit" class="form-horizontal" method="POST">
     {{/* Basic Monitor Info */}}
     <div id="js-monitor-info">
-      <input type="hidden" class="form-control" data-json-type="Number" name="MonitorId" value="{{.MonitorId}}">
+      <input type="hidden" class="form-control" data-json-type="Number" name="MonitorID" value="{{.MonitorID}}">
       <div class="form-group">
         <label class="col-sm-2 control-label" for="Name">Name</label>
         <div class="col-sm-10">
@@ -41,7 +41,7 @@
       <div class="form-group">
         <label class="col-sm-2 control-label" for="ProbeType">Probe</label>
         <div class="col-sm-10">
-          <select id="#js-probe-type" class="form-control" data-json-type="Number" name="ProbeType">
+          <select id="js-probe-type" class="form-control" data-json-type="Number" name="ProbeType">
             {{range probeTypes}}
               <option value="{{.Id}}" {{if eq $._.ProbeType .Id}}selected{{end}}>{{.Name}}</option>
             {{end}}
@@ -58,7 +58,7 @@
     {{/* Triggers */}}
     <h2>Triggers</h2>
     <div id="triggers">
-      {{template "triggers-edit.html" $.Triggers}}
+      {{template "monitor-triggers-edit.html" $.Triggers}}
     </div>
     {{/* Labels */}}
     <h2>Labels</h2>
