@@ -4,21 +4,18 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbeEdit struct {
-	probe       probes.Probe
-	datasources []*datasources.VM
-	subs        []Renderable
+	probe probes.Probe
+	subs  []Renderable
 }
 
-func NewProbeEdit(p probes.Probe, dss []*datasources.VM) *ProbeEdit {
+func NewProbeEdit(p probes.Probe) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.probe = p
-	pe.datasources = dss
 	pe.subs = []Renderable{}
 	return &pe
 }
@@ -38,8 +35,7 @@ func (pe *ProbeEdit) template() string {
 
 func (pe *ProbeEdit) data() interface{} {
 	return map[string]interface{}{
-		"Probe":       pe.probe,
-		"DataSources": pe.datasources,
+		"Probe": pe.probe,
 	}
 }
 

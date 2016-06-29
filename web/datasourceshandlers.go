@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/juju/errors"
 	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/db"
+	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
@@ -73,6 +75,30 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 		}
 
 		http.Redirect(w, req, "/datasources", http.StatusMovedPermanently)
+		return
+	}
+}
+
+func LoadValidDataSources(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		pt, err := strconv.Atoi(p.ByName("probeType"))
+
+		probe, err := probes.Blank(db.ProbeType(pt))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
+				http.StatusNotFound)
+			return
+		}
+
+		acceptedTypes := probe.AcceptedSourceTypes()
+		sources, err := datasources.AllOfTypes(DB, acceptedTypes)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to load data sources: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(sources)
 		return
 	}
 }
