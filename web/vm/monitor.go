@@ -100,6 +100,7 @@ func BlankMonitor() (*Monitor, error) {
 	m.Triggers = blankMonitorTriggers()
 	m.Labels = blankMonitorLabels()
 	m.Probe, err = probes.Default()
+	m.ProbeType = m.Probe.Id()
 
 	return m, errors.Trace(err)
 }

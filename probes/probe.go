@@ -14,7 +14,7 @@ type ProbeType interface {
 	blank() (Probe, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
-	AcceptedDataSourceTypeIds() []db.SourceType
+	AcceptedSourceTypes() []db.SourceType
 }
 
 type Probe interface {

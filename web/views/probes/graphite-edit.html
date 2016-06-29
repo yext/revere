@@ -1,5 +1,6 @@
 {{with .Probe}}
 <div id="js-graphite-threshold">
+  <input id="js-graphite-threshold-probe-type" type="hidden" value="{{.Id}}">
   <div class="form-group">
     <label class="col-sm-2 control-label" for="Expression">Graphite expression</label>
     <div class="col-sm-10">
@@ -10,24 +11,19 @@
     <label class="col-sm-2 control-label">Thresholds</label>
     <label class="col-sm-1 control-label">Warning</label>
     <div class="col-sm-1">
-      <input type="text" class="form-control" data-json-type="Number" name="Warning" value="{{.Thresholds.Warning}}">
+      <input type="text" class="js-threshold form-control" data-json-type="Number" name="Warning" value="{{.Thresholds.Warning}}">
     </div>
     <label class="col-sm-1 control-label">Error</label>
     <div class="col-sm-1">
-      <input type="text" class="form-control" data-json-type="Number" name="Error" value="{{.Thresholds.Error}}">
+      <input type="text" class="js-threshold form-control" data-json-type="Number" name="Error" value="{{.Thresholds.Error}}">
     </div>
     <label class="col-sm-1 control-label">Critical</label>
     <div class="col-sm-1">
-      <input type="text" class="form-control" data-json-type="Number" name="Critical" value="{{.Thresholds.Critical}}">
+      <input type="text" class="js-threshold form-control" data-json-type="Number" name="Critical" value="{{.Thresholds.Critical}}">
     </div>
     <label class="col-sm-1 control-label" for="URL">Graphite</label>
     <div class="col-sm-3">
-      <select class="form-control" name="URL">
-        {{range $.DataSources}}
-          {{with .DataSource}}
-            <option value="{{.URL}}" {{if strEq $.Probe.URL .URL}}selected{{end}}>{{.URL}}</option>
-          {{end}}
-        {{end}}
+      <select id="js-datasources" class="form-control" name="URL" data-url={{.URL}}>
       </select>
     </div>
   </div>

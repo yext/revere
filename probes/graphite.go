@@ -103,12 +103,14 @@ func (GraphiteThreshold) Templates() map[string]string {
 func (GraphiteThreshold) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
+			"graphite-threshold.js",
 			"graphite-preview.js",
+			"graphite-ds-loader.js",
 		},
 	}
 }
 
-func (GraphiteThreshold) AcceptedDataSourceTypeIds() []db.SourceType {
+func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 	return []db.SourceType{
 		datasources.Graphite{}.Id(),
 	}

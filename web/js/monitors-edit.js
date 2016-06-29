@@ -2,12 +2,27 @@ $(document).ready(function() {
   monitorsEdit.init();
 });
 
+var probes = function() {
+  var p = {};
+  var fns = {};
+
+  p.addSerializeFn = function(probeType, fn) {
+    fns[probeType] = fn;
+  };
+
+  p.getSerializeFn = function(probeType) {
+    return fns[probeType];
+  };
+
+  return p;
+}();
+
 var monitorsEdit = function() {
   var m = {};
 
   m.init = function() {
-    triggersEdit.init();
-    labelMonitors.init();
+    monitorTriggersEdit.init();
+    monitorLabels.init();
     initProbe();
     initForm();
   };
@@ -38,9 +53,8 @@ var monitorsEdit = function() {
       var url = $form.attr('action'),
         data = $.extend(
           getMonitorData(),
-          {'ProbeParams': JSON.stringify(getProbeData())},
-          {'Triggers': triggersEdit.getData()},
-          {'Labels': labelMonitors.getData()}
+          {'Triggers': monitorTriggersEdit.getData()},
+          {'Labels': monitorLabels.getData()}
         );
       $.ajax({
         url: url,
@@ -64,11 +78,18 @@ var monitorsEdit = function() {
 
   // Serializing functions
   var getMonitorData = function() {
-    return $('#js-monitor-info').find(':input').serializeObject();
-  };
+    var monitorInputs = $('#js-monitor-info').find(':input').serializeObject(),
+      probeFn = probes.getSerializeFn(monitorInputs['ProbeType']),
+      probe;
+    if (probeFn !== undefined) {
+      probe = probeFn($('#js-probe'));
+    }
 
-  var getProbeData = function() {
-    return $('#js-probe').find(':input').serializeObject();
+    if (probe === undefined) {
+      probe = JSON.stringify($('#js-probe').find(':input').serializeObject());
+    }
+    return $.extend(monitorInputs, {'ProbeParams':probe});
+
   };
 
   return m;
