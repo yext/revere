@@ -196,6 +196,12 @@ func (m *Monitor) Save(tx *db.Tx) error {
 
 	if isCreate(m) {
 		m.MonitorID, err = tx.CreateMonitor(monitor)
+		for _, trigger := range m.Triggers {
+			trigger.setMonitorID(m.MonitorID)
+		}
+		for _, label := range m.Labels {
+			label.setMonitorID(m.MonitorID)
+		}
 	} else {
 		err = tx.UpdateMonitor(monitor)
 	}

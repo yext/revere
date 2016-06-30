@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"fmt"
-
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 )
@@ -47,9 +45,6 @@ func blankMonitorTriggers() []*MonitorTrigger {
 }
 
 func (mt *MonitorTrigger) validate(db *db.DB) (errs []string) {
-	if !db.IsExistingMonitor(mt.MonitorID) {
-		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", mt.MonitorID))
-	}
 	if err := validateSubprobeRegex(mt.Subprobes); err != nil {
 		errs = append(errs, err.Error())
 	}
@@ -90,4 +85,8 @@ func (mt *MonitorTrigger) save(tx *db.Tx) error {
 	}
 
 	return errors.Trace(err)
+}
+
+func (mt *MonitorTrigger) setMonitorID(id db.MonitorID) {
+	mt.MonitorID = id
 }

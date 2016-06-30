@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"fmt"
-
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 )
@@ -57,10 +55,6 @@ func (lt *LabelTrigger) IsDelete() bool {
 }
 
 func (lt *LabelTrigger) validate(db *db.DB) (errs []string) {
-	if !db.IsExistingLabel(lt.LabelID) {
-		errs = append(errs, fmt.Sprintf("Invalid label: %d", lt.LabelID))
-	}
-
 	return append(errs, lt.Trigger.validate()...)
 }
 
@@ -85,4 +79,8 @@ func (lt *LabelTrigger) save(tx *db.Tx) error {
 	}
 
 	return errors.Trace(err)
+}
+
+func (lt *LabelTrigger) setLabelID(id db.LabelID) {
+	lt.LabelID = id
 }

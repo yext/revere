@@ -54,11 +54,11 @@ func (lm *LabelMonitor) IsDelete() bool {
 	return lm.Delete
 }
 
-func (lm *LabelMonitor) validate(db *db.DB) (errs []string) {
-	// TODO(fchen) should really do this check at the label level, and make sure labelID matches all labelmonitor labelIDs
-	// same with monitorlabels, also validate monitor ID valid here
-	if !db.IsExistingLabel(lm.LabelID) {
-		errs = append(errs, fmt.Sprintf("Invalid label: %d", lm.LabelID))
+func (lm *LabelMonitor) validate(DB *db.DB) (errs []string) {
+	// TODO(fchen) probably will want to start doing validation in transaction
+	// also need to verify LabelID is consistent with parent label
+	if !DB.IsExistingMonitor(db.MonitorID(lm.Monitor.Id())) {
+		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", db.MonitorID(lm.Monitor.Id())))
 	}
 	if err := validateSubprobeRegex(lm.Subprobes); err != nil {
 		errs = append(errs, err.Error())
@@ -85,4 +85,8 @@ func (lm *LabelMonitor) save(tx *db.Tx) error {
 	}
 
 	return errors.Trace(err)
+}
+
+func (lm *LabelMonitor) setLabelID(id db.LabelID) {
+	lm.LabelID = id
 }

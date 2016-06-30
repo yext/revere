@@ -108,6 +108,12 @@ func (l *Label) Save(tx *db.Tx) error {
 	var err error
 	if isCreate(l) {
 		l.LabelID, err = tx.CreateLabel(label)
+		for _, trigger := range l.Triggers {
+			trigger.setLabelID(l.LabelID)
+		}
+		for _, monitor := range l.Monitors {
+			monitor.setLabelID(l.LabelID)
+		}
 	} else {
 		err = tx.UpdateLabel(label)
 	}

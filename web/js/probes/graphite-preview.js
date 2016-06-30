@@ -80,7 +80,7 @@ var graphitePreview = function() {
   };
 
   var getGraphiteBaseUrl = function(gtFields) {
-    return gtFields['Url'];
+    return gtFields['URL'];
   };
 
   var getGraphiteTargets = function(gtFields) {

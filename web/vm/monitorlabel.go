@@ -57,9 +57,11 @@ func (ml *MonitorLabel) IsDelete() bool {
 	return ml.Delete
 }
 
-func (ml *MonitorLabel) validate(db *db.DB) (errs []string) {
-	if !db.IsExistingMonitor(ml.MonitorID) {
-		errs = append(errs, fmt.Sprintf("Invalid monitor: %d", ml.MonitorID))
+func (ml *MonitorLabel) validate(DB *db.DB) (errs []string) {
+	// TODO(fchen) probably will want to start doing validation in transaction
+	// also need to verify MonitorID is consistent with parent monitor
+	if !DB.IsExistingLabel(db.LabelID(ml.Label.Id())) {
+		errs = append(errs, fmt.Sprintf("Invalid label: %d", db.LabelID(ml.Label.Id())))
 	}
 	if err := validateSubprobeRegex(ml.Subprobes); err != nil {
 		errs = append(errs, err.Error())
@@ -99,4 +101,8 @@ func allMonitorLabels(tx *db.Tx, mIds []db.MonitorID) (map[db.MonitorID][]*Monit
 		}
 	}
 	return mls, nil
+}
+
+func (ml *MonitorLabel) setMonitorID(id db.MonitorID) {
+	ml.MonitorID = id
 }
