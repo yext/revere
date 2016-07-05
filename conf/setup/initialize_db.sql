@@ -48,6 +48,7 @@ CREATE TABLE subprobe_statuses (
   state TINYINT NOT NULL,
   silenced BOOLEAN NOT NULL DEFAULT FALSE,
   enteredstate DATETIME NOT NULL,
+  lastnormal DATETIME NOT NULL,
   FOREIGN KEY (`subprobeid`) REFERENCES subprobes(`subprobeid`) ON DELETE CASCADE,
   INDEX (`state`, `silenced`, `enteredstate`, `recorded`, `subprobeid`)
 ) ENGINE = InnoDB;
