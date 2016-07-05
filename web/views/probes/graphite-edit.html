@@ -63,7 +63,7 @@
         <option value="day" {{if strEq .AuditPeriodType "day"}}selected{{end}}>Day(s)</option>
       </select>
     </div>
-    <label class="col-sm-3 sentence-label control-label" for="TriggerIf">of values from Graphite was</label>
+    <label class="col-sm-3 sentence-label control-label" for="TriggerIf">of values from Graphite was,</label>
     <div class="col-sm-1">
       <select class="form-control" name="TriggerIf">
         <option value="<" {{if strEq .TriggerIf "<"}}selected{{end}}>&lt;</option>
@@ -73,6 +73,21 @@
       </select>
     </div>
     <label class="col-sm-2 sentence-label control-label">the threshold</label>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="IgnoredPeriod">ignoring</label>
+    <div class="col-sm-2">
+      <input type="number" min="0" class="form-control" name="IgnoredPeriod" data-json-type="Number" value="{{.IgnoredPeriod}}" placeholder="0">
+    </div>
+    <div class="col-sm-2">
+      <select class="form-control" name="IgnoredPeriodType">
+        <option value="second" {{if strEq .IgnoredPeriodType "second"}}selected{{end}}>Second(s)</option>
+        <option value="minute" {{if strEq .IgnoredPeriodType "minute"}}selected{{end}}>Minute(s)</option>
+        <option value="hour" {{if strEq .IgnoredPeriodType "hour"}}selected{{end}}>Hour(s)</option>
+        <option value="day" {{if strEq .IgnoredPeriodType "day"}}selected{{end}}>Day(s)</option>
+      </select>
+    </div>
+    <label class="col-sm-6 sentence-label">of the most recent values</label>
   </div>
 </div>
 <hr>

@@ -18,9 +18,10 @@ import (
 type GraphiteThreshold struct {
 	*Polling
 
-	graphiteBase string
-	expression   string
-	timeToAudit  time.Duration
+	graphiteBase       string
+	expression         string
+	timeToAudit        time.Duration
+	recentTimeToIgnore time.Duration
 
 	thresholds      []graphiteThresholdThreshold
 	summarizeValues func(values []float64) float64
@@ -53,6 +54,7 @@ func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- []Readi
 	gt.graphiteBase = fmt.Sprintf("http://%s/", config.URL)
 	gt.expression = config.Expression
 	gt.timeToAudit = time.Duration(config.TimeToAuditMilli) * time.Millisecond
+	gt.recentTimeToIgnore = time.Duration(config.RecentTimeToIgnoreMilli) * time.Millisecond
 
 	// Must be in increasing severity order.
 	if config.Thresholds.Warning != nil {
@@ -144,9 +146,11 @@ var (
 func (gt *GraphiteThreshold) Check() []Reading {
 	now := time.Now()
 
+	auditEnd := now.Add(-gt.recentTimeToIgnore)
+
 	g := resource.Graphite{gt.graphiteBase}
 
-	series, err := g.Query(gt.expression, now.Add(-gt.timeToAudit), now)
+	series, err := g.Query(gt.expression, auditEnd.Add(-gt.timeToAudit), auditEnd)
 	if err != nil {
 		// TODO(eefi): Include this probe's monitor's ID.
 		log.WithError(err).Error("Could not query Graphite.")
@@ -188,7 +192,7 @@ func (gt *GraphiteThreshold) Check() []Reading {
 			graphite:    &g,
 			expression:  gt.expression,
 			seriesName:  s.Name,
-			measuredEnd: now,
+			measuredEnd: auditEnd,
 		}
 
 		readings = append(readings, r)

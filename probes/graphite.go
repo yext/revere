@@ -15,15 +15,17 @@ type GraphiteThresholdProbe struct {
 	GraphiteThreshold
 
 	// TODO(fchen): fix tags on front-end js
-	URL             string
-	Expression      string
-	Thresholds      ThresholdsModel
-	AuditFunction   string
-	CheckPeriod     int64
-	CheckPeriodType string
-	TriggerIf       string
-	AuditPeriod     int64
-	AuditPeriodType string
+	URL               string
+	Expression        string
+	Thresholds        ThresholdsModel
+	AuditFunction     string
+	CheckPeriod       int64
+	CheckPeriodType   string
+	TriggerIf         string
+	AuditPeriod       int64
+	AuditPeriodType   string
+	IgnoredPeriod     int64
+	IgnoredPeriodType string
 }
 
 type ThresholdsModel struct {
@@ -71,6 +73,7 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string) (Probe, error) {
 
 	checkPeriod, checkPeriodType := util.GetPeriodAndType(g.CheckPeriodMilli)
 	auditPeriod, auditPeriodType := util.GetPeriodAndType(g.TimeToAuditMilli)
+	ignoredPeriod, ignoredPeriodType := util.GetPeriodAndType(g.RecentTimeToIgnoreMilli)
 
 	return &GraphiteThresholdProbe{
 		URL:        g.URL,
@@ -80,12 +83,14 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string) (Probe, error) {
 			*g.Thresholds.Error,
 			*g.Thresholds.Critical,
 		},
-		AuditFunction:   g.AuditFunction,
-		CheckPeriod:     checkPeriod,
-		CheckPeriodType: checkPeriodType,
-		TriggerIf:       g.TriggerIf,
-		AuditPeriod:     auditPeriod,
-		AuditPeriodType: auditPeriodType,
+		AuditFunction:     g.AuditFunction,
+		CheckPeriod:       checkPeriod,
+		CheckPeriodType:   checkPeriodType,
+		TriggerIf:         g.TriggerIf,
+		AuditPeriod:       auditPeriod,
+		AuditPeriodType:   auditPeriodType,
+		IgnoredPeriod:     ignoredPeriod,
+		IgnoredPeriodType: ignoredPeriodType,
 	}, nil
 }
 
@@ -119,19 +124,21 @@ func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 func (g GraphiteThresholdProbe) Serialize() (string, error) {
 	checkPeriodMilli := util.GetMs(g.CheckPeriod, g.CheckPeriodType)
 	auditPeriodMilli := util.GetMs(g.AuditPeriod, g.AuditPeriodType)
+	ignoredPeriodMilli := util.GetMs(g.IgnoredPeriod, g.IgnoredPeriodType)
 
 	gtDB := probe.GraphiteThresholdDBModel{
-		g.URL,
-		g.Expression,
-		probe.GraphiteThresholdThresholdsDBModel{
+		URL:        g.URL,
+		Expression: g.Expression,
+		Thresholds: probe.GraphiteThresholdThresholdsDBModel{
 			Warning:  &g.Thresholds.Warning,
 			Error:    &g.Thresholds.Error,
 			Critical: &g.Thresholds.Critical,
 		},
-		g.TriggerIf,
-		checkPeriodMilli,
-		auditPeriodMilli,
-		g.AuditFunction,
+		TriggerIf:               g.TriggerIf,
+		CheckPeriodMilli:        checkPeriodMilli,
+		TimeToAuditMilli:        auditPeriodMilli,
+		RecentTimeToIgnoreMilli: ignoredPeriodMilli,
+		AuditFunction:           g.AuditFunction,
 	}
 
 	gtDBJSON, err := json.Marshal(gtDB)

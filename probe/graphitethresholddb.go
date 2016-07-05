@@ -13,8 +13,9 @@ type GraphiteThresholdDBModel struct {
 
 	CheckPeriodMilli int64
 
-	TimeToAuditMilli int64
-	AuditFunction    string
+	TimeToAuditMilli        int64
+	RecentTimeToIgnoreMilli int64
+	AuditFunction           string
 }
 
 // GraphiteThresholdThresholdsDBModel defines the JSON serialization format for
