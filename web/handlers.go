@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"github.com/juju/errors"
@@ -25,6 +26,7 @@ func init() {
 	tmpl.AddDefaultFunc("isLastBc", vm.IsLastBc)
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
+	tmpl.AddDefaultFunc("deepEq", reflect.DeepEqual)
 	tmpl.AddDefaultFunc("targets", targets.AllTargets)
 	tmpl.AddDefaultFunc("probeTypes", probes.AllTypes)
 	tmpl.AddDefaultFunc("settings", settings.AllTypes)

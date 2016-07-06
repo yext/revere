@@ -84,10 +84,8 @@ func StrEq(a, b interface{}) bool {
 	if !ok {
 		return false
 	}
-	if c == d {
-		return true
-	}
-	return false
+
+	return c == d
 }
 
 func GetScript(filepath string) string {

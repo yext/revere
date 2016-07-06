@@ -71,10 +71,17 @@ func SilencesEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			http.Error(w, "Silence not found", http.StatusNotFound)
 			return
 		}
+		query := req.URL.Query()
 
 		silence, err := loadSilenceViewModel(DB, id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve silence: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		err = silence.SetHtmlParams(query)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to set parameters from query string: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}

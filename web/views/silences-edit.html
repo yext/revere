@@ -21,7 +21,7 @@
               <div class="silence-form">
                 <select id="monitor" name="MonitorID" class="form-control" data-json-type="Number">
                   {{range $monitors}}
-                    <option value="{{.MonitorID}}">{{.Name}}</option>
+                  <option value="{{.MonitorID}}" {{if deepEq .MonitorID $._.Silence.MonitorID}}selected{{end}}>{{.Name}}</option>
                   {{end}}
                 </select>
               </div>
@@ -31,7 +31,7 @@
         <h4 class="silence-subheader">Subprobes: 
           {{if $new}}
             <div class="silence-form">
-              <input type="text" name="Subprobes" class="form-control" placeholder="Subprobes">
+                <input type="text" name="Subprobes" class="form-control" placeholder="Subprobes" value="{{.Subprobes}}">
             </div>
           {{else if .Subprobes}}
             {{.Subprobes}}

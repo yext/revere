@@ -2,6 +2,8 @@ package vm
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/juju/errors"
@@ -128,6 +130,27 @@ func (s *Silence) validateOld(old *Silence) (errs []string) {
 	}
 
 	return
+}
+
+func (s *Silence) SetHtmlParams(values url.Values) error {
+	if monitorIDStr, ok := values["monitorId"]; ok {
+		if len(monitorIDStr) != 1 {
+			return errors.New("Only one monitor id allowed in request")
+		}
+
+		if subprobeName, ok := values["subprobeName"]; ok {
+			if len(subprobeName) != 1 {
+				return errors.New("Only one subprobe name allowed in request")
+			}
+			s.Subprobes = subprobeName[0]
+		}
+		id, err := strconv.Atoi(monitorIDStr[0])
+		if err != nil {
+			return errors.Trace(err)
+		}
+		s.MonitorID = db.MonitorID(id)
+	}
+	return nil
 }
 
 func (s *Silence) IsPast(moment time.Time) bool {

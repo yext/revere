@@ -5,6 +5,7 @@
   <div class="subprobes-headers">
     <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
   </div>
+  <a href="/silences/new/edit?subprobeName={{.Subprobe.Name}}&monitorId={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
   <div>
     <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
     {{range $Readings}}
