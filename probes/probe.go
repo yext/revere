@@ -14,6 +14,7 @@ type ProbeType interface {
 	blank() (Probe, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
+	PreviewScript() string
 	AcceptedSourceTypes() []db.SourceType
 }
 
@@ -22,6 +23,7 @@ type Probe interface {
 	Serialize() (string, error)
 	Type() ProbeType
 	Validate() []string
+	PreviewParams() map[string]string
 }
 
 const (

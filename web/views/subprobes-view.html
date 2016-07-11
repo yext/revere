@@ -5,6 +5,15 @@
   <div class="subprobes-headers">
     <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
   </div>
+  <div>
+    {{range $key, $value := .PreviewParams}}
+      <input class="js-preview-params" name="{{$key}}" value="{{$value}}" hidden>
+    {{end}}
+    <input class="js-preview-params" name="SubprobeName" value="{{.Subprobe.Name}}" hidden>
+  </div>
+  {{template "preview.html" .}}
+  <br>
+
   <a href="/silences/new/edit?subprobeName={{.Subprobe.Name}}&monitorId={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
   <div>
     <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>

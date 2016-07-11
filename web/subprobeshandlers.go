@@ -67,7 +67,7 @@ func SubprobesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		subprobe, err := vm.NewSubprobe(DB, db.SubprobeID(id))
+		subprobe, err := vm.NewSubprobeWithMonitor(DB, db.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
 				http.StatusInternalServerError)

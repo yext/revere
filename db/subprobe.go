@@ -39,7 +39,15 @@ func (db *DB) LoadSubprobe(subprobeID SubprobeID) (*Subprobe, error) {
 }
 
 func (db *DB) LoadSubprobeWithStatusInfo(subprobeID SubprobeID) (*SubprobeWithStatusInfo, error) {
-	results, err := loadSubprobesWithStatus(db, fmt.Sprintf(`WHERE s.subprobeid = %d`, subprobeID))
+	return loadSubprobeWithStatusInfo(db, subprobeID)
+}
+
+func (tx *Tx) LoadSubprobeWithStatusInfo(subprobeID SubprobeID) (*SubprobeWithStatusInfo, error) {
+	return loadSubprobeWithStatusInfo(tx, subprobeID)
+}
+
+func loadSubprobeWithStatusInfo(dt dbOrTx, subprobeID SubprobeID) (*SubprobeWithStatusInfo, error) {
+	results, err := loadSubprobesWithStatus(dt, fmt.Sprintf(`WHERE s.subprobeid = %d`, subprobeID))
 	if err != nil || len(results) != 1 {
 		return nil, errors.Trace(err)
 	}

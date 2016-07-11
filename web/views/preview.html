@@ -1,0 +1,54 @@
+<div id="js-preview" class="form-group">
+  <label class="col-sm-2 control-label">Preview Period</label>
+  <div class="col-sm-4">
+    <div class="form-group row">
+      <div class="col-sm-1">
+        <input type="radio" name="PreviewPeriod" value="last" checked>
+      </div>
+      <label class="col-sm-2 control-label">Last</label>
+      <div class="col-sm-4">
+        <input type="number" min="1" class="form-control js-last-period" name="LastPeriod" data-json-type="Number" value="1">
+      </div>
+      <div class="col-sm-5">
+        <select class="form-control js-last-period" name="LastPeriodType">
+          <option value="s">Second(s)</option>
+          <option value="min">Minute(s)</option>
+          <option value="h">Hour(s)</option>
+          <option value="d" selected>Day(s)</option>
+          <option value="w">Week(s)</option>
+          <option value="mon">Month(s)</option>
+          <option value="y">Year(s)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group row">
+      <div class="col-sm-1">
+        <input type="radio" name="PreviewPeriod" value="range">
+      </div>
+      <label class="col-sm-2 control-label">From</label>
+      <div id="js-datetimepicker-from" class="col-sm-9 input-group date">
+        <input type="text" class="form-control js-range-period" name="RangeFrom" disabled>
+        <span class="input-group-addon">
+          <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-3 control-label">Until</label>
+      <div id="js-datetimepicker-until" class="col-sm-9 input-group date">
+        <input type="text" class="form-control js-range-period" name="RangeUntil" disabled>
+        <span class="input-group-addon">
+          <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <button id="js-preview-btn" class="btn btn-primary pull-right">Preview</button>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <img id="js-preview-img" class="img-responsive" src="">
+    <p id="js-preview-error" class="hidden">Unable to load image, check your datasource and expression</p>
+  </div>
+</div>
+

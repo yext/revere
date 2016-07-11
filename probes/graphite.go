@@ -2,6 +2,7 @@ package probes
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/db"
@@ -105,19 +106,33 @@ func (GraphiteThreshold) Templates() map[string]string {
 	}
 }
 
-func (GraphiteThreshold) Scripts() map[string][]string {
+func (gt GraphiteThreshold) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"graphite-threshold.js",
-			"graphite-preview.js",
 			"graphite-ds-loader.js",
+			gt.PreviewScript(),
 		},
 	}
+}
+
+func (GraphiteThreshold) PreviewScript() string {
+	return "graphite-preview.js"
 }
 
 func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 	return []db.SourceType{
 		datasources.Graphite{}.Id(),
+	}
+}
+
+func (g GraphiteThresholdProbe) PreviewParams() map[string]string {
+	return map[string]string{
+		"Expression": g.Expression,
+		"URL":        g.URL,
+		"Warning":    strconv.FormatFloat(g.Thresholds.Warning, 'f', -1, 64),
+		"Error":      strconv.FormatFloat(g.Thresholds.Error, 'f', -1, 64),
+		"Critical":   strconv.FormatFloat(g.Thresholds.Critical, 'f', -1, 64),
 	}
 }
 

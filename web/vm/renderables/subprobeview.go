@@ -1,6 +1,9 @@
 package renderables
 
 import (
+	"path"
+
+	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
 )
 
@@ -14,6 +17,8 @@ func NewSubprobeView(s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
 	sv := SubprobeView{}
 	sv.subprobe = s
 	sv.readings = rs
+	pp := NewProbePreview(s.Probe.PreviewScript())
+	sv.subs = []Renderable{pp}
 	return &sv
 }
 
@@ -27,13 +32,17 @@ func (sv *SubprobeView) template() string {
 
 func (sv *SubprobeView) data() interface{} {
 	return map[string]interface{}{
-		"Subprobe": sv.subprobe,
-		"Readings": sv.readings,
+		"Subprobe":      sv.subprobe,
+		"Readings":      sv.readings,
+		"PreviewParams": sv.subprobe.Probe.PreviewParams(),
 	}
 }
 
 func (sv *SubprobeView) scripts() []string {
-	return nil
+	return []string{
+		path.Join(probes.ProbesDir, sv.subprobe.Probe.PreviewScript()),
+		"subprobes-view.js",
+	}
 }
 
 func (sv *SubprobeView) breadcrumbs() []vm.Breadcrumb {
@@ -41,7 +50,7 @@ func (sv *SubprobeView) breadcrumbs() []vm.Breadcrumb {
 }
 
 func (sv *SubprobeView) subRenderables() []Renderable {
-	return nil
+	return sv.subs
 }
 
 func (sv *SubprobeView) renderPropagate() (*renderResult, error) {

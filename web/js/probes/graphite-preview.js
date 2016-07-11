@@ -56,7 +56,7 @@ var graphitePreview = function() {
     $previewBtn.click(function(e) {
       e.preventDefault();
       $(this).button('loading');
-      var gtFields = $('#js-graphite-threshold').find(':input').serializeObject();
+      var gtFields = $('.js-preview-params').serializeObject();
       var previewFields = $('#js-preview').find(':input').serializeObject();
       url = getGraphitePreviewUrl(
         getGraphiteBaseUrl(gtFields),
@@ -84,8 +84,14 @@ var graphitePreview = function() {
   };
 
   var getGraphiteTargets = function(gtFields) {
+    var targetExpression = "";
+    if (gtFields['SubprobeName']) {
+        targetExpression = "grep("+gtFields['Expression']+",'"+gtFields['SubprobeName']+"')"
+    } else {
+        targetExpression = gtFields['Expression']
+    }
     return [
-      getDataTargetExpression(gtFields['Expression'], gtFields['TriggerIf']),
+      getDataTargetExpression(targetExpression, gtFields['TriggerIf']),
       getThresholdTargetExpression(gtFields['Warning'], 'warning', 'orange'),
       getThresholdTargetExpression(gtFields['Error'], 'error', 'red'),
       getThresholdTargetExpression(gtFields['Critical'], 'critical', 'black')
