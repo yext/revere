@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/yext/revere/durationfmt"
@@ -93,5 +94,8 @@ func (d graphiteThresholdDetails) valuesURL() string {
 }
 
 func (d graphiteThresholdDetails) target() string {
-	return fmt.Sprintf(`grep(%s, "^%s$")`, d.expression, regexp.QuoteMeta(d.seriesName))
+	return fmt.Sprintf(
+		`grep(%s, "^%s$")`,
+		d.expression,
+		strings.Replace(regexp.QuoteMeta(d.seriesName), `"`, `\"`, -1))
 }
