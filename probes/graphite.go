@@ -30,9 +30,9 @@ type GraphiteThresholdProbe struct {
 }
 
 type ThresholdsModel struct {
-	Warning  float64
-	Error    float64
-	Critical float64
+	Warning  *float64
+	Error    *float64
+	Critical *float64
 }
 
 var (
@@ -80,9 +80,9 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string) (Probe, error) {
 		URL:        g.URL,
 		Expression: g.Expression,
 		Thresholds: ThresholdsModel{
-			*g.Thresholds.Warning,
-			*g.Thresholds.Error,
-			*g.Thresholds.Critical,
+			g.Thresholds.Warning,
+			g.Thresholds.Error,
+			g.Thresholds.Critical,
 		},
 		AuditFunction:     g.AuditFunction,
 		CheckPeriod:       checkPeriod,
@@ -127,12 +127,22 @@ func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 }
 
 func (g GraphiteThresholdProbe) PreviewParams() map[string]string {
+	var warningStr, errorStr, criticalStr string
+	if g.Thresholds.Warning != nil {
+		warningStr = strconv.FormatFloat(*g.Thresholds.Warning, 'f', -1, 64)
+	}
+	if g.Thresholds.Error != nil {
+		errorStr = strconv.FormatFloat(*g.Thresholds.Error, 'f', -1, 64)
+	}
+	if g.Thresholds.Critical != nil {
+		criticalStr = strconv.FormatFloat(*g.Thresholds.Critical, 'f', -1, 64)
+	}
 	return map[string]string{
 		"Expression": g.Expression,
 		"URL":        g.URL,
-		"Warning":    strconv.FormatFloat(g.Thresholds.Warning, 'f', -1, 64),
-		"Error":      strconv.FormatFloat(g.Thresholds.Error, 'f', -1, 64),
-		"Critical":   strconv.FormatFloat(g.Thresholds.Critical, 'f', -1, 64),
+		"Warning":    warningStr,
+		"Error":      errorStr,
+		"Critical":   criticalStr,
 	}
 }
 
@@ -145,9 +155,9 @@ func (g GraphiteThresholdProbe) Serialize() (string, error) {
 		URL:        g.URL,
 		Expression: g.Expression,
 		Thresholds: probe.GraphiteThresholdThresholdsDBModel{
-			Warning:  &g.Thresholds.Warning,
-			Error:    &g.Thresholds.Error,
-			Critical: &g.Thresholds.Critical,
+			Warning:  g.Thresholds.Warning,
+			Error:    g.Thresholds.Error,
+			Critical: g.Thresholds.Critical,
 		},
 		TriggerIf:               g.TriggerIf,
 		CheckPeriodMilli:        checkPeriodMilli,

@@ -113,6 +113,9 @@ var graphitePreview = function() {
   };
 
   var getThresholdTargetExpression = function(threshold, label, color) {
+    if (threshold === undefined) {
+        return ''
+    }
     return 'threshold(' + threshold + ',"' + label + '","' + color + '")';
   };
 
