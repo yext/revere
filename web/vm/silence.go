@@ -138,11 +138,11 @@ func (s *Silence) SetHtmlParams(values url.Values) error {
 			return errors.New("Only one monitor id allowed in request")
 		}
 
-		if subprobeName, ok := values["subprobeName"]; ok {
-			if len(subprobeName) != 1 {
+		if subprobesParams, ok := values["subprobes"]; ok {
+			if len(subprobesParams) != 1 {
 				return errors.New("Only one subprobe name allowed in request")
 			}
-			s.Subprobes = subprobeName[0]
+			s.Subprobes = subprobesParams[0]
 		}
 		id, err := strconv.Atoi(monitorIDStr[0])
 		if err != nil {

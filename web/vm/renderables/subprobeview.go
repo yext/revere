@@ -1,7 +1,9 @@
 package renderables
 
 import (
+	"fmt"
 	"path"
+	"regexp"
 
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
@@ -32,9 +34,10 @@ func (sv *SubprobeView) template() string {
 
 func (sv *SubprobeView) data() interface{} {
 	return map[string]interface{}{
-		"Subprobe":      sv.subprobe,
-		"Readings":      sv.readings,
-		"PreviewParams": sv.subprobe.Probe.PreviewParams(),
+		"EscapedSubprobeName": fmt.Sprintf("^%s$", regexp.QuoteMeta(sv.subprobe.Name)),
+		"Subprobe":            sv.subprobe,
+		"Readings":            sv.readings,
+		"PreviewParams":       sv.subprobe.Probe.PreviewParams(),
 	}
 }
 
