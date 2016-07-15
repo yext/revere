@@ -12,7 +12,12 @@ var graphiteThreshold = function() {
   var addSerializeFn = function() {
     probes.addSerializeFn($('#js-graphite-threshold-probe-type').val(), function(probe) {
       var inputs = probe.find(':input:not(.js-threshold)').serializeObject();
-        thresholds = probe.find(':input.js-threshold').serializeObject();
+      probe.find(':input.js-threshold').each(function() {
+          if ($(this).val() == "") {
+              $(this).remove();
+          }
+      });
+      thresholds = probe.find(':input.js-threshold').serializeObject();
 
       return JSON.stringify($.extend(inputs, {"Thresholds": thresholds}));
     });
