@@ -49,10 +49,10 @@ func (tx *Tx) UpdateDatasource(datasource *Datasource) error {
 	return errors.Trace(err)
 }
 
-func (db *DB) LoadDatasource(id DatasourceID) (*Datasource, error) {
+func (tx *Tx) LoadDatasource(id DatasourceID) (*Datasource, error) {
 	var ds Datasource
 	q := `SELECT * FROM pfx_data_sources WHERE sourceid = ?`
-	if err := db.Get(&ds, cq(db, q), id); err != nil {
+	if err := tx.Get(&ds, cq(tx, q), id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}

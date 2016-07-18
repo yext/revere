@@ -21,9 +21,11 @@ var graphiteDSLoader = function() {
       selectedUrl = $selector.data('url');
     $.each(datasources, function(i, datasource) {
       var url = datasource.DataSource.URL,
-        selected = url == selectedUrl;
-      $selector.append($('<option></option').val(url)
-        .html(url).attr('selected', selected));
+        selected = url === selectedUrl,
+        id = datasource.SourceID;
+
+      $selector.append($('<option></option').html(url)
+        .data('id',id).attr('selected', selected));
     });
   };
 

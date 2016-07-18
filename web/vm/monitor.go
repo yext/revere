@@ -44,7 +44,7 @@ func NewMonitor(tx *db.Tx, id db.MonitorID) (*Monitor, error) {
 		return nil, fmt.Errorf("Monitor not found: %d", id)
 	}
 
-	m, err := newMonitorFromDB(monitor)
+	m, err := newMonitorFromDB(monitor, tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -57,7 +57,7 @@ func NewMonitor(tx *db.Tx, id db.MonitorID) (*Monitor, error) {
 	return m, nil
 }
 
-func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
+func newMonitorFromDB(monitor *db.Monitor, tx *db.Tx) (*Monitor, error) {
 	var err error
 	m := &Monitor{
 		MonitorID:   monitor.MonitorID,
@@ -74,7 +74,7 @@ func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
 		Triggers:    nil,
 		Labels:      nil,
 	}
-	m.Probe, err = probes.LoadFromDB(monitor.ProbeType, string(monitor.Probe))
+	m.Probe, err = probes.LoadFromDB(monitor.ProbeType, string(monitor.Probe), tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -82,11 +82,11 @@ func newMonitorFromDB(monitor *db.Monitor) (*Monitor, error) {
 	return m, nil
 }
 
-func newMonitorsFromDB(monitors []*db.Monitor) ([]*Monitor, error) {
+func newMonitorsFromDB(monitors []*db.Monitor, tx *db.Tx) ([]*Monitor, error) {
 	var err error
 	ms := make([]*Monitor, len(monitors))
 	for i, monitor := range monitors {
-		ms[i], err = newMonitorFromDB(monitor)
+		ms[i], err = newMonitorFromDB(monitor, tx)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
@@ -111,7 +111,7 @@ func AllMonitors(tx *db.Tx) ([]*Monitor, error) {
 		return nil, errors.Trace(err)
 	}
 
-	dbMonitors, err := newMonitorsFromDB(monitors)
+	dbMonitors, err := newMonitorsFromDB(monitors, tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -125,7 +125,7 @@ func AllMonitorsForLabel(tx *db.Tx, labelID db.LabelID) ([]*Monitor, error) {
 		return nil, errors.Trace(err)
 	}
 
-	monitors, err := newMonitorsFromDB(DBMonitors)
+	monitors, err := newMonitorsFromDB(DBMonitors, tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

@@ -5,6 +5,7 @@ package probe
 type GraphiteThresholdDBModel struct {
 	// TODO(eefi): Make URL a proper data source.
 
+	SourceID   int64
 	URL        string
 	Expression string
 

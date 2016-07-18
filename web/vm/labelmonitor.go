@@ -28,7 +28,7 @@ func newLabelMonitors(tx *db.Tx, id db.LabelID) ([]*LabelMonitor, error) {
 
 	lms := make([]*LabelMonitor, len(labelMonitors))
 	for i, labelMonitor := range labelMonitors {
-		m, err := newMonitorFromDB(labelMonitor.Monitor)
+		m, err := newMonitorFromDB(labelMonitor.Monitor, tx)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}

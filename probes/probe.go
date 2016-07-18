@@ -10,7 +10,7 @@ type ProbeType interface {
 	Id() db.ProbeType
 	Name() string
 	loadFromParams(probe string) (Probe, error)
-	loadFromDb(probe string) (Probe, error)
+	loadFromDb(probe string, tx *db.Tx) (Probe, error)
 	blank() (Probe, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
@@ -53,13 +53,13 @@ func LoadFromParams(id db.ProbeType, probeParams string) (Probe, error) {
 	return probeType.loadFromParams(probeParams)
 }
 
-func LoadFromDB(id db.ProbeType, probeJson string) (Probe, error) {
+func LoadFromDB(id db.ProbeType, probeJson string, tx *db.Tx) (Probe, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return probeType.loadFromDb(probeJson)
+	return probeType.loadFromDb(probeJson, tx)
 }
 
 func Blank(id db.ProbeType) (Probe, error) {

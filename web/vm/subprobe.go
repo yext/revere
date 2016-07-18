@@ -64,14 +64,14 @@ func NewSubprobeWithMonitor(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
 		s = newSubprobeWithStatusFromDB(subprobeDb)
 
 		probeinfo, err = tx.LoadProbeByMonitorID(s.MonitorID)
+		if err != nil {
+			return err
+		}
+
+		s.Probe, err = probes.LoadFromDB(probeinfo.ProbeType, string(probeinfo.Probe), tx)
 		return err
 	})
 
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
-
-	s.Probe, err = probes.LoadFromDB(probeinfo.ProbeType, string(probeinfo.Probe))
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

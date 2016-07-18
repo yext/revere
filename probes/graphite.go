@@ -17,6 +17,7 @@ type GraphiteThresholdProbe struct {
 
 	// TODO(fchen): fix tags on front-end js
 	URL               string
+	SourceID          db.DatasourceID
 	Expression        string
 	Thresholds        ThresholdsModel
 	AuditFunction     string
@@ -65,7 +66,7 @@ func (GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	return g, nil
 }
 
-func (GraphiteThreshold) loadFromDb(encodedProbe string) (Probe, error) {
+func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, error) {
 	var g probe.GraphiteThresholdDBModel
 	err := json.Unmarshal([]byte(encodedProbe), &g)
 	if err != nil {
@@ -76,8 +77,12 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string) (Probe, error) {
 	auditPeriod, auditPeriodType := util.GetPeriodAndType(g.TimeToAuditMilli)
 	ignoredPeriod, ignoredPeriodType := util.GetPeriodAndType(g.RecentTimeToIgnoreMilli)
 
+	// Ignored for now - will swap next commit, when the datasource is updated
+	_, err = tx.LoadDatasource(db.DatasourceID(g.SourceID))
+
 	return &GraphiteThresholdProbe{
 		URL:        g.URL,
+		SourceID:   db.DatasourceID(g.SourceID),
 		Expression: g.Expression,
 		Thresholds: ThresholdsModel{
 			g.Thresholds.Warning,
@@ -153,6 +158,7 @@ func (g GraphiteThresholdProbe) Serialize() (string, error) {
 
 	gtDB := probe.GraphiteThresholdDBModel{
 		URL:        g.URL,
+		SourceID:   int64(g.SourceID),
 		Expression: g.Expression,
 		Thresholds: probe.GraphiteThresholdThresholdsDBModel{
 			Warning:  g.Thresholds.Warning,
@@ -176,10 +182,6 @@ func (g GraphiteThresholdProbe) Type() ProbeType {
 }
 
 func (g GraphiteThresholdProbe) Validate() (errs []string) {
-	if g.URL == "" {
-		errs = append(errs, "Graphite data source is required")
-	}
-
 	if g.Expression == "" {
 		errs = append(errs, "Graphite expression is required")
 	}
