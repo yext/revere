@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/braintree/manners"
 	"github.com/yext/revere/env"
 	"github.com/yext/revere/web"
 
@@ -13,7 +14,8 @@ import (
 
 type WebServer struct {
 	*env.Env
-	router *httprouter.Router
+	router  *httprouter.Router
+	stopped chan struct{}
 }
 
 func New(env *env.Env) *WebServer {
@@ -48,15 +50,20 @@ func New(env *env.Env) *WebServer {
 	})
 
 	return &WebServer{
-		Env:    env,
-		router: router,
+		Env:     env,
+		router:  router,
+		stopped: make(chan struct{}),
 	}
 }
 
 func (w *WebServer) run() {
 	port := strconv.Itoa(int(w.Port))
 	log.Info("Listening on :%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, w.router))
+	err := manners.ListenAndServe(":"+port, w.router)
+	if err != nil {
+		log.Fatal(err)
+	}
+	close(w.stopped)
 }
 
 func (w *WebServer) Start() {
@@ -64,5 +71,6 @@ func (w *WebServer) Start() {
 }
 
 func (w *WebServer) Stop() {
-	// TODO(fchen): implement graceful shutdown
+	manners.Close()
+	<-w.stopped
 }
