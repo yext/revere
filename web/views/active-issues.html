@@ -11,11 +11,12 @@
       <div class="col-md-2">Subprobe Name</div>
       <div class="col-md-2">State</div>
       <div class="col-md-2">Duration</div>
-      <div class="col-md-3">Labels</div>
+      <div class="col-md-2">Labels</div>
+      <div class="col-md-1">Silence</div>
     </div>
     {{range .Subprobes}}
       {{$monitorID := .MonitorID}}
-      <div class="revere-row
+      <div class="revere-row {{if .Status.Silenced}}silenced{{end}}
       {{if eq .Status.State.String "Warning"}}
         bg-warning
       {{else if eq .Status.State.String "ERROR"}}
@@ -35,10 +36,15 @@
         <div class="col-md-2">
           <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           {{range index $._.MonitorLabels $monitorID}}
             <span class="label label-primary">{{.Label.Name}}</span>
           {{end}}
+        </div>
+        <div class="col-md-1">
+          <a href="/silences/new/edit?subprobes={{.EscapedName}}&monitorId={{.MonitorID}}">
+            <span class="glyphicon glyphicon-volume-off"></span>
+          </a>
         </div>
       </div>
     {{else}}
