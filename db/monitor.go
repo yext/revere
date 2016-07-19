@@ -116,6 +116,19 @@ func loadMonitor(dt dbOrTx, id MonitorID) (*Monitor, error) {
 	return &m, nil
 }
 
+func (db *DB) LoadProbeByMonitorID(id MonitorID) (types.JSONText, ProbeType, error) {
+	return loadProbeByMonitorID(db, id)
+}
+
+func (tx *Tx) LoadProbeByMonitorID(id MonitorID) (types.JSONText, ProbeType, error) {
+	return loadProbeByMonitorID(tx, id)
+}
+
+func loadProbeByMonitorID(dt dbOrTx, id MonitorID) (types.JSONText, ProbeType, error) {
+	monitor, err := loadMonitor(dt, id)
+	return monitor.Probe, monitor.ProbeType, err
+}
+
 func (db *DB) LoadMonitors() ([]*Monitor, error) {
 	return loadMonitors(db)
 }

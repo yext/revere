@@ -8,7 +8,6 @@ import (
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/durationfmt"
-	"github.com/yext/revere/probes"
 	"github.com/yext/revere/state"
 )
 
@@ -26,7 +25,6 @@ type Subprobe struct {
 	SubprobeID  db.SubprobeID
 	MonitorID   db.MonitorID
 	MonitorName string
-	Probe       probes.Probe
 	Name        string
 	Archived    *time.Time
 	Status      SubprobeStatus
@@ -46,37 +44,6 @@ func NewSubprobe(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
 	}
 
 	return newSubprobeWithStatusFromDB(s), nil
-}
-
-func NewSubprobeWithMonitor(DB *db.DB, id db.SubprobeID) (*Subprobe, error) {
-	var probeinfo *db.ProbeInfo
-	var s *Subprobe
-	err := DB.Tx(func(tx *db.Tx) error {
-		subprobeDb, err := tx.LoadSubprobeWithStatusInfo(id)
-		if err != nil {
-			return err
-		}
-
-		if subprobeDb == nil {
-			return errors.Errorf("Subprobe not found: %d", id)
-		}
-
-		s = newSubprobeWithStatusFromDB(subprobeDb)
-
-		probeinfo, err = tx.LoadProbeByMonitorID(s.MonitorID)
-		if err != nil {
-			return err
-		}
-
-		s.Probe, err = probes.LoadFromDB(probeinfo.ProbeType, string(probeinfo.Probe), tx)
-		return err
-	})
-
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
-
-	return s, nil
 }
 
 func newSubprobeFromDB(s *db.Subprobe) *Subprobe {

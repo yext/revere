@@ -17,7 +17,7 @@ type ProbeEdit struct {
 func NewProbeEdit(p probes.Probe) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.probe = p
-	pp := NewProbePreview(p.PreviewScript())
+	pp := NewProbePreview(p)
 	pe.subs = []Renderable{pp}
 	return &pe
 }

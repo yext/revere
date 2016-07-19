@@ -14,16 +14,15 @@ type ProbeType interface {
 	blank() (Probe, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
-	PreviewScript() string
 	AcceptedSourceTypes() []db.SourceType
 }
 
 type Probe interface {
 	ProbeType
-	Serialize() (string, error)
+	SerializeForDB() (string, error)
+	SerializeForFrontend() map[string]string
 	Type() ProbeType
 	Validate() []string
-	PreviewParams() map[string]string
 }
 
 const (

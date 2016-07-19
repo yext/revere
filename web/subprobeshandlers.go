@@ -67,7 +67,7 @@ func SubprobesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
-		subprobe, err := vm.NewSubprobeWithMonitor(DB, db.SubprobeID(id))
+		subprobe, err := vm.NewSubprobe(DB, db.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -80,13 +80,19 @@ func SubprobesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p h
 			return
 		}
 
+		probe, err := vm.NewProbe(DB, subprobe.MonitorID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to get probe for monitor: %s", err.Error()),
+				http.StatusNotFound)
+		}
+
 		readings, err := vm.AllReadingsFromSubprobe(DB, db.SubprobeID(id))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve readings: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 
-		renderable := renderables.NewSubprobeView(subprobe, readings)
+		renderable := renderables.NewSubprobeView(probe, subprobe, readings)
 		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve subprobe: %s", err.Error()),

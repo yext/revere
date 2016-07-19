@@ -2,7 +2,6 @@ package renderables
 
 import (
 	"fmt"
-	"path"
 	"regexp"
 
 	"github.com/yext/revere/probes"
@@ -12,14 +11,16 @@ import (
 type SubprobeView struct {
 	subprobe *vm.Subprobe
 	readings []*vm.Reading
+	probe    probes.Probe
 	subs     []Renderable
 }
 
-func NewSubprobeView(s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
+func NewSubprobeView(p probes.Probe, s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
 	sv := SubprobeView{}
 	sv.subprobe = s
+	sv.probe = p
 	sv.readings = rs
-	pp := NewProbePreview(s.Probe.PreviewScript())
+	pp := NewProbePreview(p)
 	sv.subs = []Renderable{pp}
 	return &sv
 }
@@ -37,13 +38,12 @@ func (sv *SubprobeView) data() interface{} {
 		"EscapedSubprobeName": fmt.Sprintf("^%s$", regexp.QuoteMeta(sv.subprobe.Name)),
 		"Subprobe":            sv.subprobe,
 		"Readings":            sv.readings,
-		"PreviewParams":       sv.subprobe.Probe.PreviewParams(),
+		"PreviewParams":       sv.probe.SerializeForFrontend(),
 	}
 }
 
 func (sv *SubprobeView) scripts() []string {
 	return []string{
-		path.Join(probes.ProbesDir, sv.subprobe.Probe.PreviewScript()),
 		"subprobes-view.js",
 	}
 }

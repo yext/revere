@@ -105,6 +105,23 @@ func BlankMonitor() (*Monitor, error) {
 	return m, errors.Trace(err)
 }
 
+func NewProbe(DB *db.DB, id db.MonitorID) (probes.Probe, error) {
+	rawProbe, probeType, err := DB.LoadProbeByMonitorID(id)
+	if err != nil {
+		return nil, err
+	}
+	var probe probes.Probe
+	err = DB.Tx(func(tx *db.Tx) error {
+		p, err := probes.LoadFromDB(probeType, string(rawProbe), tx)
+		probe = p
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return probe, nil
+}
+
 func AllMonitors(tx *db.Tx) ([]*Monitor, error) {
 	monitors, err := tx.LoadMonitors()
 	if err != nil {
@@ -226,7 +243,7 @@ func (m *Monitor) Save(tx *db.Tx) error {
 }
 
 func (m *Monitor) toDBMonitor() (*db.Monitor, error) {
-	probeJSON, err := m.Probe.Serialize()
+	probeJSON, err := m.Probe.SerializeForDB()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

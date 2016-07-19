@@ -116,13 +116,11 @@ func (gt GraphiteThreshold) Scripts() map[string][]string {
 		"edit": []string{
 			"graphite-threshold.js",
 			"graphite-ds-loader.js",
-			gt.PreviewScript(),
+		},
+		"preview": []string{
+			"graphite-preview.js",
 		},
 	}
-}
-
-func (GraphiteThreshold) PreviewScript() string {
-	return "graphite-preview.js"
 }
 
 func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
@@ -131,7 +129,7 @@ func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 	}
 }
 
-func (g GraphiteThresholdProbe) PreviewParams() map[string]string {
+func (g GraphiteThresholdProbe) SerializeForFrontend() map[string]string {
 	var warningStr, errorStr, criticalStr string
 	if g.Thresholds.Warning != nil {
 		warningStr = strconv.FormatFloat(*g.Thresholds.Warning, 'f', -1, 64)
@@ -151,7 +149,7 @@ func (g GraphiteThresholdProbe) PreviewParams() map[string]string {
 	}
 }
 
-func (g GraphiteThresholdProbe) Serialize() (string, error) {
+func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 	checkPeriodMilli := util.GetMs(g.CheckPeriod, g.CheckPeriodType)
 	auditPeriodMilli := util.GetMs(g.AuditPeriod, g.AuditPeriodType)
 	ignoredPeriodMilli := util.GetMs(g.IgnoredPeriod, g.IgnoredPeriodType)

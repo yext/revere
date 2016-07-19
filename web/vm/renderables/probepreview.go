@@ -1,18 +1,18 @@
 package renderables
 
 import (
+	"github.com/yext/revere/probes"
+	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbePreview struct {
-	script string
-	subs   []Renderable
+	probe probes.Probe
 }
 
-func NewProbePreview(script string) *ProbePreview {
+func NewProbePreview(probe probes.Probe) *ProbePreview {
 	pp := ProbePreview{}
-	pp.script = script
-	pp.subs = []Renderable{}
+	pp.probe = probe
 	return &pp
 }
 
@@ -29,7 +29,7 @@ func (pp *ProbePreview) data() interface{} {
 }
 
 func (pp *ProbePreview) scripts() []string {
-	return []string{pp.script}
+	return tmpl.AppendDir(probes.ProbesDir, pp.probe.Scripts()["preview"])
 }
 
 func (pp *ProbePreview) breadcrumbs() []vm.Breadcrumb {
@@ -37,7 +37,7 @@ func (pp *ProbePreview) breadcrumbs() []vm.Breadcrumb {
 }
 
 func (pp *ProbePreview) subRenderables() []Renderable {
-	return pp.subs
+	return nil
 }
 
 func (pp *ProbePreview) renderPropagate() (*renderResult, error) {
