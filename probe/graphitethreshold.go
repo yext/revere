@@ -9,6 +9,8 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 
+	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/db"
 	"github.com/yext/revere/resource"
 	"github.com/yext/revere/state"
 )
@@ -36,7 +38,7 @@ type graphiteThresholdThreshold struct {
 	threshold float64
 }
 
-func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
+func newGraphiteThreshold(tx *db.Tx, configJSON types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
 	gt := GraphiteThreshold{}
 
 	var config GraphiteThresholdDBModel
@@ -51,7 +53,22 @@ func newGraphiteThreshold(configJSON types.JSONText, readingsSink chan<- []Readi
 		return nil, errors.Mask(err)
 	}
 
-	gt.graphiteBase = fmt.Sprintf("http://%s/", config.URL)
+	dbds, err := tx.LoadDatasource(db.DatasourceID(config.SourceID))
+	if err != nil {
+		return nil, errors.Mask(err)
+	}
+
+	ds, err := datasources.LoadFromDB(datasources.GraphiteDataSource{}.Id(), dbds.Source)
+	if err != nil {
+		return nil, errors.Mask(err)
+	}
+
+	gds, found := ds.(datasources.GraphiteDataSource)
+	if !found {
+		return nil, errors.New("not a graphite data source")
+	}
+
+	gt.graphiteBase = fmt.Sprintf("http://%s/", gds.URL)
 	gt.expression = config.Expression
 	gt.timeToAudit = time.Duration(config.TimeToAuditMilli) * time.Millisecond
 	gt.recentTimeToIgnore = time.Duration(config.RecentTimeToIgnoreMilli) * time.Millisecond

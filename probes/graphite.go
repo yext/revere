@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/juju/errors"
+
 	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probe"
@@ -77,11 +79,23 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, erro
 	auditPeriod, auditPeriodType := util.GetPeriodAndType(g.TimeToAuditMilli)
 	ignoredPeriod, ignoredPeriodType := util.GetPeriodAndType(g.RecentTimeToIgnoreMilli)
 
-	// Ignored for now - will swap next commit, when the datasource is updated
-	_, err = tx.LoadDatasource(db.DatasourceID(g.SourceID))
+	dbds, err := tx.LoadDatasource(db.DatasourceID(g.SourceID))
+	if err != nil {
+		return nil, err
+	}
+
+	ds, err := datasources.LoadFromDB(datasources.GraphiteDataSource{}.Id(), dbds.Source)
+	if err != nil {
+		return nil, err
+	}
+
+	gds, found := ds.(datasources.GraphiteDataSource)
+	if !found {
+		return nil, errors.New("not a graphite data source")
+	}
 
 	return &GraphiteThresholdProbe{
-		URL:        g.URL,
+		URL:        gds.URL,
 		SourceID:   db.DatasourceID(g.SourceID),
 		Expression: g.Expression,
 		Thresholds: ThresholdsModel{
@@ -155,7 +169,6 @@ func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 	ignoredPeriodMilli := util.GetMs(g.IgnoredPeriod, g.IgnoredPeriodType)
 
 	gtDB := probe.GraphiteThresholdDBModel{
-		URL:        g.URL,
 		SourceID:   int64(g.SourceID),
 		Expression: g.Expression,
 		Thresholds: probe.GraphiteThresholdThresholdsDBModel{

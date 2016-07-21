@@ -54,7 +54,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 
 	readingsChan := make(chan []probe.Reading)
 
-	probe, err := probe.New(dbMonitor.ProbeType, dbMonitor.Probe, readingsChan)
+	probe, err := probe.New(tx, dbMonitor.ProbeType, dbMonitor.Probe, readingsChan)
 	if err != nil {
 		return nil, errors.Maskf(err, "make probe for monitor %d", id)
 	}

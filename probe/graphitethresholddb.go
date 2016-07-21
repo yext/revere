@@ -3,10 +3,7 @@ package probe
 // GraphiteThresholdDBModel defines the JSON serialization format for saving
 // Graphite threshold probes' settings in the database.
 type GraphiteThresholdDBModel struct {
-	// TODO(eefi): Make URL a proper data source.
-
 	SourceID   int64
-	URL        string
 	Expression string
 
 	Thresholds GraphiteThresholdThresholdsDBModel
