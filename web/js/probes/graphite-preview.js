@@ -65,6 +65,7 @@ var graphitePreview = function() {
       );
       $previewImg.attr('src', url);
     });
+    $previewBtn.trigger('btn-loaded')
   };
 
   var disableUnusedPreviewPeriod = function() {
