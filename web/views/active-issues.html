@@ -16,16 +16,8 @@
     </div>
     {{range .Subprobes}}
       {{$monitorID := .MonitorID}}
-      <div class="revere-row {{if .Status.Silenced}}silenced{{end}}
-      {{if eq .Status.State.String "Warning"}}
-        bg-warning
-      {{else if eq .Status.State.String "ERROR"}}
-        bg-danger
-      {{else if eq .Status.State.String "CRITICAL"}}
-        bg-critical
-      {{else}}
-        bg-unknown
-      {{end}}">
+      <div class="{{if .Status.Silenced}}silenced{{end}}"> 
+      {{template "state-class-row.html" .Status.State.String}}
         <div class="col-md-3">
           <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorID}}">{{.MonitorName}}</a>
         </div>
@@ -50,6 +42,7 @@
     {{else}}
       None yet!
     {{end}}
+  </div>
   </div>
 {{end}}
 {{template "_footer.html" .}}

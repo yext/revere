@@ -11,18 +11,7 @@
       <div class="col-md-3">Duration</div>
     </div>
     {{range .Subprobes}}
-      <div class="revere-row
-      {{if eq .Status.State.String "Normal"}}
-        bg-success
-      {{else if eq .Status.State.String "Warning"}}
-        bg-warning
-      {{else if eq .Status.State.String "ERROR"}}
-        bg-danger
-      {{else if eq .Status.State.String "CRITICAL"}}
-        bg-critical
-      {{else}}
-        bg-unknown
-      {{end}}">
+      {{template "state-class-row.html" .Status.State.String}}
         <div class="col-md-6">
           <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorID}}/subprobes/{{.SubprobeID}}">{{.Name}}</a>
         </div>

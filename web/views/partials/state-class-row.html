@@ -1,0 +1,12 @@
+<div class="revere-row
+{{if eq . "Normal"}}
+  bg-success
+{{else if eq . "Warning"}}
+  bg-warning
+{{else if eq . "ERROR"}}
+  bg-danger
+{{else if eq . "CRITICAL"}}
+  bg-critical
+{{else}}
+  bg-unknown
+{{end}}">
