@@ -63,7 +63,7 @@ func newGraphiteThreshold(tx *db.Tx, configJSON types.JSONText, readingsSink cha
 		return nil, errors.Mask(err)
 	}
 
-	gds, found := ds.(datasources.GraphiteDataSource)
+	gds, found := ds.(*datasources.GraphiteDataSource)
 	if !found {
 		return nil, errors.New("not a graphite data source")
 	}

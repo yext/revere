@@ -89,7 +89,7 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, erro
 		return nil, err
 	}
 
-	gds, found := ds.(datasources.GraphiteDataSource)
+	gds, found := ds.(*datasources.GraphiteDataSource)
 	if !found {
 		return nil, errors.New("not a graphite data source")
 	}
