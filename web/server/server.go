@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -58,7 +59,7 @@ func New(env *env.Env) *WebServer {
 
 func (w *WebServer) run() {
 	port := strconv.Itoa(int(w.Port))
-	log.Info("Listening on :%s\n", port)
+	log.Info(fmt.Sprintf("Listening on :%s", port))
 	err := manners.ListenAndServe(":"+port, w.router)
 	if err != nil {
 		log.Fatal(err)
