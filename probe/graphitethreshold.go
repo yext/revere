@@ -58,6 +58,10 @@ func newGraphiteThreshold(tx *db.Tx, configJSON types.JSONText, readingsSink cha
 		return nil, errors.Mask(err)
 	}
 
+	if dbds == nil {
+		return nil, errors.Errorf("no data source found: %d", config.SourceID)
+	}
+
 	ds, err := datasources.LoadFromDB(datasources.GraphiteDataSource{}.Id(), dbds.Source)
 	if err != nil {
 		return nil, errors.Mask(err)

@@ -84,6 +84,10 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, erro
 		return nil, err
 	}
 
+	if dbds == nil {
+		return nil, errors.Errorf("no data source found: %d")
+	}
+
 	ds, err := datasources.LoadFromDB(datasources.GraphiteDataSource{}.Id(), dbds.Source)
 	if err != nil {
 		return nil, err
