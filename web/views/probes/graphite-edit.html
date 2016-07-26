@@ -11,15 +11,15 @@
     <label class="col-sm-2 control-label">Thresholds</label>
     <label class="col-sm-1 control-label">Warning</label>
     <div class="col-sm-1">
-      <input type="text" class="js-preview-params js-threshold form-control" data-json-type="Number" name="Warning" value="{{.Thresholds.Warning}}">
+        <input type="text" class="js-preview-params js-threshold form-control" data-json-type="Number" name="Warning" value="{{with .Thresholds.Warning}}{{.}}{{end}}">
     </div>
     <label class="col-sm-1 control-label">Error</label>
     <div class="col-sm-1">
-      <input type="text" class="js-preview-params js-threshold form-control" data-json-type="Number" name="Error" value="{{.Thresholds.Error}}">
+        <input type="text" class="js-preview-params js-threshold form-control" data-json-type="Number" name="Error" value="{{with .Thresholds.Error}}{{.}}{{end}}">
     </div>
     <label class="col-sm-1 control-label">Critical</label>
     <div class="col-sm-1">
-      <input type="text" class="js-preview-params js-threshold form-control" data-json-type="Number" name="Critical" value="{{.Thresholds.Critical}}">
+        <input type="text" class="js-preview-params js-threshold form-control" data-json-type="Number" name="Critical" value="{{with .Thresholds.Critical}}{{.}}{{end}}">
     </div>
     <label class="col-sm-1 control-label" for="URL">Graphite</label>
     <div class="col-sm-3">
