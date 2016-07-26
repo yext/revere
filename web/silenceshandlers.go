@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/julienschmidt/httprouter"
 
@@ -55,7 +56,12 @@ func SilencesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			return
 		}
 
-		renderable := renderables.NewSilenceView(silence)
+		saveStatus, err := getFlash(w, req, "saveStatus")
+		if err != nil {
+			log.Errorf("Unable to load flash cookie for silence: %s", err.Error())
+		}
+
+		renderable := renderables.NewSilenceView(silence, saveStatus)
 		err = render(w, renderable)
 
 		if err != nil {
@@ -127,6 +133,12 @@ func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 		if len(errs) > 0 {
 			writeJsonResponse(w, "save silence", map[string]interface{}{"errors": errs})
 			return
+		}
+
+		if s.IsCreate() {
+			setFlash(w, "saveStatus", []byte("created"))
+		} else {
+			setFlash(w, "saveStatus", []byte("updated"))
 		}
 
 		err = DB.Tx(func(tx *db.Tx) error {

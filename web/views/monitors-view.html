@@ -5,7 +5,12 @@
     <div class="col-sm-10">{{with .Subprobes}}{{.}}{{else}}&lt;all&gt;{{end}}</div>
   </div>
 {{end}}
-{{with ._}}
+{{with ._.SaveStatus}}
+  <div class="js-valid-input alert alert-success">
+    <p>Successfully {{.}} monitor</p>
+  </div>
+{{end}}
+{{with ._.Monitor}}
   <h1 class="monitor-header">
     <span class="monitor-title {{if .Archived}}archived{{end}}">{{.Name}}</span>
     <span class="monitor-version">v{{.Version}}</span>

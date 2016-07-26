@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/julienschmidt/httprouter"
 
@@ -24,7 +25,13 @@ func DataSourcesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, 
 				http.StatusInternalServerError)
 			return
 		}
-		renderable := renderables.NewDataSourceIndex(viewmodels)
+
+		saveStatus, err := getFlash(w, req, "saveStatus")
+		if err != nil {
+			log.Errorf("Unable to load flash cookie for data sources: %s", err.Error())
+		}
+
+		renderable := renderables.NewDataSourceIndex(viewmodels, saveStatus)
 		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve data sources: %s", err.Error()),
@@ -60,6 +67,8 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 			return
 		}
 
+		setFlash(w, "saveStatus", []byte("updated"))
+
 		err = DB.Tx(func(tx *db.Tx) error {
 			monitors, err := vm.AllMonitors(tx)
 			if err != nil {
@@ -82,9 +91,6 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 				http.StatusInternalServerError)
 			return
 		}
-
-		http.Redirect(w, req, "/datasources", http.StatusMovedPermanently)
-		return
 	}
 }
 

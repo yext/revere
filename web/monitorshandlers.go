@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm"
@@ -87,7 +88,12 @@ func MonitorsView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			return
 		}
 
-		renderable := renderables.NewMonitorView(monitor)
+		saveStatus, err := getFlash(w, req, "saveStatus")
+		if err != nil {
+			log.Errorf("Unable to load flash cookie for monitor: %s", err.Error())
+		}
+
+		renderable := renderables.NewMonitorView(monitor, saveStatus)
 		err = render(w, renderable)
 
 		if err != nil {
@@ -166,6 +172,12 @@ func MonitorsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(errors)
 			return
+		}
+
+		if m.IsCreate() {
+			setFlash(w, "saveStatus", []byte("created"))
+		} else {
+			setFlash(w, "saveStatus", []byte("updated"))
 		}
 
 		err = DB.Tx(func(tx *db.Tx) error {

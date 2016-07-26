@@ -1,5 +1,10 @@
 {{template "_header.html" setTitle . "Labels"}}
-{{with ._}}
+{{with ._.SaveStatus}}
+  <div class="js-valid-input alert alert-success">
+    <p>Successfully {{.}} label</p>
+  </div>
+{{end}}
+{{with ._.Label}}
   <h1>
     <span>{{.Name}}</span>
     <span><a class="btn btn-primary" href="/labels/{{.LabelID}}/edit" role="button">Edit</a></span>

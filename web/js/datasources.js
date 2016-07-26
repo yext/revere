@@ -33,7 +33,7 @@ var datasources = function() {
         if (response.errors) {
           return revere.showErrors(response.errors);
         }
-        window.location.replace('/datasources')
+        window.location.replace('/datasources');
       }).fail(function(jqXHR, textStatus, errorThrown) {
         revere.showErrors([jqXHR.responseText || textStatus]);
       });

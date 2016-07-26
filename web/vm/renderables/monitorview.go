@@ -5,18 +5,20 @@ import (
 )
 
 type MonitorView struct {
-	viewmodel *vm.Monitor
-	subs      []Renderable
+	monitor    *vm.Monitor
+	subs       []Renderable
+	saveStatus string
 }
 
-func NewMonitorView(m *vm.Monitor) *MonitorView {
+func NewMonitorView(m *vm.Monitor, saveStatus []byte) *MonitorView {
 	mv := MonitorView{}
-	mv.viewmodel = m
+	mv.monitor = m
 	mv.subs = []Renderable{
 		NewProbeView(m.Probe),
 		NewMonitorTriggersView(m.Triggers),
 		NewMonitorLabelsView(m.Labels),
 	}
+	mv.saveStatus = string(saveStatus)
 	return &mv
 }
 
@@ -29,7 +31,10 @@ func (mv *MonitorView) template() string {
 }
 
 func (mv *MonitorView) data() interface{} {
-	return mv.viewmodel
+	return map[string]interface{}{
+		"Monitor":    mv.monitor,
+		"SaveStatus": mv.saveStatus,
+	}
 }
 
 func (mv *MonitorView) scripts() []string {
@@ -37,7 +42,7 @@ func (mv *MonitorView) scripts() []string {
 }
 
 func (mv *MonitorView) breadcrumbs() []vm.Breadcrumb {
-	return vm.MonitorViewBcs(mv.viewmodel.Name, mv.viewmodel.Id())
+	return vm.MonitorViewBcs(mv.monitor.Name, mv.monitor.Id())
 }
 
 func (mv *MonitorView) subRenderables() []Renderable {

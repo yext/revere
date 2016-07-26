@@ -5,13 +5,15 @@ import (
 )
 
 type SilenceView struct {
-	viewmodel *vm.Silence
-	subs      []Renderable
+	silence    *vm.Silence
+	subs       []Renderable
+	saveStatus string
 }
 
-func NewSilenceView(s *vm.Silence) *SilenceView {
+func NewSilenceView(s *vm.Silence, saveStatus []byte) *SilenceView {
 	sv := SilenceView{}
-	sv.viewmodel = s
+	sv.silence = s
+	sv.saveStatus = string(saveStatus)
 
 	return &sv
 }
@@ -25,7 +27,10 @@ func (sv *SilenceView) template() string {
 }
 
 func (sv *SilenceView) data() interface{} {
-	return sv.viewmodel
+	return map[string]interface{}{
+		"Silence":    sv.silence,
+		"SaveStatus": sv.saveStatus,
+	}
 }
 
 func (sv *SilenceView) scripts() []string {
@@ -33,7 +38,7 @@ func (sv *SilenceView) scripts() []string {
 }
 
 func (sv *SilenceView) breadcrumbs() []vm.Breadcrumb {
-	return vm.SilencesViewBcs(sv.viewmodel.Id(), sv.viewmodel.MonitorName)
+	return vm.SilencesViewBcs(sv.silence.Id(), sv.silence.MonitorName)
 }
 
 func (sv *SilenceView) subRenderables() []Renderable {

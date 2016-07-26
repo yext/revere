@@ -1,4 +1,9 @@
 {{template "_header.html" setTitle . "Settings"}}
+{{with ._.SaveStatus}}
+  <div class="js-valid-input alert alert-success">
+    <p>Successfully {{.}} setting(s)</p>
+  </div>
+{{end}}
 <div class="index-headers">
   <h1 class="index-header">Settings</h1>
 </div>

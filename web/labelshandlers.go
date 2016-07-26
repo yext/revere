@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/julienschmidt/httprouter"
 	"github.com/yext/revere/db"
@@ -53,7 +54,12 @@ func LabelsView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 			return
 		}
 
-		renderable := renderables.NewLabelView(viewmodel)
+		saveStatus, err := getFlash(w, req, "saveStatus")
+		if err != nil {
+			log.Errorf("Unable to load flash cookie for label: %s", err.Error())
+		}
+
+		renderable := renderables.NewLabelView(viewmodel, saveStatus)
 		err = render(w, renderable)
 
 		if err != nil {
@@ -123,6 +129,12 @@ func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(errors)
 			return
+		}
+
+		if l.IsCreate() {
+			setFlash(w, "saveStatus", []byte("created"))
+		} else {
+			setFlash(w, "saveStatus", []byte("updated"))
 		}
 
 		err = DB.Tx(func(tx *db.Tx) error {

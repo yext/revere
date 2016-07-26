@@ -5,17 +5,19 @@ import (
 )
 
 type LabelView struct {
-	viewmodel *vm.Label
-	subs      []Renderable
+	label      *vm.Label
+	subs       []Renderable
+	saveStatus string
 }
 
-func NewLabelView(l *vm.Label) *LabelView {
+func NewLabelView(l *vm.Label, saveStatus []byte) *LabelView {
 	lv := LabelView{}
-	lv.viewmodel = l
+	lv.label = l
 	lv.subs = []Renderable{
 		NewLabelTriggersView(l.Triggers),
 		NewLabelMonitorsView(l.Monitors),
 	}
+	lv.saveStatus = string(saveStatus)
 	return &lv
 }
 
@@ -28,7 +30,10 @@ func (lv *LabelView) template() string {
 }
 
 func (lv *LabelView) data() interface{} {
-	return lv.viewmodel
+	return map[string]interface{}{
+		"Label":      lv.label,
+		"SaveStatus": lv.saveStatus,
+	}
 }
 
 func (lv *LabelView) scripts() []string {
@@ -36,7 +41,7 @@ func (lv *LabelView) scripts() []string {
 }
 
 func (lv *LabelView) breadcrumbs() []vm.Breadcrumb {
-	return vm.LabelViewBcs(lv.viewmodel.Name, lv.viewmodel.Id())
+	return vm.LabelViewBcs(lv.label.Name, lv.label.Id())
 }
 
 func (lv *LabelView) subRenderables() []Renderable {

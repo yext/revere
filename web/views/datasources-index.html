@@ -1,4 +1,9 @@
 {{template "_header.html" setTitle . "Data Sources"}}
+{{with ._.SaveStatus}}
+  <div class="js-valid-input alert alert-success">
+    <p>Successfully {{.}} data source(s)</p>
+  </div>
+{{end}}
 <div class="index-header">
   <h1 class="index-header">Data Sources</h1>
 </div>
@@ -9,15 +14,15 @@
   <form id="js-datasources-form" class="form-horizontal" method="post" action="/datasources">
     <div id="js-sources" class="hidden">
       {{range $._Array}}
-         {{._Render}}
+        {{._Render}}
       {{end}}
     </div>
     <div>
-      {{range $id, $name := ._}}
-          <div class="js-source-type" js-source-type={{$id}}>
-                <h2>{{$name}}</h2>
-                <button type="button" class="js-add-source btn btn-default">+ Add</button>
-          </div>
+      {{range $id, $name := ._.Datasources}}
+        <div class="js-source-type" js-source-type={{$id}}>
+          <h2>{{$name}}</h2>
+          <button type="button" class="js-add-source btn btn-default">+ Add</button>
+        </div>
       {{end}}
     </div>
     <br/>

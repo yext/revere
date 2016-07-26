@@ -1,5 +1,10 @@
 {{template "_header.html" setTitle . "Silences"}}
-{{with ._}}
+{{with ._.SaveStatus}}
+  <div class="js-valid-input alert alert-success">
+    <p>Successfully {{.}} silence</p>
+  </div>
+{{end}}
+{{with ._.Silence}}
   <div class="silences-headers">
     <h1 class="silences-header">
       silence for <a href="/monitors/{{.MonitorID}}">{{.MonitorName}}</a>

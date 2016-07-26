@@ -1,12 +1,14 @@
 package web
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
@@ -104,4 +106,36 @@ func writeJsonResponse(w http.ResponseWriter, action string, data map[string]int
 
 func render(w io.Writer, r renderables.Renderable) error {
 	return renderables.Render(w, r)
+}
+
+func setFlash(w http.ResponseWriter, name string, value []byte) {
+	c := &http.Cookie{Name: name, Value: encode(value), Path: "/"}
+	http.SetCookie(w, c)
+}
+
+func getFlash(w http.ResponseWriter, r *http.Request, name string) ([]byte, error) {
+	c, err := r.Cookie(name)
+	if err != nil {
+		switch err {
+		case http.ErrNoCookie:
+			return nil, nil
+		default:
+			return nil, err
+		}
+	}
+	value, err := decode(c.Value)
+	if err != nil {
+		return nil, err
+	}
+	dc := &http.Cookie{Name: name, MaxAge: -1, Expires: time.Unix(1, 0), Path: "/"}
+	http.SetCookie(w, dc)
+	return value, nil
+}
+
+func encode(src []byte) string {
+	return base64.URLEncoding.EncodeToString(src)
+}
+
+func decode(src string) ([]byte, error) {
+	return base64.URLEncoding.DecodeString(src)
 }

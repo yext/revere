@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/settings"
@@ -22,7 +23,12 @@ func SettingsIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			return
 		}
 
-		renderable := renderables.NewSettingsIndex(viewmodels)
+		saveStatus, err := getFlash(w, req, "saveStatus")
+		if err != nil {
+			log.Errorf("Unable to load flash cookie for settings: %s", err.Error())
+		}
+
+		renderable := renderables.NewSettingsIndex(viewmodels, saveStatus)
 		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve settings: %s", err.Error()),
@@ -58,6 +64,8 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 			return
 		}
 
+		setFlash(w, "saveStatus", []byte("updated"))
+
 		err = DB.Tx(func(tx *db.Tx) error {
 			for _, s := range ss {
 				err := s.Save(tx)
@@ -72,8 +80,5 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 				http.StatusInternalServerError)
 			return
 		}
-
-		http.Redirect(w, req, "/settings", http.StatusMovedPermanently)
-		return
 	}
 }

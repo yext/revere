@@ -6,17 +6,19 @@ import (
 )
 
 type SettingsIndex struct {
-	settings []*settings.VM
-	subs     []Renderable
+	settings   []*settings.VM
+	subs       []Renderable
+	saveStatus string
 }
 
-func NewSettingsIndex(ss []*settings.VM) *SettingsIndex {
+func NewSettingsIndex(ss []*settings.VM, saveStatus []byte) *SettingsIndex {
 	si := new(SettingsIndex)
 	si.settings = ss
 	si.subs = make([]Renderable, len(ss))
 	for i, s := range ss {
 		si.subs[i] = NewSettingEdit(s)
 	}
+	si.saveStatus = string(saveStatus)
 	return si
 }
 
@@ -29,7 +31,10 @@ func (si *SettingsIndex) template() string {
 }
 
 func (si *SettingsIndex) data() interface{} {
-	return si.settings
+	return map[string]interface{}{
+		"Settings":   si.settings,
+		"SaveStatus": si.saveStatus,
+	}
 }
 
 func (si *SettingsIndex) scripts() []string {

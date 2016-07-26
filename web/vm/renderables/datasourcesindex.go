@@ -8,15 +8,17 @@ import (
 type DataSourceIndex struct {
 	datasources []*datasources.VM
 	subs        []Renderable
+	saveStatus  string
 }
 
-func NewDataSourceIndex(dss []*datasources.VM) *DataSourceIndex {
+func NewDataSourceIndex(dss []*datasources.VM, saveStatus []byte) *DataSourceIndex {
 	dsi := DataSourceIndex{}
 	dsi.datasources = dss
 	dsi.subs = make([]Renderable, len(dss))
 	for i, ds := range dss {
 		dsi.subs[i] = NewDataSourceView(ds)
 	}
+	dsi.saveStatus = string(saveStatus)
 	return &dsi
 }
 
@@ -29,7 +31,10 @@ func (dsi *DataSourceIndex) template() string {
 }
 
 func (dsi *DataSourceIndex) data() interface{} {
-	return datasources.AllTypes()
+	return map[string]interface{}{
+		"Datasources": datasources.AllTypes(),
+		"SaveStatus":  dsi.saveStatus,
+	}
 }
 
 func (dsi *DataSourceIndex) scripts() []string {

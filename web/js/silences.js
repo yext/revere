@@ -126,20 +126,8 @@ var silencesEdit = function() {
       contentType: 'application/json; charset=UTF-8'
     }).success(function(d) {
       if (d.errors) {
-        $.each(d.errors, function(i, v) {
-          $invalidInput.append('<p>' + v + '</p>');
-        });
-        $invalidInput.removeClass('hidden');
-        enableBoundFields();
-        disableInvalidBoundFields(startDtp, endDtp);
+        return revere.showErrors(d.errors);
       } else {
-        var $validInput = $('.js-valid-input');
-        if (id === 'new') {
-          $validInput.append('<p>Successfully created silence</p>');
-        } else {
-          $validInput.append('<p>Successfully updated silence</p>');
-        }
-        $validInput.removeClass('hidden');
         var timeout = window.setTimeout(function() {
           window.location.replace('/silences/'+d.id);
         }, 200);
