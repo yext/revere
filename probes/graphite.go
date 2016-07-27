@@ -147,6 +147,10 @@ func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 	}
 }
 
+func (g GraphiteThresholdProbe) HasDatasource(id db.DatasourceID) bool {
+	return g.SourceID == id
+}
+
 func (g GraphiteThresholdProbe) SerializeForFrontend() map[string]string {
 	var warningStr, errorStr, criticalStr string
 	if g.Thresholds.Warning != nil {

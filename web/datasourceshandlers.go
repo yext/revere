@@ -7,12 +7,13 @@ import (
 	"strconv"
 
 	"github.com/juju/errors"
+	"github.com/julienschmidt/httprouter"
+
 	"github.com/yext/revere/datasources"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
+	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 func DataSourcesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -60,7 +61,15 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 		}
 
 		err = DB.Tx(func(tx *db.Tx) error {
+			monitors, err := vm.AllMonitors(tx)
+			if err != nil {
+				return err
+			}
 			for _, ds := range dss {
+				isUsed := isDataSourceInUse(ds.SourceID, monitors, tx)
+				if isUsed && ds.Delete {
+					return errors.Errorf("Can't delete a data source currently used by a monitor. ID: %d", ds.SourceID)
+				}
 				err = ds.Save(tx)
 				if err != nil {
 					return errors.Trace(err)
@@ -101,4 +110,13 @@ func LoadValidDataSources(DB *db.DB) func(w http.ResponseWriter, req *http.Reque
 		json.NewEncoder(w).Encode(sources)
 		return
 	}
+}
+
+func isDataSourceInUse(id db.DatasourceID, monitors []*vm.Monitor, tx *db.Tx) bool {
+	for _, monitor := range monitors {
+		if monitor.Probe.HasDatasource(id) {
+			return true
+		}
+	}
+	return false
 }

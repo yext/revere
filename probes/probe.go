@@ -19,6 +19,7 @@ type ProbeType interface {
 
 type Probe interface {
 	ProbeType
+	HasDatasource(db.DatasourceID) bool
 	SerializeForDB() (string, error)
 	SerializeForFrontend() map[string]string
 	Type() ProbeType
