@@ -53,7 +53,7 @@ CREATE TABLE subprobe_statuses (
   INDEX (`state`, `silenced`, `enteredstate`, `recorded`, `subprobeid`)
 ) ENGINE = InnoDB;
 
-CREATE TABLE readings2 (
+CREATE TABLE readings (
   readingid BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   subprobeid INTEGER NOT NULL,
   recorded DATETIME NOT NULL,
