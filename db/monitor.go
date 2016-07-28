@@ -27,15 +27,13 @@ type Monitor struct {
 
 type MonitorTrigger struct {
 	MonitorID MonitorID
-	// TODO(eefi): Rename column in DB to subprobes.
-	Subprobes string `db:"subprobe"`
+	Subprobes string
 	*Trigger
 }
 
 type MonitorLabel struct {
 	MonitorID MonitorID
-	// TODO(eefi): Rename column in DB to subprobes.
-	Subprobes string `db:"subprobe"`
+	Subprobes string
 	*Label
 }
 
@@ -264,9 +262,8 @@ func (tx *Tx) CreateMonitorTrigger(mt MonitorTrigger) (TriggerID, error) {
 		return 0, errors.Trace(err)
 	}
 
-	// TODO(psingh): Change field to subprobe once done renaming field
-	q := `INSERT INTO pfx_monitor_triggers (monitorid, subprobe, triggerid)
-	      VALUES (:monitorid, :subprobe, :triggerid)`
+	q := `INSERT INTO pfx_monitor_triggers (monitorid, subprobes, triggerid)
+	      VALUES (:monitorid, :subprobes, :triggerid)`
 	_, err = tx.NamedExec(cq(tx, q), mt)
 	return mt.TriggerID, errors.Trace(err)
 }
@@ -277,9 +274,8 @@ func (tx *Tx) UpdateMonitorTrigger(mt MonitorTrigger) error {
 		return errors.Trace(err)
 	}
 
-	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_monitor_triggers
-	      SET subprobe=:subprobe
+	      SET subprobes=:subprobes
 	      WHERE triggerid=:triggerid`
 	_, err = tx.NamedExec(cq(tx, q), mt)
 	return errors.Trace(err)
@@ -290,24 +286,21 @@ func (tx *Tx) DeleteMonitorTrigger(triggerID TriggerID) error {
 }
 
 func (tx *Tx) CreateMonitorLabel(ml MonitorLabel) error {
-	// TODO(psingh): Change field to subprobe once done renaming field
-	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobe)
-	      VALUES (:labelid, :monitorid, :subprobe)`
+	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobes)
+	      VALUES (:labelid, :monitorid, :subprobes)`
 	_, err := tx.NamedExec(cq(tx, q), ml)
 	return errors.Trace(err)
 }
 
 func (tx *Tx) UpdateMonitorLabel(ml MonitorLabel) error {
-	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_labels_monitors
-	      SET subprobe=:subprobe
+	      SET subprobes=:subprobes
 	      WHERE labelid=:labelid AND monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), ml)
 	return errors.Trace(err)
 }
 
 func (tx *Tx) DeleteMonitorLabel(ml MonitorLabel) error {
-	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `DELETE FROM pfx_labels_monitors
 	      WHERE labelid=:labelid AND monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), ml)

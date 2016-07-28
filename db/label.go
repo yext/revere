@@ -20,9 +20,8 @@ type LabelTrigger struct {
 }
 
 type LabelMonitor struct {
-	LabelID LabelID
-	// TODO(eefi): Rename column in DB to subprobes.
-	Subprobes string `db:"subprobe"`
+	LabelID   LabelID
+	Subprobes string
 	*Monitor
 }
 
@@ -126,14 +125,12 @@ func loadMonitorsForLabel(dt dbOrTx, id LabelID) ([]LabelMonitor, error) {
 
 type LabelTriggerWithSubprobes struct {
 	LabelTrigger
-	// TODO(eefi): Rename column in DB to subprobes.
-	Subprobes string `db:"subprobe"`
+	Subprobes string
 }
 
 func (tx *Tx) LoadLabelTriggersForMonitor(id MonitorID) ([]LabelTriggerWithSubprobes, error) {
 	var results []LabelTriggerWithSubprobes
-	// TODO(eefi): Update "subprobe" when DB column is renamed.
-	q := `SELECT labelid, triggerid, pfx_triggers.*, pfx_labels_monitors.subprobe
+	q := `SELECT labelid, triggerid, pfx_triggers.*, pfx_labels_monitors.subprobes
 	      FROM pfx_labels_monitors
 	      JOIN pfx_label_triggers USING (labelid)
 	      JOIN pfx_triggers USING (triggerid)
@@ -169,17 +166,15 @@ func (tx *Tx) UpdateLabel(l *Label) error {
 }
 
 func (tx *Tx) CreateLabelMonitor(lm LabelMonitor) error {
-	// TODO(psingh): Change field to subprobe once done renaming field
-	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobe)
-	      VALUES (:labelid, :monitorid, :subprobe)`
+	q := `INSERT INTO pfx_labels_monitors (labelid, monitorid, subprobes)
+	      VALUES (:labelid, :monitorid, :subprobes)`
 	_, err := tx.NamedExec(cq(tx, q), lm)
 	return errors.Trace(err)
 }
 
 func (tx *Tx) UpdateLabelMonitor(lm LabelMonitor) error {
-	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `UPDATE pfx_labels_monitors
-	      SET subprobe=:subprobe
+	      SET subprobes=:subprobes
 	      WHERE labelid=:labelid AND monitorid=:monitorid`
 	_, err := tx.NamedExec(cq(tx, q), lm)
 	return errors.Trace(err)
@@ -203,7 +198,6 @@ func (tx *Tx) CreateLabelTrigger(lt LabelTrigger) (TriggerID, error) {
 		return 0, errors.Trace(err)
 	}
 
-	// TODO(psingh): Change field to subprobe once done renaming field
 	q := `INSERT INTO pfx_label_triggers (labelid, triggerid)
 	      VALUES (:labelid, :triggerid)`
 	_, err = tx.NamedExec(cq(tx, q), lt)

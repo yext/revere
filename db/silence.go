@@ -12,8 +12,7 @@ type SilenceID int32
 type Silence struct {
 	SilenceID SilenceID
 	MonitorID MonitorID
-	// TODO(eefi): Rename column in DB to subprobes.
-	Subprobes string `db:"subprobe"`
+	Subprobes string
 	Start     time.Time
 	End       time.Time
 }
@@ -37,8 +36,8 @@ func (db *DB) IsExistingSilence(id SilenceID) (exists bool) {
 }
 
 func (tx *Tx) CreateMonitorSilence(monitorSilence *MonitorSilence) (SilenceID, error) {
-	q := `INSERT INTO pfx_silences (monitorid, subprobe, start, end)
-	VALUES (:monitorid, :subprobe, :start, :end)`
+	q := `INSERT INTO pfx_silences (monitorid, subprobes, start, end)
+	VALUES (:monitorid, :subprobes, :start, :end)`
 	result, err := tx.NamedExec(cq(tx, q), monitorSilence)
 	if err != nil {
 		return 0, errors.Trace(err)
@@ -52,7 +51,7 @@ func (tx *Tx) CreateMonitorSilence(monitorSilence *MonitorSilence) (SilenceID, e
 
 func (tx *Tx) UpdateMonitorSilence(monitorSilence *MonitorSilence) error {
 	q := `UPDATE pfx_silences
-	     SET monitorid=:monitorid, subprobe=:subprobe, start=:start, end=:end
+	     SET monitorid=:monitorid, subprobes=:subprobes, start=:start, end=:end
 		 WHERE silenceid=:silenceid`
 	_, err := tx.NamedExec(cq(tx, q), monitorSilence)
 	return errors.Trace(err)
