@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -44,6 +43,7 @@ func New(env *env.Env) *WebServer {
 	router.POST("/labels/:id/edit", web.LabelsSave(env.DB))
 	router.GET("/settings", web.SettingsIndex(env.DB))
 	router.POST("/settings", web.SettingsSave(env.DB))
+	router.GET("/redirectToSilence", web.RedirectToSilence(env.DB))
 	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
 	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))
 	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,7 @@ func New(env *env.Env) *WebServer {
 
 func (w *WebServer) run() {
 	port := strconv.Itoa(int(w.Port))
-	log.Info(fmt.Sprintf("Listening on :%s", port))
+	log.Info("Listening on :", port)
 	err := manners.ListenAndServe(":"+port, w.router)
 	if err != nil {
 		log.Fatal(err)

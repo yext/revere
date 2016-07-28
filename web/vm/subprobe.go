@@ -26,7 +26,6 @@ type Subprobe struct {
 	MonitorID   db.MonitorID
 	MonitorName string
 	Name        string
-	EscapedName string
 	Archived    *time.Time
 	Status      SubprobeStatus
 }
@@ -53,7 +52,6 @@ func newSubprobeFromDB(s *db.Subprobe) *Subprobe {
 		MonitorID:   s.MonitorID,
 		MonitorName: "",
 		Name:        s.Name,
-		EscapedName: fmt.Sprintf("^%s$", regexp.QuoteMeta(s.Name)),
 		Archived:    s.Archived,
 		Status:      SubprobeStatus{},
 	}
@@ -85,7 +83,6 @@ func newSubprobeWithStatusFromDB(s *db.SubprobeWithStatusInfo) *Subprobe {
 		MonitorID:   s.MonitorID,
 		MonitorName: s.MonitorName,
 		Name:        s.Name,
-		EscapedName: fmt.Sprintf("^%s$", regexp.QuoteMeta(s.Name)),
 		Archived:    s.Archived,
 		Status:      subprobeStatus,
 	}

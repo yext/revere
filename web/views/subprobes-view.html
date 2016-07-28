@@ -14,7 +14,7 @@
   {{template "preview.html" .}}
   <br>
 
-  <a href="/silences/new/edit?subprobes={{.Subprobe.EscapedName}}&monitorId={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
+  <a href="/../redirectToSilence?subprobe={{.Subprobe.Name}}&id={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
   <div>
     <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
     {{range $Readings}}

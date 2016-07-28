@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strconv"
 
 	"github.com/juju/errors"
+	"github.com/julienschmidt/httprouter"
+
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 func SilencesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -156,4 +158,31 @@ func loadSilenceViewModel(DB *db.DB, unparsedId string) (*vm.Silence, error) {
 	}
 
 	return viewmodel, nil
+}
+
+func RedirectToSilence(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		params := req.URL.Query()
+		monitorID, err := strconv.Atoi(params.Get("id"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to redirect to silence: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		subprobe := params.Get("subprobe")
+
+		v := url.Values{}
+		v.Set("monitorId", strconv.Itoa(monitorID))
+		v.Set("subprobes", fmt.Sprintf("^%s$", regexp.QuoteMeta(subprobe)))
+
+		sID := vm.LoadActiveSilence(DB, db.MonitorID(monitorID), subprobe)
+		var url string
+		if sID != 0 {
+			url = fmt.Sprintf("/silences/%d/edit?%s", sID, v.Encode())
+		} else {
+			url = fmt.Sprintf("/silences/new/edit?%s", v.Encode())
+		}
+
+		http.Redirect(w, req, url, http.StatusMovedPermanently)
+		return
+	}
 }

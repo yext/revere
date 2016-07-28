@@ -3,9 +3,11 @@ package vm
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/util"
@@ -68,6 +70,33 @@ func AllSilences(tx *db.Tx) ([]*Silence, error) {
 	}
 
 	return ss, nil
+}
+
+func LoadActiveSilence(db *db.DB, id db.MonitorID, subprobe string) db.SilenceID {
+	silences, err := db.LoadActiveSilencesForMonitor(id)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"monitor": id,
+		}).Error("Could not load active silences. Redirecting to new silence creation.")
+		return 0
+	}
+
+	for _, s := range silences {
+		subprobesRegexp, err := regexp.Compile(s.Subprobes)
+		if err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"silence":   s.SilenceID,
+				"monitor":   s.MonitorID,
+				"subprobes": s.Subprobes,
+			}).Error("Could not compile silence regexp. Skipping.")
+			continue
+		}
+		// There can by multiple silences for a subprobe, will the first matched one
+		if subprobesRegexp.MatchString(subprobe) {
+			return s.SilenceID
+		}
+	}
+	return 0
 }
 
 func (s *Silence) IsCreate() bool {
