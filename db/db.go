@@ -78,6 +78,22 @@ func (db *DB) Tx(f func(*Tx) error) (err error) {
 	return errors.Trace(f(tx))
 }
 
+func (db *DB) Setup(q string) error {
+	customQuery := cq(db, q)
+	customQueries := strings.Split(customQuery, ";")
+	err := db.Tx(func(tx *Tx) error {
+		var err error
+		for _, query := range customQueries {
+			_, err := tx.Exec(query)
+			if err != nil {
+				break
+			}
+		}
+		return errors.Trace(err)
+	})
+	return errors.Trace(err)
+}
+
 type Tx struct {
 	*sqlx.Tx
 	prefix string
