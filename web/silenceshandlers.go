@@ -135,10 +135,11 @@ func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			return
 		}
 
+		var saveStatus string
 		if s.IsCreate() {
-			setFlash(w, "saveStatus", []byte("created"))
+			saveStatus = "created"
 		} else {
-			setFlash(w, "saveStatus", []byte("updated"))
+			saveStatus = "updated"
 		}
 
 		err = DB.Tx(func(tx *db.Tx) error {
@@ -148,6 +149,8 @@ func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
+
+		setFlash(w, "saveStatus", []byte(saveStatus))
 
 		writeJsonResponse(w, "save silence", map[string]interface{}{"id": s.SilenceID})
 	}

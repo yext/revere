@@ -67,8 +67,6 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 			return
 		}
 
-		setFlash(w, "saveStatus", []byte("updated"))
-
 		err = DB.Tx(func(tx *db.Tx) error {
 			monitors, err := vm.AllMonitors(tx)
 			if err != nil {
@@ -91,6 +89,8 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 				http.StatusInternalServerError)
 			return
 		}
+
+		setFlash(w, "saveStatus", []byte("updated"))
 	}
 }
 

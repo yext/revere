@@ -64,8 +64,6 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 			return
 		}
 
-		setFlash(w, "saveStatus", []byte("updated"))
-
 		err = DB.Tx(func(tx *db.Tx) error {
 			for _, s := range ss {
 				err := s.Save(tx)
@@ -80,5 +78,7 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 				http.StatusInternalServerError)
 			return
 		}
+
+		setFlash(w, "saveStatus", []byte("updated"))
 	}
 }

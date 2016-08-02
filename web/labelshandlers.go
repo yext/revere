@@ -131,10 +131,11 @@ func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 			return
 		}
 
+		var saveStatus string
 		if l.IsCreate() {
-			setFlash(w, "saveStatus", []byte("created"))
+			saveStatus = "created"
 		} else {
-			setFlash(w, "saveStatus", []byte("updated"))
+			saveStatus = "updated"
 		}
 
 		err = DB.Tx(func(tx *db.Tx) error {
@@ -153,6 +154,8 @@ func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 				http.StatusInternalServerError)
 			return
 		}
+
+		setFlash(w, "saveStatus", []byte(saveStatus))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(redirect)
