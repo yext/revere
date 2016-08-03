@@ -35,7 +35,7 @@ func (EmailType) Name() string {
 	return "Email"
 }
 
-func (EmailType) loadFromParams(target string) (TargetVM, error) {
+func (EmailType) loadFromParams(target string) (VM, error) {
 	var e EmailTarget
 	err := json.Unmarshal([]byte(target), &e)
 	if err != nil {
@@ -44,7 +44,7 @@ func (EmailType) loadFromParams(target string) (TargetVM, error) {
 	return e, nil
 }
 
-func (EmailType) loadFromDb(encodedTarget string) (TargetVM, error) {
+func (EmailType) loadFromDb(encodedTarget string) (VM, error) {
 	var e EmailDBModel
 	err := json.Unmarshal([]byte(encodedTarget), &e)
 	if err != nil {
@@ -63,7 +63,7 @@ func (EmailType) loadFromDb(encodedTarget string) (TargetVM, error) {
 	return et, nil
 }
 
-func (EmailType) blank() TargetVM {
+func (EmailType) blank() VM {
 	return EmailTarget{}
 }
 
@@ -102,7 +102,7 @@ func (et EmailTarget) Serialize() (string, error) {
 	return string(etDBJSON), err
 }
 
-func (EmailTarget) Type() TargetTypeVM {
+func (EmailTarget) Type() VMType {
 	return EmailType{}
 }
 

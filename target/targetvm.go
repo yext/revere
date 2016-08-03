@@ -6,20 +6,22 @@ import (
 	"github.com/yext/revere/db"
 )
 
-type TargetTypeVM interface {
+// TargetVMType and TargetVM define a common display abstraction for all
+// targets.
+type VMType interface {
 	Id() db.TargetType
 	Name() string
-	loadFromParams(target string) (TargetVM, error)
-	loadFromDb(target string) (TargetVM, error)
-	blank() TargetVM
+	loadFromParams(target string) (VM, error)
+	loadFromDb(target string) (VM, error)
+	blank() VM
 	Templates() map[string]string
 	Scripts() map[string][]string
 }
 
-type TargetVM interface {
-	TargetTypeVM
+type VM interface {
+	VMType
 	Serialize() (string, error)
-	Type() TargetTypeVM
+	Type() VMType
 	Validate() []string
 }
 
@@ -28,15 +30,15 @@ const (
 )
 
 var (
-	targetTypes map[db.TargetType]TargetTypeVM = make(map[db.TargetType]TargetTypeVM)
-	defaultType                                = EmailType{}
+	targetTypes map[db.TargetType]VMType = make(map[db.TargetType]VMType)
+	defaultType                          = EmailType{}
 )
 
-func Default() TargetVM {
+func Default() VM {
 	return defaultType.blank()
 }
 
-func LoadFromParams(id db.TargetType, targetParams string) (TargetVM, error) {
+func LoadFromParams(id db.TargetType, targetParams string) (VM, error) {
 	targetType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -45,7 +47,7 @@ func LoadFromParams(id db.TargetType, targetParams string) (TargetVM, error) {
 	return targetType.loadFromParams(targetParams)
 }
 
-func LoadFromDb(id db.TargetType, targetJson string) (TargetVM, error) {
+func LoadFromDb(id db.TargetType, targetJson string) (VM, error) {
 	targetType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -54,7 +56,7 @@ func LoadFromDb(id db.TargetType, targetJson string) (TargetVM, error) {
 	return targetType.loadFromDb(targetJson)
 }
 
-func Blank(id db.TargetType) (TargetVM, error) {
+func Blank(id db.TargetType) (VM, error) {
 	targetType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -63,7 +65,7 @@ func Blank(id db.TargetType) (TargetVM, error) {
 	return targetType.blank(), nil
 }
 
-func getType(id db.TargetType) (TargetTypeVM, error) {
+func getType(id db.TargetType) (VMType, error) {
 	targetType, ok := targetTypes[id]
 	if !ok {
 		return nil, fmt.Errorf("No target type with id %d exists", id)
@@ -72,7 +74,7 @@ func getType(id db.TargetType) (TargetTypeVM, error) {
 	return targetType, nil
 }
 
-func addTargetVMType(targetType TargetTypeVM) {
+func addTargetVMType(targetType VMType) {
 	if _, ok := targetTypes[targetType.Id()]; !ok {
 		targetTypes[targetType.Id()] = targetType
 	} else {
@@ -80,7 +82,7 @@ func addTargetVMType(targetType TargetTypeVM) {
 	}
 }
 
-func AllTargets() (tts []TargetTypeVM) {
+func AllTargets() (tts []VMType) {
 	for _, v := range targetTypes {
 		tts = append(tts, v)
 	}

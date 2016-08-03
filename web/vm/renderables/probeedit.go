@@ -10,11 +10,11 @@ import (
 )
 
 type ProbeEdit struct {
-	probe probe.ProbeVM
+	probe probe.VM
 	subs  []Renderable
 }
 
-func NewProbeEdit(p probe.ProbeVM) *ProbeEdit {
+func NewProbeEdit(p probe.VM) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.probe = p
 	pp := NewProbePreview(p)

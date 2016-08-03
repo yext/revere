@@ -22,7 +22,7 @@ type Monitor struct {
 	Version     int32
 	// TODO(fchen): changed and Archived need to match
 	Archived *time.Time
-	Probe    probe.ProbeVM
+	Probe    probe.VM
 	Triggers []*MonitorTrigger
 	Labels   []*MonitorLabel
 }
@@ -109,12 +109,12 @@ func BlankMonitor() (*Monitor, error) {
 	return m, errors.Trace(err)
 }
 
-func NewProbe(DB *db.DB, id db.MonitorID) (probe.ProbeVM, error) {
+func NewProbe(DB *db.DB, id db.MonitorID) (probe.VM, error) {
 	rawProbe, probeType, err := DB.LoadProbeByMonitorID(id)
 	if err != nil {
 		return nil, err
 	}
-	var vm probe.ProbeVM
+	var vm probe.VM
 	err = DB.Tx(func(tx *db.Tx) error {
 		p, err := probe.LoadFromDB(probeType, string(rawProbe), tx)
 		vm = p

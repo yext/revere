@@ -8,11 +8,11 @@ import (
 type SubprobeView struct {
 	subprobe *vm.Subprobe
 	readings []*vm.Reading
-	probe    probe.ProbeVM
+	probe    probe.VM
 	subs     []Renderable
 }
 
-func NewSubprobeView(p probe.ProbeVM, s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
+func NewSubprobeView(p probe.VM, s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
 	sv := SubprobeView{}
 	sv.subprobe = s
 	sv.probe = p

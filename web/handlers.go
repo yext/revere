@@ -1,3 +1,10 @@
+/*
+Package web handles all web-based user interaction. Users can view and edit
+Revere components and configurations through its web server. A typical request
+is routed through the server package to a handler method in the web package.
+Handler methods then create and manipulate the appropriate VMs, and use the
+renderables package to display the respective web page.
+*/
 package web
 
 import (

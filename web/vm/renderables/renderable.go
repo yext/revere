@@ -1,3 +1,43 @@
+/*
+Package renderables processes package vm structs and bundles them with the
+appropriate metadata, html templates, and scripts to create a fully functional
+web page.
+
+Generally, Revere pages are created out of a top-level "viewmodel" Renderable
+interface that provides "sub-Renderables" out of the components it needs to
+display.
+
+Rendering is done recursively from the top-level Renderable down to all of its
+sub-Renderables.
+
+First, all sub-Renderables are recursively processed to create respective
+renderResults, which include the names of those Renderables (that the templates
+will use to access related data), the template files needed to build the
+skeleton HTML, javascript files, nested data objects to plug into the
+templates, and breadcrumbs.
+
+Next, the sub-Renderables' renderResults are combined with those of the parent
+Renderable. This is done by first simply appending the child's templates,
+scripts, and breadcrumbs to those of the parent.  The implementer specifies how
+the data will be added to the parent data - most Revere Renderables will use
+aggregatePipelineDataMap, which will add the child renderResult data as map
+entries into the parent renderResult, using child.name as the key. In case the
+template needs to access data in an array, sub-Renderable data can be
+aggregated using aggregatePipelineDataArray, which places all of the child data
+into a interface{} array in order of the corresponding positions in the
+sub-Renderables array, and added to the parent data object under the key
+"_Array".
+
+Lastly the renderResult is returned (if the regular renderPropogate method is
+specified, which should be the default in most cases). In the cases of Probes,
+Data Sources, Targets, and Settings, go's template package will not allow
+dynamically-specified template files and requires an alternate solution.
+Calling renderPropagateImmediate on the renderPropagate step renders the entire
+Renderable into a template.HTML string, which is then added to the data object
+of the renderResult under the key "_Render".  This way, a template can be
+dynamically specified, rendered into HTML, and inserted into the parent HTML
+template.
+*/
 package renderables
 
 import (
@@ -11,6 +51,8 @@ import (
 	"github.com/yext/revere/web/vm"
 )
 
+// The Renderable interface allows implementations to specify all required
+// files in order to generate a web page.
 type Renderable interface {
 	name() string
 	template() string
@@ -31,6 +73,8 @@ type renderResult struct {
 	breadcrumbs []vm.Breadcrumb
 }
 
+// Render constructs an HTML document using a Renderable and writes it to the
+// specified io.Writer.
 func Render(w io.Writer, r Renderable) error {
 	result, err := r.renderPropagate()
 	if err != nil {
@@ -40,6 +84,8 @@ func Render(w io.Writer, r Renderable) error {
 	return execute(w, result)
 }
 
+// RenderPartial constructs an HTML document using a Renderable, but returns
+// the HTML as a string instead of writing it to an io.Writer.
 func RenderPartial(r Renderable) (template.HTML, error) {
 	result, err := renderPropagateImmediate(r)
 	if err != nil {

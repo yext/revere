@@ -10,11 +10,11 @@ import (
 )
 
 type ProbeView struct {
-	viewmodel probe.ProbeVM
+	viewmodel probe.VM
 	subs      []Renderable
 }
 
-func NewProbeView(p probe.ProbeVM) *ProbeView {
+func NewProbeView(p probe.VM) *ProbeView {
 	pv := ProbeView{}
 	pv.viewmodel = p
 	pv.subs = []Renderable{}

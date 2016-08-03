@@ -8,6 +8,10 @@ import (
 	"github.com/yext/revere/web/tmpl"
 )
 
+// The VM struct is practically identical in purpose to its counterparts in the
+// vm package, as it represents the intermediate structure between Revere's DB
+// representation of the Data Source and its front end representation of the
+// Data Source.
 type VM struct {
 	DataSource
 	DataSourceParams string
@@ -16,6 +20,8 @@ type VM struct {
 	Delete           bool
 }
 
+// DataSourceType and DataSource define a common display abstraction for all
+// Data Sources.
 type DataSourceType interface {
 	Id() db.SourceType
 	Name() string

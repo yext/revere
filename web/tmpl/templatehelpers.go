@@ -1,3 +1,5 @@
+// Package tmpl provides a wrapper around golang's html/template package, and
+// provides additional template manipulation functions.
 package tmpl
 
 import (

@@ -1,3 +1,5 @@
+// Package vm represents the intermediate step between a revere db struct and a
+// renderable front-end struct.
 package vm
 
 type Component interface {

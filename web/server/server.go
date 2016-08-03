@@ -1,3 +1,4 @@
+// Package server implements the core engine for Revere's web mode.
 package server
 
 import (
@@ -12,12 +13,15 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// WebServer wraps a Router + DB object, and allows users to configure Revere
+// components through a web UI.
 type WebServer struct {
 	*env.Env
 	router  *httprouter.Router
 	stopped chan struct{}
 }
 
+// New initializes the WebServer.
 func New(env *env.Env) *WebServer {
 	router := httprouter.New()
 	router.GET("/", web.ActiveIssues(env.DB))
@@ -67,10 +71,14 @@ func (w *WebServer) run() {
 	close(w.stopped)
 }
 
+// Start starts the WebServer.
 func (w *WebServer) Start() {
 	go w.run()
 }
 
+// Stop gracefully stops the WebServer. Stop will block until the WebServer
+// finishes handling its current requests, and will then shut down the
+// WebServer.
 func (w *WebServer) Stop() {
 	manners.Close()
 	<-w.stopped

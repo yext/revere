@@ -21,7 +21,7 @@ type Trigger struct {
 	TargetType    db.TargetType
 	TargetParams  string
 	TriggerOnExit bool
-	Target        target.TargetVM
+	Target        target.VM
 	Delete        bool
 }
 

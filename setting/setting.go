@@ -1,8 +1,8 @@
 /*
-   Package settings provides a framework for adding custom settings to your-revere.com/settings/ page.
-   Add your setting to this package and have it implement the Setting interface.
-   settingTemplates contains the templates in settingTemplateDir, so they are available for use in your setting.
-   Don't forget to register your setting with registerSetting(Setting)
+Package settings provides a framework for adding custom settings to
+your-revere.com/settings/ page. Add your setting to this package and have it
+implement the Setting interface. Don't forget to register your setting with
+addSettingType(SettingType).
 */
 package setting
 
@@ -13,6 +13,10 @@ import (
 	"github.com/yext/revere/db"
 )
 
+// The VM struct is practically identical in purpose to its counterparts in the
+// vm package, as it represents the intermediate structure between Revere's DB
+// representation of the Setting and its front end representation of the
+// Setting.
 type VM struct {
 	Setting
 	SettingParams string
@@ -20,6 +24,8 @@ type VM struct {
 	SettingID     db.SettingID
 }
 
+// SettingType and Setting define a common display abstraction for all
+// settings.
 type SettingType interface {
 	Id() db.SettingType
 	Name() string

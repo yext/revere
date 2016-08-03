@@ -11,7 +11,7 @@ import (
 	"github.com/yext/revere/state"
 )
 
-// Probe defines a common abstraction for all probes.
+// Probe defines a common functional abstraction for all probes.
 //
 // TODO(eefi): Pull in the probe concept explanation text from the Revere
 // product overview design doc. Also document all the individual methods.
@@ -33,13 +33,13 @@ type Reading struct {
 // Details encodes probe-type-specific details from a reading.
 type Details interface {
 	// Text returns a human-readable description of these details. The
-	// description may be multiple lines, though it should not end with a
-	// line break.
+	// description may be multiple lines, though it should not end with a line
+	// break.
 	Text() string
 }
 
-// New makes a Probe of the given type and settings. The Probe will send
-// its readings to the provided channel.
+// New makes a Probe of the given type and settings. The Probe will send its
+// readings to the provided channel.
 func New(tx *db.Tx, typeID db.ProbeType, config types.JSONText, readingsSink chan<- []Reading) (Probe, error) {
 	// TODO(eefi): Implement Type dictionary system.
 	if typeID != 1 {

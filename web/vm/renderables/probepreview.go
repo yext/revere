@@ -7,10 +7,10 @@ import (
 )
 
 type ProbePreview struct {
-	probe probe.ProbeVM
+	probe probe.VM
 }
 
-func NewProbePreview(probe probe.ProbeVM) *ProbePreview {
+func NewProbePreview(probe probe.VM) *ProbePreview {
 	pp := ProbePreview{}
 	pp.probe = probe
 	return &pp

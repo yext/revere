@@ -58,7 +58,7 @@ func (GraphiteThresholdType) Name() string {
 	return "Graphite Threshold"
 }
 
-func (GraphiteThresholdType) loadFromParams(probe string) (ProbeVM, error) {
+func (GraphiteThresholdType) loadFromParams(probe string) (VM, error) {
 	var g GraphiteThresholdProbe
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -67,7 +67,7 @@ func (GraphiteThresholdType) loadFromParams(probe string) (ProbeVM, error) {
 	return g, nil
 }
 
-func (GraphiteThresholdType) loadFromDb(encodedProbe string, tx *db.Tx) (ProbeVM, error) {
+func (GraphiteThresholdType) loadFromDb(encodedProbe string, tx *db.Tx) (VM, error) {
 	var g GraphiteThresholdDBModel
 	err := json.Unmarshal([]byte(encodedProbe), &g)
 	if err != nil {
@@ -117,7 +117,7 @@ func (GraphiteThresholdType) loadFromDb(encodedProbe string, tx *db.Tx) (ProbeVM
 	}, nil
 }
 
-func (GraphiteThresholdType) blank() (ProbeVM, error) {
+func (GraphiteThresholdType) blank() (VM, error) {
 	return &GraphiteThresholdProbe{}, nil
 }
 
@@ -195,7 +195,7 @@ func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 }
 
 // TODO(fchen): fix references to ProbeType() in frontend
-func (g GraphiteThresholdProbe) Type() ProbeVMType {
+func (g GraphiteThresholdProbe) Type() VMType {
 	return GraphiteThresholdType{}
 }
 

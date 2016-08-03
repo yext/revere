@@ -10,11 +10,11 @@ import (
 )
 
 type TargetView struct {
-	viewmodel target.TargetVM
+	viewmodel target.VM
 	subs      []Renderable
 }
 
-func NewTargetView(t target.TargetVM) *TargetView {
+func NewTargetView(t target.VM) *TargetView {
 	tv := TargetView{}
 	tv.viewmodel = t
 	tv.subs = []Renderable{}
