@@ -1,17 +1,16 @@
-package targets
+package target
 
 import (
 	"encoding/json"
 	"regexp"
 
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/target"
 )
 
-type Email struct{}
+type EmailType struct{}
 
 type EmailTarget struct {
-	Email
+	EmailType
 	Addresses []*EmailAddress
 }
 
@@ -25,18 +24,18 @@ var (
 )
 
 func init() {
-	addTargetType(Email{})
+	addTargetVMType(EmailType{})
 }
 
-func (Email) Id() db.TargetType {
+func (EmailType) Id() db.TargetType {
 	return 1
 }
 
-func (Email) Name() string {
+func (EmailType) Name() string {
 	return "Email"
 }
 
-func (Email) loadFromParams(target string) (Target, error) {
+func (EmailType) loadFromParams(target string) (TargetVM, error) {
 	var e EmailTarget
 	err := json.Unmarshal([]byte(target), &e)
 	if err != nil {
@@ -45,8 +44,8 @@ func (Email) loadFromParams(target string) (Target, error) {
 	return e, nil
 }
 
-func (Email) loadFromDb(encodedTarget string) (Target, error) {
-	var e target.EmailDBModel
+func (EmailType) loadFromDb(encodedTarget string) (TargetVM, error) {
+	var e EmailDBModel
 	err := json.Unmarshal([]byte(encodedTarget), &e)
 	if err != nil {
 		return nil, err
@@ -64,18 +63,18 @@ func (Email) loadFromDb(encodedTarget string) (Target, error) {
 	return et, nil
 }
 
-func (Email) blank() Target {
+func (EmailType) blank() TargetVM {
 	return EmailTarget{}
 }
 
-func (Email) Templates() map[string]string {
+func (EmailType) Templates() map[string]string {
 	return map[string]string{
 		"edit": "email-edit.html",
 		"view": "email-view.html",
 	}
 }
 
-func (Email) Scripts() map[string][]string {
+func (EmailType) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"email.js",
@@ -84,7 +83,7 @@ func (Email) Scripts() map[string][]string {
 }
 
 func (et EmailTarget) Serialize() (string, error) {
-	etDB := target.EmailDBModel{}
+	etDB := EmailDBModel{}
 
 	etDB.Addresses = make(
 		[]struct {
@@ -103,8 +102,8 @@ func (et EmailTarget) Serialize() (string, error) {
 	return string(etDBJSON), err
 }
 
-func (EmailTarget) Type() TargetType {
-	return Email{}
+func (EmailTarget) Type() TargetTypeVM {
+	return EmailType{}
 }
 
 func (et EmailTarget) Validate() (errs []string) {

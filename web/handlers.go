@@ -14,7 +14,7 @@ import (
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/setting"
-	"github.com/yext/revere/targets"
+	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
@@ -29,7 +29,7 @@ func init() {
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("deepEq", reflect.DeepEqual)
-	tmpl.AddDefaultFunc("targets", targets.AllTargets)
+	tmpl.AddDefaultFunc("targets", target.AllTargets)
 	tmpl.AddDefaultFunc("probeTypes", probes.AllTypes)
 	tmpl.AddDefaultFunc("settings", setting.AllTypes)
 	tmpl.SetPartialsLocation(partials)

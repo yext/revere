@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/yext/revere/targets"
+	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
 type TargetEdit struct {
-	viewmodel targets.Target
+	viewmodel target.TargetVM
 	subs      []Renderable
 }
 
-func NewTargetEdit(t targets.Target) *TargetEdit {
+func NewTargetEdit(t target.TargetVM) *TargetEdit {
 	te := TargetEdit{}
 	te.viewmodel = t
 	te.subs = []Renderable{}
@@ -31,7 +31,7 @@ func (te *TargetEdit) template() string {
 		panic(fmt.Sprintf("Unable to find templates for target type %s", te.viewmodel.Type().Name()))
 	}
 
-	return path.Join(targets.TargetsDir, tmpl)
+	return path.Join(target.TargetsDir, tmpl)
 }
 
 func (te *TargetEdit) data() interface{} {
@@ -41,7 +41,7 @@ func (te *TargetEdit) data() interface{} {
 func (te *TargetEdit) scripts() []string {
 	scripts := te.viewmodel.Type().Scripts()["edit"]
 
-	return tmpl.AppendDir(targets.TargetsDir, scripts)
+	return tmpl.AppendDir(target.TargetsDir, scripts)
 }
 
 func (te *TargetEdit) breadcrumbs() []vm.Breadcrumb {

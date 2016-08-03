@@ -8,7 +8,7 @@ import (
 
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/state"
-	"github.com/yext/revere/targets"
+	"github.com/yext/revere/target"
 	"github.com/yext/revere/util"
 )
 
@@ -21,12 +21,12 @@ type Trigger struct {
 	TargetType    db.TargetType
 	TargetParams  string
 	TriggerOnExit bool
-	Target        targets.Target
+	Target        target.TargetVM
 	Delete        bool
 }
 
 func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
-	target, err := targets.LoadFromDb(trigger.TargetType, string(trigger.Target))
+	target, err := target.LoadFromDb(trigger.TargetType, string(trigger.Target))
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -47,7 +47,7 @@ func newTriggerFromModel(trigger *db.Trigger) (*Trigger, error) {
 
 func BlankTrigger() *Trigger {
 	return &Trigger{
-		Target: targets.Default(),
+		Target: target.Default(),
 	}
 }
 
@@ -57,7 +57,7 @@ func (t *Trigger) Id() int64 {
 
 func (t *Trigger) validate() (errs []string) {
 	var err error
-	target, err := targets.LoadFromParams(t.TargetType, t.TargetParams)
+	target, err := target.LoadFromParams(t.TargetType, t.TargetParams)
 	if err != nil {
 		errs = append(errs, fmt.Sprintf("Unable to load target for trigger: %s", t.TargetParams))
 	}

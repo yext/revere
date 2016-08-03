@@ -11,7 +11,7 @@ import (
 	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
-	"github.com/yext/revere/targets"
+	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/vm/renderables"
 )
 
@@ -95,7 +95,7 @@ func LoadTargetTemplate(w http.ResponseWriter, req *http.Request, p httprouter.P
 		return
 	}
 
-	target, err := targets.Blank(db.TargetType(tt))
+	target, err := target.Blank(db.TargetType(tt))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Unable to load target: %s", err.Error()),
 			http.StatusInternalServerError)
