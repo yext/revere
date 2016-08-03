@@ -4,7 +4,7 @@
    settingTemplates contains the templates in settingTemplateDir, so they are available for use in your setting.
    Don't forget to register your setting with registerSetting(Setting)
 */
-package settings
+package setting
 
 import (
 	"fmt"

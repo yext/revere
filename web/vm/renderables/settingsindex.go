@@ -1,17 +1,17 @@
 package renderables
 
 import (
-	"github.com/yext/revere/settings"
+	"github.com/yext/revere/setting"
 	"github.com/yext/revere/web/vm"
 )
 
 type SettingsIndex struct {
-	settings   []*settings.VM
+	settings   []*setting.VM
 	subs       []Renderable
 	saveStatus string
 }
 
-func NewSettingsIndex(ss []*settings.VM, saveStatus []byte) *SettingsIndex {
+func NewSettingsIndex(ss []*setting.VM, saveStatus []byte) *SettingsIndex {
 	si := new(SettingsIndex)
 	si.settings = ss
 	si.subs = make([]Renderable, len(ss))

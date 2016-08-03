@@ -3,16 +3,16 @@ package renderables
 import (
 	"path"
 
-	"github.com/yext/revere/settings"
+	"github.com/yext/revere/setting"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
 type SettingEdit struct {
-	*settings.VM
+	*setting.VM
 }
 
-func NewSettingEdit(s *settings.VM) *SettingEdit {
+func NewSettingEdit(s *setting.VM) *SettingEdit {
 	se := new(SettingEdit)
 	se.VM = s
 	return se
@@ -23,7 +23,7 @@ func (se *SettingEdit) name() string {
 }
 
 func (se *SettingEdit) template() string {
-	return path.Join(settings.SettingDir, se.Setting.Type().Template())
+	return path.Join(setting.SettingDir, se.Setting.Type().Template())
 }
 
 func (se *SettingEdit) data() interface{} {
@@ -31,7 +31,7 @@ func (se *SettingEdit) data() interface{} {
 }
 
 func (se *SettingEdit) scripts() []string {
-	return tmpl.AppendDir(settings.SettingDir, se.Setting.Type().Scripts())
+	return tmpl.AppendDir(setting.SettingDir, se.Setting.Type().Scripts())
 }
 
 func (se *SettingEdit) breadcrumbs() []vm.Breadcrumb {
