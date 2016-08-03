@@ -3,15 +3,15 @@ package renderables
 import (
 	"path"
 
-	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/web/vm"
 )
 
 type DataSourceView struct {
-	datasource *datasources.VM
+	datasource *datasource.VM
 }
 
-func NewDataSourceView(ds *datasources.VM) *DataSourceView {
+func NewDataSourceView(ds *datasource.VM) *DataSourceView {
 	dsv := DataSourceView{}
 	dsv.datasource = ds
 	return &dsv
@@ -22,7 +22,7 @@ func (dsv *DataSourceView) name() string {
 }
 
 func (dsv *DataSourceView) template() string {
-	return path.Join(datasources.DataSourceDir, dsv.datasource.Templates())
+	return path.Join(datasource.DataSourceDir, dsv.datasource.Templates())
 }
 
 func (dsv *DataSourceView) data() interface{} {

@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/targets"
@@ -23,12 +23,12 @@ func LoadDataSourceTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Req
 			return
 		}
 		id := db.SourceType(i)
-		ds, err := datasources.Blank(id)
+		ds, err := datasource.Blank(id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("No data source type with id: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
-		dsvm := &datasources.VM{
+		dsvm := &datasource.VM{
 			SourceType: id,
 			DataSource: ds,
 		}

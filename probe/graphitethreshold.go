@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 
-	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/resource"
 	"github.com/yext/revere/state"
@@ -62,12 +62,12 @@ func newGraphiteThreshold(tx *db.Tx, configJSON types.JSONText, readingsSink cha
 		return nil, errors.Errorf("no data source found: %d", config.SourceID)
 	}
 
-	ds, err := datasources.LoadFromDB(datasources.GraphiteDataSource{}.Id(), dbds.Source)
+	ds, err := datasource.LoadFromDB(datasource.GraphiteDataSource{}.Id(), dbds.Source)
 	if err != nil {
 		return nil, errors.Mask(err)
 	}
 
-	gds, found := ds.(*datasources.GraphiteDataSource)
+	gds, found := ds.(*datasource.GraphiteDataSource)
 	if !found {
 		return nil, errors.New("not a graphite data source")
 	}

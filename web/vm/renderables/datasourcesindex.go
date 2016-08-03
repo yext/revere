@@ -1,17 +1,17 @@
 package renderables
 
 import (
-	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/web/vm"
 )
 
 type DataSourceIndex struct {
-	datasources []*datasources.VM
+	datasources []*datasource.VM
 	subs        []Renderable
 	saveStatus  string
 }
 
-func NewDataSourceIndex(dss []*datasources.VM, saveStatus []byte) *DataSourceIndex {
+func NewDataSourceIndex(dss []*datasource.VM, saveStatus []byte) *DataSourceIndex {
 	dsi := DataSourceIndex{}
 	dsi.datasources = dss
 	dsi.subs = make([]Renderable, len(dss))
@@ -32,13 +32,13 @@ func (dsi *DataSourceIndex) template() string {
 
 func (dsi *DataSourceIndex) data() interface{} {
 	return map[string]interface{}{
-		"Datasources": datasources.AllTypes(),
+		"Datasources": datasource.AllTypes(),
 		"SaveStatus":  dsi.saveStatus,
 	}
 }
 
 func (dsi *DataSourceIndex) scripts() []string {
-	return datasources.AllScripts()
+	return datasource.AllScripts()
 }
 
 func (dsi *DataSourceIndex) breadcrumbs() []vm.Breadcrumb {

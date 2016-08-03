@@ -6,7 +6,7 @@ import (
 
 	"github.com/juju/errors"
 
-	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probe"
 	"github.com/yext/revere/util"
@@ -88,12 +88,12 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, erro
 		return nil, errors.Errorf("no data source found: %d")
 	}
 
-	ds, err := datasources.LoadFromDB(datasources.GraphiteDataSource{}.Id(), dbds.Source)
+	ds, err := datasource.LoadFromDB(datasource.GraphiteDataSource{}.Id(), dbds.Source)
 	if err != nil {
 		return nil, err
 	}
 
-	gds, found := ds.(*datasources.GraphiteDataSource)
+	gds, found := ds.(*datasource.GraphiteDataSource)
 	if !found {
 		return nil, errors.New("not a graphite data source")
 	}
@@ -143,7 +143,7 @@ func (gt GraphiteThreshold) Scripts() map[string][]string {
 
 func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
 	return []db.SourceType{
-		datasources.Graphite{}.Id(),
+		datasource.Graphite{}.Id(),
 	}
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/yext/revere/datasources"
+	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
 	"github.com/yext/revere/web/vm"
@@ -19,7 +19,7 @@ import (
 
 func DataSourcesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		viewmodels, err := datasources.All(DB)
+		viewmodels, err := datasource.All(DB)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve data sources: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -43,7 +43,7 @@ func DataSourcesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, 
 
 func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		var dss []datasources.VM
+		var dss []datasource.VM
 		err := json.NewDecoder(req.Body).Decode(&dss)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Data sources must be in correct format: %s", err), http.StatusInternalServerError)
@@ -106,7 +106,7 @@ func LoadValidDataSources(DB *db.DB) func(w http.ResponseWriter, req *http.Reque
 		}
 
 		acceptedTypes := probe.AcceptedSourceTypes()
-		sources, err := datasources.AllOfTypes(DB, acceptedTypes)
+		sources, err := datasource.AllOfTypes(DB, acceptedTypes)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load data sources: %s", err.Error()),
 				http.StatusInternalServerError)
