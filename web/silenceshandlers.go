@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -122,7 +123,14 @@ func SilencesEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		var s *vm.Silence
-		err := json.NewDecoder(req.Body).Decode(&s)
+		body := new(bytes.Buffer)
+		_, err := body.ReadFrom(req.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		err = json.Unmarshal(body.Bytes(), &s)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -149,6 +157,7 @@ func SilencesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 			http.Error(w, fmt.Sprintf("Unable to save silence: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
+		logSave(s, body.Bytes(), req.URL.String())
 
 		setFlash(w, "saveStatus", []byte(saveStatus))
 

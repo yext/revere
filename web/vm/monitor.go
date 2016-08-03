@@ -27,6 +27,10 @@ type Monitor struct {
 	Labels   []*MonitorLabel
 }
 
+func (*Monitor) ComponentName() string {
+	return "Monitor"
+}
+
 func (m *Monitor) IsCreate() bool {
 	return m.Id() == 0
 }

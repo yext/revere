@@ -165,8 +165,16 @@ func newVMs(datasources []*db.Datasource) ([]*VM, error) {
 	return dss, nil
 }
 
+func (vm *VM) Id() int64 {
+	return int64(vm.SourceID)
+}
+
+func (*VM) ComponentName() string {
+	return "Data Source"
+}
+
 func (vm *VM) IsCreate() bool {
-	return vm.SourceID == 0
+	return vm.Id() == 0
 }
 
 func (vm *VM) IsDelete() bool {

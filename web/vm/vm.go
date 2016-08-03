@@ -4,6 +4,11 @@ type Component interface {
 	Id() int64
 }
 
+type NamedComponent interface {
+	Component
+	ComponentName() string
+}
+
 type CreatableComponent interface {
 	IsCreate() bool
 }

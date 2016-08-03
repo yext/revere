@@ -27,6 +27,10 @@ const (
 	maxSilenceDuration = 14 * 24 * time.Hour
 )
 
+func (*Silence) ComponentName() string {
+	return "Silence"
+}
+
 func (s *Silence) Id() int64 {
 	return int64(s.SilenceID)
 }

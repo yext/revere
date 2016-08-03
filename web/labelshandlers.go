@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -111,12 +112,20 @@ func LabelsEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		var l *vm.Label
-		err := json.NewDecoder(req.Body).Decode(&l)
+		body := new(bytes.Buffer)
+		_, err := body.ReadFrom(req.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
+		err = json.Unmarshal(body.Bytes(), &l)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save label: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+
 		errs := l.Validate(DB)
 		if errs != nil {
 			errors, err := json.Marshal(map[string][]string{"errors": errs})
@@ -147,6 +156,7 @@ func LabelsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p http
 				http.StatusInternalServerError)
 			return
 		}
+		logSave(l, body.Bytes(), req.URL.String())
 
 		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/labels/%d", l.LabelID)})
 		if err != nil {

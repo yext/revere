@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probes"
@@ -138,4 +140,42 @@ func encode(src []byte) string {
 
 func decode(src string) ([]byte, error) {
 	return base64.URLEncoding.DecodeString(src)
+}
+
+func logSave(c vm.NamedComponent, body []byte, url string) {
+	b := new(bytes.Buffer)
+	err := json.Indent(b, body, "", "\t")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"json":      string(body),
+			"URL":       url,
+			"component": c,
+		}).Error("Unable to indent request for logging")
+		return
+	}
+	log.WithFields(log.Fields{
+		"Component": c.ComponentName(),
+		"ID":        c.Id(),
+		"URL":       url,
+	}).Info(b.String())
+}
+
+func logSaveArray(c []vm.NamedComponent, body []byte, url string) {
+	b := new(bytes.Buffer)
+	if len(c) > 0 {
+		first := c[0]
+		err := json.Indent(b, body, "", "\t")
+		if err != nil {
+			log.WithFields(log.Fields{
+				"json":       string(body),
+				"URL":        url,
+				"components": c,
+			}).Error("Unable to indent request for logging")
+			return
+		}
+		log.WithFields(log.Fields{
+			"Component": first.ComponentName(),
+			"URL":       url,
+		}).Info(b.String())
+	}
 }

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -43,10 +44,18 @@ func DataSourcesIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, 
 
 func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		var dss []datasource.VM
-		err := json.NewDecoder(req.Body).Decode(&dss)
+		var dss []*datasource.VM
+		body := new(bytes.Buffer)
+		_, err := body.ReadFrom(req.Body)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Data sources must be in correct format: %s", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Data sources must be in correct format: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		err = json.Unmarshal(body.Bytes(), &dss)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Data sources must be in correct format: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
 
@@ -89,8 +98,12 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 				http.StatusInternalServerError)
 			return
 		}
-
+		dsi := make([]vm.NamedComponent, len(dss))
+		for i, ds := range dss {
+			dsi[i] = ds
+		}
 		setFlash(w, "saveStatus", []byte("updated"))
+		logSaveArray(dsi, body.Bytes(), req.URL.String())
 	}
 }
 

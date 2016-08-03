@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/setting"
+	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 
 	"github.com/julienschmidt/httprouter"
@@ -40,10 +42,18 @@ func SettingsIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ h
 
 func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		var ss []setting.VM
-		err := json.NewDecoder(req.Body).Decode(&ss)
+		var ss []*setting.VM
+		body := new(bytes.Buffer)
+		_, err := body.ReadFrom(req.Body)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to save settings: %s", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to save settings: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		err = json.Unmarshal(body.Bytes(), &ss)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save seetings: %s", err.Error()),
+				http.StatusInternalServerError)
 			return
 		}
 
@@ -77,8 +87,13 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 			http.Error(w, fmt.Sprintf("Unable to save settings: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
+		si := make([]vm.NamedComponent, len(ss))
+		}
+		for i, s := range ss {
+			si[i] = s
 		}
 
+		logSaveArray(si, body.Bytes(), req.URL.String())
 		setFlash(w, "saveStatus", []byte("updated"))
 	}
 }

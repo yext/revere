@@ -135,6 +135,14 @@ func newVM(s *db.Setting) (*VM, error) {
 	}, nil
 }
 
+func (vm *VM) Id() int64 {
+	return int64(vm.SettingID)
+}
+
+func (*VM) ComponentName() string {
+	return "Setting"
+}
+
 func (vm *VM) Save(tx *db.Tx) error {
 	var err error
 	vm.Setting, err = LoadFromParams(vm.SettingType, vm.SettingParams)

@@ -15,6 +15,10 @@ type Label struct {
 	Monitors    []*LabelMonitor
 }
 
+func (*Label) ComponentName() string {
+	return "Label"
+}
+
 func (l *Label) Id() int64 {
 	return int64(l.LabelID)
 }

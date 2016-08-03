@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -153,7 +154,14 @@ func MonitorsEdit(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 func MonitorsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		var m *vm.Monitor
-		err := json.NewDecoder(req.Body).Decode(&m)
+		body := new(bytes.Buffer)
+		_, err := body.ReadFrom(req.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
+				http.StatusInternalServerError)
+			return
+		}
+		err = json.Unmarshal(body.Bytes(), &m)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to save monitor: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -189,6 +197,7 @@ func MonitorsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p ht
 				http.StatusInternalServerError)
 			return
 		}
+		logSave(m, body.Bytes(), req.URL.String())
 
 		redirect, err := json.Marshal(map[string]string{"redirect": fmt.Sprintf("/monitors/%d", m.MonitorID)})
 		if err != nil {
