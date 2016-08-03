@@ -12,7 +12,7 @@ import (
 
 	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 	"github.com/yext/revere/web/vm"
 	"github.com/yext/revere/web/vm/renderables"
 )
@@ -110,15 +110,16 @@ func LoadValidDataSources(DB *db.DB) func(w http.ResponseWriter, req *http.Reque
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		pt, err := strconv.Atoi(p.ByName("probeType"))
 
-		probe, err := probes.Blank(db.ProbeType(pt))
+		blankProbe, err := probe.Blank(db.ProbeType(pt))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 				http.StatusNotFound)
 			return
 		}
 
-		acceptedTypes := probe.AcceptedSourceTypes()
+		acceptedTypes := blankProbe.AcceptedSourceTypes()
 		sources, err := datasource.AllOfTypes(DB, acceptedTypes)
+
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load data sources: %s", err.Error()),
 				http.StatusInternalServerError)

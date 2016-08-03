@@ -10,7 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/vm/renderables"
 )
@@ -61,13 +61,13 @@ func LoadProbeTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Request,
 			return
 		}
 
-		probe, err := probes.Blank(db.ProbeType(pt))
+		blankProbe, err := probe.Blank(db.ProbeType(pt))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to load probe: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}
-		pe := renderables.NewProbeEdit(probe)
+		pe := renderables.NewProbeEdit(blankProbe)
 
 		tmpl, err := renderables.RenderPartial(pe)
 		if err != nil {

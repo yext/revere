@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbeView struct {
-	viewmodel probes.Probe
+	viewmodel probe.ProbeVM
 	subs      []Renderable
 }
 
-func NewProbeView(p probes.Probe) *ProbeView {
+func NewProbeView(p probe.ProbeVM) *ProbeView {
 	pv := ProbeView{}
 	pv.viewmodel = p
 	pv.subs = []Renderable{}
@@ -31,7 +31,7 @@ func (pv *ProbeView) template() string {
 		panic(fmt.Sprintf("Unable to find templates for probe type %s", pv.viewmodel.Type().Name()))
 	}
 
-	return path.Join(probes.ProbesDir, tmpl)
+	return path.Join(probe.ProbesDir, tmpl)
 }
 
 func (pv *ProbeView) data() interface{} {
@@ -41,7 +41,7 @@ func (pv *ProbeView) data() interface{} {
 func (pv *ProbeView) scripts() []string {
 	scripts := pv.viewmodel.Type().Scripts()["view"]
 
-	return tmpl.AppendDir(probes.ProbesDir, scripts)
+	return tmpl.AppendDir(probe.ProbesDir, scripts)
 }
 
 func (pv *ProbeView) breadcrumbs() []vm.Breadcrumb {

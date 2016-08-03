@@ -14,7 +14,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 	"github.com/yext/revere/setting"
 	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/tmpl"
@@ -32,8 +32,8 @@ func init() {
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("deepEq", reflect.DeepEqual)
 	tmpl.AddDefaultFunc("targets", target.AllTargets)
-	tmpl.AddDefaultFunc("probeTypes", probes.AllTypes)
 	tmpl.AddDefaultFunc("settings", setting.AllTypes)
+	tmpl.AddDefaultFunc("probeTypes", probe.AllTypes)
 	tmpl.SetPartialsLocation(partials)
 }
 

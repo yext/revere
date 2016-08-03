@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
 )
 
 type ProbeEdit struct {
-	probe probes.Probe
+	probe probe.ProbeVM
 	subs  []Renderable
 }
 
-func NewProbeEdit(p probes.Probe) *ProbeEdit {
+func NewProbeEdit(p probe.ProbeVM) *ProbeEdit {
 	pe := ProbeEdit{}
 	pe.probe = p
 	pp := NewProbePreview(p)
@@ -32,7 +32,7 @@ func (pe *ProbeEdit) template() string {
 		panic(fmt.Sprintf("Unable to find templates for probe type %s", pe.probe.Name()))
 	}
 
-	return path.Join(probes.ProbesDir, tmpl)
+	return path.Join(probe.ProbesDir, tmpl)
 }
 
 func (pe *ProbeEdit) data() interface{} {
@@ -44,7 +44,7 @@ func (pe *ProbeEdit) data() interface{} {
 func (pe *ProbeEdit) scripts() []string {
 	scripts := pe.probe.Scripts()["edit"]
 
-	return tmpl.AppendDir(probes.ProbesDir, scripts)
+	return tmpl.AppendDir(probe.ProbesDir, scripts)
 }
 
 func (pe *ProbeEdit) breadcrumbs() []vm.Breadcrumb {

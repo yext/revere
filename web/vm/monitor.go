@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 )
 
 type Monitor struct {
@@ -22,7 +22,7 @@ type Monitor struct {
 	Version     int32
 	// TODO(fchen): changed and Archived need to match
 	Archived *time.Time
-	Probe    probes.Probe
+	Probe    probe.ProbeVM
 	Triggers []*MonitorTrigger
 	Labels   []*MonitorLabel
 }
@@ -78,7 +78,7 @@ func newMonitorFromDB(monitor *db.Monitor, tx *db.Tx) (*Monitor, error) {
 		Triggers:    nil,
 		Labels:      nil,
 	}
-	m.Probe, err = probes.LoadFromDB(monitor.ProbeType, string(monitor.Probe), tx)
+	m.Probe, err = probe.LoadFromDB(monitor.ProbeType, string(monitor.Probe), tx)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -103,27 +103,27 @@ func BlankMonitor() (*Monitor, error) {
 	m := &Monitor{}
 	m.Triggers = blankMonitorTriggers()
 	m.Labels = blankMonitorLabels()
-	m.Probe, err = probes.Default()
+	m.Probe, err = probe.Default()
 	m.ProbeType = m.Probe.Id()
 
 	return m, errors.Trace(err)
 }
 
-func NewProbe(DB *db.DB, id db.MonitorID) (probes.Probe, error) {
+func NewProbe(DB *db.DB, id db.MonitorID) (probe.ProbeVM, error) {
 	rawProbe, probeType, err := DB.LoadProbeByMonitorID(id)
 	if err != nil {
 		return nil, err
 	}
-	var probe probes.Probe
+	var vm probe.ProbeVM
 	err = DB.Tx(func(tx *db.Tx) error {
-		p, err := probes.LoadFromDB(probeType, string(rawProbe), tx)
-		probe = p
+		p, err := probe.LoadFromDB(probeType, string(rawProbe), tx)
+		vm = p
 		return err
 	})
 	if err != nil {
 		return nil, err
 	}
-	return probe, nil
+	return vm, nil
 }
 
 func AllMonitors(tx *db.Tx) ([]*Monitor, error) {
@@ -187,7 +187,7 @@ func (m *Monitor) Validate(DB *db.DB) (errs []string) {
 	}
 
 	var err error
-	m.Probe, err = probes.LoadFromParams(m.ProbeType, m.ProbeParams)
+	m.Probe, err = probe.LoadFromParams(m.ProbeType, m.ProbeParams)
 	if err != nil {
 		errs = append(errs, fmt.Sprintf("Unable to load probe for monitor: %s", m.ProbeParams))
 	}
@@ -206,7 +206,7 @@ func (m *Monitor) Validate(DB *db.DB) (errs []string) {
 
 func (m *Monitor) Save(tx *db.Tx) error {
 	var err error
-	m.Probe, err = probes.LoadFromParams(m.ProbeType, m.ProbeParams)
+	m.Probe, err = probe.LoadFromParams(m.ProbeType, m.ProbeParams)
 	if err != nil {
 		return errors.Trace(err)
 	}

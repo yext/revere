@@ -1,18 +1,18 @@
 package renderables
 
 import (
-	"github.com/yext/revere/probes"
+	"github.com/yext/revere/probe"
 	"github.com/yext/revere/web/vm"
 )
 
 type SubprobeView struct {
 	subprobe *vm.Subprobe
 	readings []*vm.Reading
-	probe    probes.Probe
+	probe    probe.ProbeVM
 	subs     []Renderable
 }
 
-func NewSubprobeView(p probes.Probe, s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
+func NewSubprobeView(p probe.ProbeVM, s *vm.Subprobe, rs []*vm.Reading) *SubprobeView {
 	sv := SubprobeView{}
 	sv.subprobe = s
 	sv.probe = p

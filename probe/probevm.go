@@ -1,4 +1,4 @@
-package probes
+package probe
 
 import (
 	"fmt"
@@ -6,23 +6,23 @@ import (
 	"github.com/yext/revere/db"
 )
 
-type ProbeType interface {
+type ProbeVMType interface {
 	Id() db.ProbeType
 	Name() string
-	loadFromParams(probe string) (Probe, error)
-	loadFromDb(probe string, tx *db.Tx) (Probe, error)
-	blank() (Probe, error)
+	loadFromParams(probe string) (ProbeVM, error)
+	loadFromDb(probe string, tx *db.Tx) (ProbeVM, error)
+	blank() (ProbeVM, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
 	AcceptedSourceTypes() []db.SourceType
 }
 
-type Probe interface {
-	ProbeType
+type ProbeVM interface {
+	ProbeVMType
 	HasDatasource(db.DatasourceID) bool
 	SerializeForDB() (string, error)
 	SerializeForFrontend() map[string]string
-	Type() ProbeType
+	Type() ProbeVMType
 	Validate() []string
 }
 
@@ -31,11 +31,11 @@ const (
 )
 
 var (
-	types       map[db.ProbeType]ProbeType = make(map[db.ProbeType]ProbeType)
-	defaultType                            = GraphiteThreshold{}
+	probeTypes  map[db.ProbeType]ProbeVMType = make(map[db.ProbeType]ProbeVMType)
+	defaultType                              = GraphiteThresholdType{}
 )
 
-func Default() (Probe, error) {
+func Default() (ProbeVM, error) {
 	probe, err := defaultType.blank()
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func Default() (Probe, error) {
 	return probe, nil
 }
 
-func LoadFromParams(id db.ProbeType, probeParams string) (Probe, error) {
+func LoadFromParams(id db.ProbeType, probeParams string) (ProbeVM, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func LoadFromParams(id db.ProbeType, probeParams string) (Probe, error) {
 	return probeType.loadFromParams(probeParams)
 }
 
-func LoadFromDB(id db.ProbeType, probeJson string, tx *db.Tx) (Probe, error) {
+func LoadFromDB(id db.ProbeType, probeJson string, tx *db.Tx) (ProbeVM, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func LoadFromDB(id db.ProbeType, probeJson string, tx *db.Tx) (Probe, error) {
 	return probeType.loadFromDb(probeJson, tx)
 }
 
-func Blank(id db.ProbeType) (Probe, error) {
+func Blank(id db.ProbeType) (ProbeVM, error) {
 	probeType, err := getType(id)
 	if err != nil {
 		return nil, err
@@ -70,8 +70,8 @@ func Blank(id db.ProbeType) (Probe, error) {
 	return probeType.blank()
 }
 
-func getType(id db.ProbeType) (ProbeType, error) {
-	probeType, ok := types[id]
+func getType(id db.ProbeType) (ProbeVMType, error) {
+	probeType, ok := probeTypes[id]
 	if !ok {
 		return nil, fmt.Errorf("No probe type with id %d exists", id)
 	}
@@ -79,16 +79,16 @@ func getType(id db.ProbeType) (ProbeType, error) {
 	return probeType, nil
 }
 
-func addProbeType(probeType ProbeType) {
-	if _, ok := types[probeType.Id()]; !ok {
-		types[probeType.Id()] = probeType
+func addProbeVMType(probeType ProbeVMType) {
+	if _, ok := probeTypes[probeType.Id()]; !ok {
+		probeTypes[probeType.Id()] = probeType
 	} else {
 		panic(fmt.Sprintf("A probe type with id %d already exists", probeType.Id()))
 	}
 }
 
-func AllTypes() (pts []ProbeType) {
-	for _, v := range types {
+func AllTypes() (pts []ProbeVMType) {
+	for _, v := range probeTypes {
 		pts = append(pts, v)
 	}
 	return pts

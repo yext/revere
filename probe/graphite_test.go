@@ -1,4 +1,4 @@
-package probes_test
+package probe_test
 
 import (
 	"fmt"

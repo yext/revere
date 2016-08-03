@@ -1,4 +1,4 @@
-package probes
+package probe
 
 import (
 	"encoding/json"
@@ -8,14 +8,13 @@ import (
 
 	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
-	"github.com/yext/revere/probe"
 	"github.com/yext/revere/util"
 )
 
-type GraphiteThreshold struct{}
+type GraphiteThresholdType struct{}
 
 type GraphiteThresholdProbe struct {
-	GraphiteThreshold
+	GraphiteThresholdType
 
 	// TODO(fchen): fix tags on front-end js
 	URL               string
@@ -48,18 +47,18 @@ var (
 )
 
 func init() {
-	addProbeType(GraphiteThreshold{})
+	addProbeVMType(GraphiteThresholdType{})
 }
 
-func (GraphiteThreshold) Id() db.ProbeType {
+func (GraphiteThresholdType) Id() db.ProbeType {
 	return 1
 }
 
-func (GraphiteThreshold) Name() string {
+func (GraphiteThresholdType) Name() string {
 	return "Graphite Threshold"
 }
 
-func (GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
+func (GraphiteThresholdType) loadFromParams(probe string) (ProbeVM, error) {
 	var g GraphiteThresholdProbe
 	err := json.Unmarshal([]byte(probe), &g)
 	if err != nil {
@@ -68,8 +67,8 @@ func (GraphiteThreshold) loadFromParams(probe string) (Probe, error) {
 	return g, nil
 }
 
-func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, error) {
-	var g probe.GraphiteThresholdDBModel
+func (GraphiteThresholdType) loadFromDb(encodedProbe string, tx *db.Tx) (ProbeVM, error) {
+	var g GraphiteThresholdDBModel
 	err := json.Unmarshal([]byte(encodedProbe), &g)
 	if err != nil {
 		return nil, err
@@ -118,18 +117,18 @@ func (GraphiteThreshold) loadFromDb(encodedProbe string, tx *db.Tx) (Probe, erro
 	}, nil
 }
 
-func (GraphiteThreshold) blank() (Probe, error) {
+func (GraphiteThresholdType) blank() (ProbeVM, error) {
 	return &GraphiteThresholdProbe{}, nil
 }
 
-func (GraphiteThreshold) Templates() map[string]string {
+func (GraphiteThresholdType) Templates() map[string]string {
 	return map[string]string{
 		"edit": "graphite-edit.html",
 		"view": "graphite-view.html",
 	}
 }
 
-func (gt GraphiteThreshold) Scripts() map[string][]string {
+func (gt GraphiteThresholdType) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"graphite-threshold.js",
@@ -141,7 +140,7 @@ func (gt GraphiteThreshold) Scripts() map[string][]string {
 	}
 }
 
-func (GraphiteThreshold) AcceptedSourceTypes() []db.SourceType {
+func (GraphiteThresholdType) AcceptedSourceTypes() []db.SourceType {
 	return []db.SourceType{
 		datasource.Graphite{}.Id(),
 	}
@@ -176,10 +175,10 @@ func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 	auditPeriodMilli := util.GetMs(g.AuditPeriod, g.AuditPeriodType)
 	ignoredPeriodMilli := util.GetMs(g.IgnoredPeriod, g.IgnoredPeriodType)
 
-	gtDB := probe.GraphiteThresholdDBModel{
+	gtDB := GraphiteThresholdDBModel{
 		SourceID:   int64(g.SourceID),
 		Expression: g.Expression,
-		Thresholds: probe.GraphiteThresholdThresholdsDBModel{
+		Thresholds: GraphiteThresholdThresholdsDBModel{
 			Warning:  g.Thresholds.Warning,
 			Error:    g.Thresholds.Error,
 			Critical: g.Thresholds.Critical,
@@ -196,8 +195,8 @@ func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 }
 
 // TODO(fchen): fix references to ProbeType() in frontend
-func (g GraphiteThresholdProbe) Type() ProbeType {
-	return GraphiteThreshold{}
+func (g GraphiteThresholdProbe) Type() ProbeVMType {
+	return GraphiteThresholdType{}
 }
 
 func (g GraphiteThresholdProbe) Validate() (errs []string) {
