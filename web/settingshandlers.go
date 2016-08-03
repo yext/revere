@@ -87,13 +87,13 @@ func SettingsSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ ht
 			http.Error(w, fmt.Sprintf("Unable to save settings: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
-		si := make([]vm.NamedComponent, len(ss))
 		}
+		si := make([]vm.NamedComponent, len(ss))
 		for i, s := range ss {
 			si[i] = s
 		}
-
 		logSaveArray(si, body.Bytes(), req.URL.String())
+
 		setFlash(w, "saveStatus", []byte("updated"))
 	}
 }

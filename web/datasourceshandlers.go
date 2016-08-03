@@ -102,8 +102,9 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 		for i, ds := range dss {
 			dsi[i] = ds
 		}
-		setFlash(w, "saveStatus", []byte("updated"))
 		logSaveArray(dsi, body.Bytes(), req.URL.String())
+
+		setFlash(w, "saveStatus", []byte("updated"))
 	}
 }
 
