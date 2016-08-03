@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/juju/errors"
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/yext/revere/datasource"
@@ -76,28 +75,27 @@ func DataSourcesSave(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _
 			return
 		}
 
-		err = DB.Tx(func(tx *db.Tx) error {
+		DB.Tx(func(tx *db.Tx) error {
 			monitors, err := vm.AllMonitors(tx)
 			if err != nil {
-				return err
+				http.Error(w, "Unable to retrieve monitors to check data source usage", http.StatusInternalServerError)
 			}
 			for _, ds := range dss {
 				isUsed := isDataSourceInUse(ds.SourceID, monitors, tx)
 				if isUsed && ds.Delete {
-					return errors.Errorf("Can't delete a data source currently used by a monitor. ID: %d", ds.SourceID)
+					http.Error(w, fmt.Sprintf("Can't delete a data source currently used by a monitor. ID: %d", ds.SourceID),
+						http.StatusBadRequest)
+					return nil
 				}
 				err = ds.Save(tx)
 				if err != nil {
-					return errors.Trace(err)
+					http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
+						http.StatusInternalServerError)
+					return nil
 				}
 			}
 			return nil
 		})
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to save data sources: %s", err.Error()),
-				http.StatusInternalServerError)
-			return
-		}
 		dsi := make([]vm.NamedComponent, len(dss))
 		for i, ds := range dss {
 			dsi[i] = ds
