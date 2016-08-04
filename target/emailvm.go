@@ -107,18 +107,26 @@ func (EmailTarget) Type() TargetTypeVM {
 }
 
 func (et EmailTarget) Validate() (errs []string) {
+	numEmailTo := 0
 	for _, e := range et.Addresses {
+		if e.To == "" {
+			continue
+		}
+		numEmailTo++
 		if !emailRegex.MatchString(e.To) {
-			errs = append(errs, "An invalid email to was provided.")
+			errs = append(errs, "An invalid sender was provided.")
 			break
 		}
+	}
+	if numEmailTo == 0 {
+		errs = append(errs, "At least one sender is required.")
 	}
 	for _, e := range et.Addresses {
 		if e.ReplyTo == "" {
 			continue
 		}
 		if !emailRegex.MatchString(e.ReplyTo) {
-			errs = append(errs, "An invalid reply to was provided.")
+			errs = append(errs, "An invalid reply-to field was provided.")
 			break
 		}
 	}
