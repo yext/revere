@@ -9,21 +9,8 @@ strong {
 	color: #333;
 }
 
-.silence-datepicker {
-	display: none;
-}
-
 .buttons > button {
 	margin-left: 10px;
-}
-
-.new-btn {
-	margin-top: 10px;
-	float: right;
-}
-
-.edit-btn {
-	float: right;
 }
 
 .index-headers {
@@ -34,16 +21,13 @@ strong {
 	display: inline-block;
 }
 
-.config-label {
-	width: 150px;
+.new-btn {
+	margin-top: 10px;
+	float: right;
 }
 
-.config-input {
-	width: 250px;
-}
-
-#triggerIf {
-	width: inherit;
+.edit-btn {
+	float: right;
 }
 
 .revere-row {
@@ -56,9 +40,21 @@ strong {
 	word-wrap: break-word;
 }
 
-.silenced {
-	-webkit-filter: saturate(25%) opacity(80%);
-	filter: saturate(25%) opacity(80%);
+.unknown {
+	background-color: #ffebcc;
+}
+
+.critical {
+	background-color: #404040;
+	color: #ff0000;
+}
+
+.config-label {
+	width: 150px;
+}
+
+.config-input {
+	width: 250px;
 }
 
 .monitor-header {
@@ -85,8 +81,21 @@ strong {
 	margin-bottom: 0;
 }
 
+#triggerIf {
+	width: inherit;
+}
+
 .trigger {
 	padding-bottom: 50px;
+}
+
+.silenced {
+	-webkit-filter: saturate(25%) opacity(80%);
+	filter: saturate(25%) opacity(80%);
+}
+
+.silence-datepicker {
+	display: none;
 }
 
 .silences-headers > * {
@@ -100,15 +109,6 @@ strong {
 .silence-form {
 	display: inline-block;
 	width: 200px;
-}
-
-.unknown {
-	background-color: #ffebcc;
-}
-
-.critical {
-	background-color: #404040;
-	color: #ff0000;
 }
 
 .sentence-label, .control-label.sentence-label {
