@@ -1,9 +1,8 @@
 {{template "_header.html" setTitle . "Monitors"}}
 {{with ._}}
-  {{$States := .States}}
   {{$Readings := .Readings}}
-  <div class="subprobes-headers">
-    <h1 class="subprobes-header">History for {{.Subprobe.Name}}</h1>
+  <div class="index-headers">
+    <h1 class="index-header">History for {{.Subprobe.Name}}</h1>
   </div>
   <div>
     {{range $key, $value := .PreviewParams}}
@@ -13,29 +12,27 @@
   </div>
   {{template "preview.html" .}}
   <br>
-
   <a href="/../redirectToSilence?subprobe={{.Subprobe.Name}}&id={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
-  <div>
-    <div class="revere-row"><div class="col-md-6">State</div><div class="col-md-6">Time Recorded</div></div>
-    {{range $Readings}}
-      <div class="revere-row
-      {{if eq .State.String "Normal"}}
-        bg-success
-      {{else if eq .State.String "Warning"}}
-        bg-warning
-      {{else if eq .State.String "ERROR"}}
-        bg-danger
-      {{else if eq .State.String "CRITICAL"}}
-        bg-critical
-      {{else}}
-        bg-unknown
-      {{end}}">
-        <div class="col-md-6">{{.StateStr}}</div>
-        <div class="col-md-6">{{.Recorded}}</div>
-      </div>
-    {{else}}
-      None yet!
-    {{end}}
+  <br>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th class="col-md-6">State</th>
+          <th class="col-md-6">Time Recorded</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $Readings}}
+          <tr class="{{stateClass .State}}">
+            <td class="col-md-6">{{.StateStr}}</td>
+            <td class="col-md-6">{{.Recorded}}</td>
+          </tr>
+        {{else}}
+          None yet!
+        {{end}}
+      </tbody>
+    </table>
   </div>
 {{end}}
 {{template "_footer.html" .}}

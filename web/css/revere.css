@@ -1,3 +1,7 @@
+body {
+	font-family: 'Lato', sans-serif;
+}
+
 .silence-datepicker {
 	display: none;
 }
@@ -36,9 +40,8 @@
 }
 
 .revere-row {
-	margin: 10px auto;
-	padding: 10px 0;
-	border-bottom: #ddd 1px solid;
+	padding: 10px 15px;
+	border-bottom: 1px solid #ddd;
 	overflow: hidden;
 }
 
@@ -92,11 +95,11 @@
 	width: 200px;
 }
 
-.bg-unknown {
+.unknown {
 	background-color: #ffebcc;
 }
 
-.bg-critical {
+.critical {
 	background-color: #404040;
 	color: #ff0000;
 }

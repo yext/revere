@@ -92,3 +92,20 @@ func FromString(s string) (State, error) {
 		return 0, errors.Errorf("invalid state %s", s)
 	}
 }
+
+func CSSClass(s State) string {
+	switch s {
+	case Normal:
+		return "success"
+	case Warning:
+		return "warning"
+	case Unknown:
+		return "unknown"
+	case Error:
+		return "danger"
+	case Critical:
+		return "critical"
+	default:
+		return ""
+	}
+}

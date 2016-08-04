@@ -16,6 +16,7 @@ import (
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probe"
 	"github.com/yext/revere/setting"
+	"github.com/yext/revere/state"
 	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/tmpl"
 	"github.com/yext/revere/web/vm"
@@ -31,6 +32,7 @@ func init() {
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
 	tmpl.AddDefaultFunc("strEq", tmpl.StrEq)
 	tmpl.AddDefaultFunc("deepEq", reflect.DeepEqual)
+	tmpl.AddDefaultFunc("stateClass", state.CSSClass)
 	tmpl.AddDefaultFunc("targets", target.AllTargets)
 	tmpl.AddDefaultFunc("settings", setting.AllTypes)
 	tmpl.AddDefaultFunc("probeTypes", probe.AllTypes)

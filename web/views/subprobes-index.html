@@ -1,28 +1,36 @@
 {{template "_header.html" setTitle . "Monitors"}}
 {{with ._}}
-  {{$States := .States}}
   <div class="index-headers">
     <h1 class="index-header">Subprobes for {{.Monitor.Name}}</h1>
   </div>
   <div>
-    <div class="revere-row">
-      <div class="col-md-6">Name</div>
-      <div class="col-md-3">State</div>
-      <div class="col-md-3">Duration</div>
-    </div>
-    {{range .Subprobes}}
-      {{template "state-class-row.html" .Status.State.String}}
-        <div class="col-md-6">
-          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorID}}/subprobes/{{.SubprobeID}}">{{.Name}}</a>
-        </div>
-        <div class="col-md-3">{{.Status.State}}</div>
-        <div class="col-md-3">
-          <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
-        </div>
-      </div>
-    {{else}}
-      <h4>There are no existing subprobes for this monitor.</h4>
-    {{end}}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th class="col-md-6">Name</th>
+          <th class="col-md-3">State</th>
+          <th class="col-md-3">Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Subprobes}}
+          <tr class="{{stateClass .Status.State}}">
+            <td class="col-md-6">
+              <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{.MonitorID}}/subprobes/{{.SubprobeID}}">{{.Name}}</a>
+            </td>
+            <td class="col-md-3">
+              {{.Status.State}}
+            </td>
+            <td class="col-md-3">
+              <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
+            </td>
+          </tr>
+        {{else}}
+          <h4>There are no existing subprobes for this monitor.</h4>
+        {{end}}
+      </tbody>
+    </table>
   </div>
 {{end}}
 {{template "_footer.html" .}}

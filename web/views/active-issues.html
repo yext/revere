@@ -1,48 +1,54 @@
 {{template "_header.html" setTitle . "Active Issues"}}
 {{with ._}}
   {{$States := .States}}
-  <div class="active-issues-headers">
-    <h1 class="active-issues-header">Active Issues</h1>
+  <div class="index-headers">
+    <h1 class="index-header">Active Issues</h1>
   </div>
   {{template "label-filter.html" .}}
-  <div id="active-issues-table">
-    <div class="revere-row">
-      <div class="col-md-3">Monitor Name</div>
-      <div class="col-md-2">Subprobe Name</div>
-      <div class="col-md-2">State</div>
-      <div class="col-md-2">Duration</div>
-      <div class="col-md-2">Labels</div>
-      <div class="col-md-1">Silence</div>
-    </div>
-    {{range .Subprobes}}
-      {{$monitorID := .MonitorID}}
-      <div class="{{if .Status.Silenced}}silenced{{end}}"> 
-      {{template "state-class-row.html" .Status.State.String}}
-        <div class="col-md-3">
-          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorID}}">{{.MonitorName}}</a>
-        </div>
-        <div class="col-md-2">
-          <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorID}}/subprobes/{{.SubprobeID}}">{{.Name}}</a>
-        </div>
-        <div class="col-md-2">{{.Status.State}}</div>
-        <div class="col-md-2">
-          <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
-        </div>
-        <div class="col-md-2">
-          {{range index $._.MonitorLabels $monitorID}}
-            <span class="label label-primary">{{.Label.Name}}</span>
-          {{end}}
-        </div>
-        <div class="col-md-1">
-          <a href="/redirectToSilence?subprobe={{.Name}}&id={{.MonitorID}}">
-            <span class="glyphicon glyphicon-volume-off"></span>
-          </a>
-        </div>
-      </div>
-  </div>
-    {{else}}
-      None yet!
-    {{end}}
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th class="col-md-3">Monitor Name</th>
+          <th class="col-md-2">Subprobe Name</th>
+          <th class="col-md-2">State</th>
+          <th class="col-md-2">Duration</th>
+          <th class="col-md-2">Labels</th>
+          <th class="col-md-1">Silence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Subprobes}}
+          {{$monitorID := .MonitorID}}
+          <tr class="{{if .Status.Silenced}}silenced{{end}} {{stateClass .Status.State}}">
+            <td class="col-md-3">
+              <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorID}}">{{.MonitorName}}</a>
+            </td>
+            <td class="col-md-2">
+              <a class="{{if .Archived}}archived{{end}}" href="/monitors/{{$monitorID}}/subprobes/{{.SubprobeID}}">{{.Name}}</a>
+            </td>
+            <td class="col-md-2">
+              {{.Status.State}}
+            </td>
+            <td class="col-md-2">
+              <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
+            </td>
+            <td class="col-md-2">
+              {{range index $._.MonitorLabels $monitorID}}
+                <span class="label label-primary">{{.Label.Name}}</span>
+              {{end}}
+            </td>
+            <td class="col-md-2">
+              <a href="/redirectToSilence?subprobe={{.Name}}&id={{.MonitorID}}">
+                <span class="glyphicon glyphicon-volume-off"></span>
+              </a>
+            </td>
+          </tr>
+        {{else}}
+          None yet!
+        {{end}}
+      </tbody>
+    </table>
   </div>
 {{end}}
 {{template "_footer.html" .}}
