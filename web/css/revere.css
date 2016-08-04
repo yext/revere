@@ -1,5 +1,12 @@
 body {
-	font-family: 'Lato', sans-serif;
+	font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+	color: #555;
+}
+
+h1,
+h2,
+strong {
+	color: #333;
 }
 
 .silence-datepicker {
