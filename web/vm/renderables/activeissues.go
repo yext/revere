@@ -41,7 +41,7 @@ func (ai *ActiveIssues) scripts() []string {
 }
 
 func (ai *ActiveIssues) breadcrumbs() []vm.Breadcrumb {
-	return []vm.Breadcrumb{vm.Breadcrumb{"active issues", "/"}}
+	return nil
 }
 
 func (ai *ActiveIssues) subRenderables() []Renderable {
