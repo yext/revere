@@ -17,6 +17,9 @@ var componentList = function() {
     };
 
     var initComponents = function() {
+      var $baseAddComponent = $('.js-new-' + componentName).first(),
+        $emptyComponentListMessage = $('.js-empty-' + componentName);
+
       var showOption = function(id, $selectBoxes) {
         $.each($selectBoxes, function() {
           $(this).find('option[value="' + id + '"]').removeClass('hidden');
@@ -32,7 +35,15 @@ var componentList = function() {
         });
       };
 
-      var $baseAddComponent = $('.js-new-' + componentName).first();
+      var hasNoComponents = function() {
+        var $existingComponents = $('.js-' + componentName + ':visible'),
+          $newComponents = $('.js-new-' + componentName + ':visible');
+        return $existingComponents.length === 0 && $newComponents.length === 0;
+      };
+
+      if (hasNoComponents()) {
+        $emptyComponentListMessage.removeClass('hidden');
+      }
 
       $.each($('.js-' + componentName), function() {
         var id = $(this).find('input.js-id').val();
@@ -45,7 +56,7 @@ var componentList = function() {
           $newComponents = $('.js-new-' + componentName),
           $newComponent = $baseAddComponent.clone();
 
-        $('.js-empty-' + componentName).addClass('hidden');
+        $emptyComponentListMessage.addClass('hidden');
         if ($newComponents.length > 1 || $existingComponents.length === 0) {
           $newComponent.insertAfter($newComponents.last());
         } else {
@@ -60,6 +71,9 @@ var componentList = function() {
         $component.hide();
         $component.find('input[name="Delete"]').prop('checked', true);
         showOption($component.find('input.js-id').val(), $('.js-' + componentName + '-name'));
+        if (hasNoComponents()) {
+          $emptyComponentListMessage.removeClass('hidden');
+        }
       });
 
       $(document.body).on('click', '.js-remove-new-' + componentName, function(e) {
@@ -70,6 +84,9 @@ var componentList = function() {
 
         showOption($selectedOption.val(), $('.js-' + componentName + '-name'));
         $newComponent.remove();
+        if (hasNoComponents()) {
+          $emptyComponentListMessage.removeClass('hidden');
+        }
       });
 
       $(document.body).on('change', '.js-' + componentName + '-name', function() {
