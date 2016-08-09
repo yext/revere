@@ -1,10 +1,4 @@
-{{template "_header.html" setTitle . "Active Issues"}}
-{{with ._}}
-  {{$States := .States}}
-  <div class="index-headers">
-    <h1 class="index-header">Active Issues</h1>
-  </div>
-  {{template "label-filter.html" .}}
+{{define "active-issues-table"}}
   <div class="table-responsive">
     <table class="table table-hover">
       <thead>
@@ -34,7 +28,7 @@
               <span class="js-subprobe-entered-state" data-toggle="tooltip" title="{{.Status.EnteredState}}">{{.Status.FmtEnteredState}}</span>
             </td>
             <td class="col-md-2">
-              {{range index $._.MonitorLabels $monitorID}}
+              {{range index $.MonitorLabels $monitorID}}
                 <span class="label label-primary">{{.Label.Name}}</span>
               {{end}}
             </td>
@@ -44,11 +38,22 @@
               </a>
             </td>
           </tr>
-        {{else}}
-          None yet!
         {{end}}
       </tbody>
     </table>
+  </div>
+{{end}}
+
+{{template "_header.html" setTitle . "Active Issues"}}
+{{with ._}}
+  <div class="index-headers">
+    <h1 class="index-header">Active Issues</h1>
+    {{if .Subprobes}}
+      {{template "label-filter.html" .}}
+      {{template "active-issues-table" .}}
+    {{else}}
+      <h2 class="col-sm-offset-1">No issues!</h2>
+    {{end}}
   </div>
 {{end}}
 {{template "_footer.html" .}}
