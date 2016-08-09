@@ -52,7 +52,7 @@ import (
 
 var (
 	conf     = flag.String("conf", "", "JSON `file` configuring Revere's static environment")
-	mode     = flag.String("mode", "daemon,web", "comma-separated `modes` to run")
+	mode     = flag.String("mode", "daemon,web,initdb", "comma-separated `modes` to run")
 	logLevel = flag.String("logLevel", "warn", "Logrus `level` to log at")
 )
 
