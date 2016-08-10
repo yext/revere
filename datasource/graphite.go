@@ -8,7 +8,6 @@ import (
 
 type Graphite struct{}
 
-// TODO(fchen): match front-end to "URL"
 type GraphiteDataSource struct {
 	Graphite
 	URL string
@@ -75,7 +74,6 @@ func (g GraphiteDataSource) Serialize() (string, error) {
 	return string(gDBJSON), err
 }
 
-// TODO(fchen): check for and fix references to DataSourceType in frontend
 func (g GraphiteDataSource) Type() DataSourceType {
 	return Graphite{}
 }
