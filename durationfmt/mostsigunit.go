@@ -5,9 +5,8 @@ import (
 	"time"
 )
 
-// MostSigUnit returns a formatter that produces a rounded representation
-// of a duration based on its largest significant unit of time
-//
+// MostSigUnit returns a formatter that produces a rounded representation of a
+// duration based on its largest significant unit of time
 func MostSigUnit() Formatter {
 	return mostSigUnit{}
 }
