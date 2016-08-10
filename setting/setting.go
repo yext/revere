@@ -64,7 +64,7 @@ func Default() (Setting, error) {
 func LoadFromParams(id db.SettingType, sParams string) (Setting, error) {
 	sType, err := getType(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return sType.loadFromParams(sParams)
@@ -73,7 +73,7 @@ func LoadFromParams(id db.SettingType, sParams string) (Setting, error) {
 func LoadFromDB(id db.SettingType, sJson string) (Setting, error) {
 	sType, err := getType(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return sType.loadFromDB(sJson)
@@ -82,7 +82,7 @@ func LoadFromDB(id db.SettingType, sJson string) (Setting, error) {
 func Blank(id db.SettingType) (Setting, error) {
 	sType, err := getType(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
 	}
 
 	return sType.blank()
@@ -114,7 +114,12 @@ func AllTypes() (sts []SettingType) {
 func All(DB *db.DB) ([]*VM, error) {
 	settings, err := DB.LoadSettings()
 	if err != nil {
-		return nil, err
+		return nil, errors.Trace(err)
+	}
+
+	blankTypes := make(map[SettingType]struct{})
+	for _, t := range types {
+		blankTypes[t] = struct{}{}
 	}
 
 	ss := make([]*VM, len(settings))
@@ -123,6 +128,19 @@ func All(DB *db.DB) ([]*VM, error) {
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
+
+		delete(blankTypes, ss[i].Setting.Type())
+	}
+
+	for bt, _ := range blankTypes {
+		blankSetting, err := bt.blank()
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+		ss = append(ss, &VM{
+			Setting:     blankSetting,
+			SettingType: bt.Id(),
+		})
 	}
 
 	return ss, nil
@@ -149,6 +167,10 @@ func (*VM) ComponentName() string {
 	return "Setting"
 }
 
+func (vm *VM) IsCreate() bool {
+	return vm.Id() == 0
+}
+
 func (vm *VM) Save(tx *db.Tx) error {
 	var err error
 	vm.Setting, err = LoadFromParams(vm.SettingType, vm.SettingParams)
@@ -167,7 +189,13 @@ func (vm *VM) Save(tx *db.Tx) error {
 		Setting:     settingJSON,
 	}
 
-	err = tx.UpdateSetting(setting)
+	if vm.IsCreate() {
+		var id db.SettingID
+		id, err = tx.CreateSetting(setting)
+		setting.SettingID = id
+	} else {
+		err = tx.UpdateSetting(setting)
+	}
 
 	return errors.Trace(err)
 }

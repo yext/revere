@@ -46,11 +46,15 @@ func (db *DB) LoadSettingById(id SettingID) (*Setting, error) {
 	return &s, nil
 }
 
-func (tx *Tx) CreateSetting(s *Setting) error {
+func (tx *Tx) CreateSetting(s *Setting) (SettingID, error) {
 	q := `INSERT INTO pfx_settings (settingid, settingtype, setting) 
 		VALUES (:settingid, :settingtype, :setting)`
-	_, err := tx.NamedExec(cq(tx, q), *s)
-	return errors.Trace(err)
+	result, err := tx.NamedExec(cq(tx, q), *s)
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+	id, err := result.LastInsertId()
+	return SettingID(id), errors.Trace(err)
 }
 
 func (tx *Tx) UpdateSetting(s *Setting) error {

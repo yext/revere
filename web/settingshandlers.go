@@ -18,7 +18,7 @@ import (
 
 func SettingsIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-		viewmodels, err := setting.All(DB)
+		settings, err := setting.All(DB)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve settings: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -30,7 +30,7 @@ func SettingsIndex(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ h
 			log.Errorf("Unable to load flash cookie for settings: %s", err.Error())
 		}
 
-		renderable := renderables.NewSettingsIndex(viewmodels, saveStatus)
+		renderable := renderables.NewSettingsIndex(settings, saveStatus)
 		err = render(w, renderable)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to retrieve settings: %s", err.Error()),
