@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	addTargetVMType(EmailType{})
+	addType(EmailType{})
 }
 
 func (EmailType) Id() db.TargetType {

@@ -74,7 +74,7 @@ func getType(id db.TargetType) (VMType, error) {
 	return targetType, nil
 }
 
-func addTargetVMType(targetType VMType) {
+func addType(targetType VMType) {
 	if _, ok := targetTypes[targetType.Id()]; !ok {
 		targetTypes[targetType.Id()] = targetType
 	} else {

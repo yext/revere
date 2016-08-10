@@ -114,8 +114,7 @@ func getType(id db.SourceType) (DataSourceType, error) {
 	return dsType, nil
 }
 
-//TODO (fchen): eventually change to addType for datasources, settings, probes, targets; conform naming and syntax
-func addDataSourceType(dataSourceType DataSourceType) {
+func addType(dataSourceType DataSourceType) {
 	if _, ok := types[dataSourceType.Id()]; !ok {
 		types[dataSourceType.Id()] = dataSourceType
 	} else {

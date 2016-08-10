@@ -25,7 +25,7 @@ type OutgoingEmailSettingDBModel struct {
 }
 
 func init() {
-	addSettingType(OutgoingEmail{})
+	addType(OutgoingEmail{})
 }
 
 func (OutgoingEmail) Id() db.SettingType {

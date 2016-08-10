@@ -16,7 +16,6 @@ type GraphiteThresholdType struct{}
 type GraphiteThresholdProbe struct {
 	GraphiteThresholdType
 
-	// TODO(fchen): fix tags on front-end js
 	URL               string
 	SourceID          db.DatasourceID
 	Expression        string
@@ -47,7 +46,7 @@ var (
 )
 
 func init() {
-	addProbeVMType(GraphiteThresholdType{})
+	addType(GraphiteThresholdType{})
 }
 
 func (GraphiteThresholdType) Id() db.ProbeType {
@@ -194,7 +193,6 @@ func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 	return string(gtDBJSON), err
 }
 
-// TODO(fchen): fix references to ProbeType() in frontend
 func (g GraphiteThresholdProbe) Type() VMType {
 	return GraphiteThresholdType{}
 }

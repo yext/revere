@@ -96,7 +96,7 @@ func getType(id db.SettingType) (SettingType, error) {
 	}
 }
 
-func addSettingType(s SettingType) {
+func addType(s SettingType) {
 	if _, exists := types[s.Id()]; !exists {
 		types[s.Id()] = s
 	} else {

@@ -80,7 +80,7 @@ func getType(id db.ProbeType) (VMType, error) {
 	return probeType, nil
 }
 
-func addProbeVMType(probeType VMType) {
+func addType(probeType VMType) {
 	if _, ok := probeTypes[probeType.Id()]; !ok {
 		probeTypes[probeType.Id()] = probeType
 	} else {

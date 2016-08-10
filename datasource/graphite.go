@@ -20,7 +20,7 @@ type GraphiteDataSourceDBModel struct {
 }
 
 func init() {
-	addDataSourceType(Graphite{})
+	addType(Graphite{})
 }
 
 func (_ Graphite) Id() db.SourceType {
