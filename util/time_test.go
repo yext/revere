@@ -1,10 +1,8 @@
-package revere_test
+package util
 
 import (
 	"testing"
 	"time"
-
-	. "github.com/yext/revere"
 )
 
 var startTime = time.Date(2015, time.January, 1, 0, 0, 0, 0, time.UTC)
