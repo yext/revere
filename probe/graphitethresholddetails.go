@@ -19,7 +19,7 @@ type graphiteThresholdDetails struct {
 	measured  float64
 	threshold float64
 
-	graphite    *resource.Graphite
+	graphite    *resource.GraphiteDaemon
 	expression  string
 	seriesName  string
 	measuredEnd time.Time

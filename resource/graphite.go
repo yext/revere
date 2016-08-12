@@ -1,172 +1,88 @@
 package resource
 
 import (
-	"fmt"
-	"io/ioutil"
-	"math"
-	"net/http"
-	"net/url"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
+	"encoding/json"
 
-	"github.com/juju/errors"
+	"github.com/yext/revere/db"
 )
 
-// Graphite represents a remote Graphite server. For more information, see
-// http://graphite.readthedocs.org/ .
-type Graphite struct {
-	// Base is the URL where the server can be found. Base should have a
-	// trailing slash, with the expectation that the render API endpoint is
-	// at Base + "render".
-	Base string
+type Graphite struct{}
+
+type GraphiteResource struct {
+	Graphite
+	URL string
 }
 
-// GraphiteSeries encapsulates the data returned by Graphite for a particular
-// series. The values in Values correspond to the times between Start and End,
-// inclusive, that are Step times apart. Null values are represented by NaN.
-//
-// XXX(eefi): It is possible to store NaN in Graphite, and encoding nulls as NaN
-// makes those cases indistinguishable. However, actual NaNs should be rare, and
-// encoding nulls as NaN removes the need for an extra layer of pointer
-// indirection.
-type GraphiteSeries struct {
-	Name       string
-	Start, End time.Time
-	Step       time.Duration
-	Values     []float64
+// Eventually implemented in DB layer
+type GraphiteResourceDBModel struct {
+	URL string
 }
 
-// QueryRecent retrieves data stored in Graphite for the most recent d time.
-func (g Graphite) QueryRecent(target string, d time.Duration) ([]GraphiteSeries, error) {
-	// TODO(eefi): Warn if d is not whole seconds?
-	from := fmt.Sprintf("-%ds", int64(d/time.Second))
-	data, err := g.query(target, from, "now")
+func init() {
+	addType(Graphite{})
+}
+
+func (Graphite) Id() db.ResourceType {
+	return 0
+}
+
+func (Graphite) Name() string {
+	return "Graphite"
+}
+
+func (Graphite) loadFromParams(ds string) (Resource, error) {
+	var g GraphiteResource
+	err := json.Unmarshal([]byte(ds), &g)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
-	return data, nil
+	return g, nil
 }
 
-// Query retrieves data stored in Graphite for the given time period.
-func (g Graphite) Query(target string, from, until time.Time) ([]GraphiteSeries, error) {
-	fromString := GraphiteTimestamp(from)
-	untilString := GraphiteTimestamp(until)
-	data, err := g.query(target, fromString, untilString)
+func (Graphite) loadFromDB(ds string) (Resource, error) {
+	var g GraphiteResourceDBModel
+	err := json.Unmarshal([]byte(ds), &g)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, err
 	}
-	return data, nil
+
+	return &GraphiteResource{
+		URL: g.URL,
+	}, nil
 }
 
-func (g Graphite) query(target, from, until string) ([]GraphiteSeries, error) {
-	url := g.RenderURL([]string{target}, map[string]string{
-		"from":   from,
-		"until":  until,
-		"format": "raw",
-	})
-	data, err := g.get(url)
-	if err != nil {
-		return nil, errors.Maskf(err, "query Graphite")
-	}
-
-	series, err := parseGraphiteRawRender(data)
-	if err != nil {
-		return nil, errors.Maskf(err, "parse Graphite raw render response")
-	}
-
-	return series, nil
+func (Graphite) blank() (Resource, error) {
+	return &GraphiteResource{}, nil
 }
 
-func (g Graphite) get(url string) ([]byte, error) {
-	r, err := http.Get(url)
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
-	defer r.Body.Close()
-
-	if r.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("Get %s: not-OK HTTP status code: %d", url, r.StatusCode)
-	}
-
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, errors.Annotatef(err, "Get %s", url)
-	}
-
-	return b, nil
+func (Graphite) Templates() string {
+	return "graphite-resource.html"
 }
 
-var graphiteRawRenderSeriesFormat = regexp.MustCompile(
-	`^(.*),([0-9]+),([0-9]+),([0-9]+)\|([^|]*)$`)
-
-func parseGraphiteRawRender(data []byte) ([]GraphiteSeries, error) {
-	var series []GraphiteSeries
-	for _, seriesString := range strings.Split(string(data), "\n") {
-		if seriesString == "" {
-			continue
-		}
-
-		parts := graphiteRawRenderSeriesFormat.FindStringSubmatch(seriesString)
-		if parts == nil {
-			return nil, errors.Errorf("malformed series: %s", seriesString)
-		}
-
-		s := GraphiteSeries{}
-
-		s.Name = parts[1]
-
-		startUnix, err := strconv.ParseInt(parts[2], 10, 64)
-		if err != nil {
-			return nil, errors.Errorf("could not parse series start time: %s", parts[2])
-		}
-		s.Start = time.Unix(startUnix, 0)
-
-		endUnix, err := strconv.ParseInt(parts[3], 10, 64)
-		if err != nil {
-			return nil, errors.Errorf("could not parse series end time: %s", parts[3])
-		}
-		s.End = time.Unix(endUnix, 0)
-
-		stepSecond, err := strconv.ParseInt(parts[4], 10, 64)
-		if err != nil {
-			return nil, errors.Errorf("could not parse series step: %s", parts[4])
-		}
-		s.Step = time.Duration(stepSecond) * time.Second
-
-		valueStrings := strings.Split(parts[5], ",")
-		s.Values = make([]float64, len(valueStrings))
-		for i, valueString := range valueStrings {
-			if valueString == "None" {
-				s.Values[i] = math.NaN()
-			} else {
-				s.Values[i], err = strconv.ParseFloat(valueString, 64)
-				if err != nil {
-					return nil, errors.Errorf("could not parse datapoint: %s", valueString)
-				}
-			}
-		}
-
-		series = append(series, s)
+func (Graphite) Scripts() []string {
+	return []string{
+		"graphite-resource.js",
 	}
-
-	return series, nil
 }
 
-// RenderURL builds a Graphite render API URL for the given targets. The
-// key-value pairs in args are added to the URL.
-func (g Graphite) RenderURL(targets []string, args map[string]string) string {
-	values := url.Values{"target": targets}
-	for k, v := range args {
-		values.Add(k, v)
+func (g GraphiteResource) Serialize() (string, error) {
+	gDB := GraphiteResourceDBModel{
+		g.URL,
 	}
 
-	return g.Base + "render?" + values.Encode()
+	gDBJSON, err := json.Marshal(gDB)
+	return string(gDBJSON), err
 }
 
-// GraphiteTimestamp converts t to a value suitable for use as the from or until
-// argument to the Graphite render API.
-func GraphiteTimestamp(t time.Time) string {
-	return strconv.FormatInt(t.Unix(), 10)
+func (g GraphiteResource) Type() ResourceType {
+	return Graphite{}
+}
+
+func (g GraphiteResource) Validate() []string {
+	var errs []string
+	if g.URL == "" {
+		errs = append(errs, "Url is required")
+	}
+
+	return errs
 }

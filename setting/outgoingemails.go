@@ -16,7 +16,6 @@ type OutgoingEmailSetting struct {
 	SmtpServer        string
 }
 
-// Temp struct until datasources and datasource package are combined, i.e. datasource package needs to be created
 type OutgoingEmailSettingDBModel struct {
 	FromName          string
 	FromEmail         string

@@ -94,10 +94,10 @@ CREATE TABLE pfx_label_triggers (
   FOREIGN KEY (`labelid`) REFERENCES pfx_labels(`labelid`) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-CREATE TABLE pfx_data_sources (
-  sourceid INTEGER AUTO_INCREMENT PRIMARY KEY,
-  sourcetype SMALLINT NOT NULL,
-  source TEXT NOT NULL
+CREATE TABLE pfx_resources (
+  resourceid INTEGER AUTO_INCREMENT PRIMARY KEY,
+  resourcetype SMALLINT NOT NULL,
+  resource TEXT NOT NULL
 ) ENGINE = InnoDB;
 
 CREATE TABLE pfx_settings (

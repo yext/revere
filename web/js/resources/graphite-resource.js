@@ -1,17 +1,17 @@
 $(document).ready(function() {
-  datasources.addSourceFunction(graphiteDataSourceHandler.getData);
+  resources.addSourceFunction(graphiteResourceHandler.getData);
 });
 
 
-var graphiteDataSourceHandler = function() {
+var graphiteResourceHandler = function() {
   var gdsh = {}
 
   gdsh.getData = function() {
     var data = [];
-    $.each($('.js-datasource.graphite'), function() {
+    $.each($('.js-resource.graphite'), function() {
       var sendData = $(this).find(':input.required').serializeObject();
       var sourceData = $(this).find(':input.source').serializeObject();
-      $.extend(sendData, {'DataSourceParams': JSON.stringify(sourceData)});
+      $.extend(sendData, {'ResourceParams': JSON.stringify(sourceData)});
       data.push(sendData)
     });
     return data;

@@ -1,25 +1,25 @@
-{{template "_header.html" setTitle . "Data Sources"}}
+{{template "_header.html" setTitle . "Resources"}}
 {{with ._.SaveStatus}}
   <div class="js-valid-input alert alert-success">
-    <p>Successfully {{.}} data source(s)</p>
+    <p>Successfully {{.}} resource(s)</p>
   </div>
 {{end}}
 <div class="index-header">
-  <h1 class="index-header">Data Sources</h1>
+  <h1 class="index-header">Resources</h1>
 </div>
 <div id="js-errors">
   <div class="js-error alert alert-danger hidden"></div>
 </div>
 <div>
-  <form id="js-datasources-form" class="form-horizontal" method="post" action="/datasources">
-    <div id="js-sources" class="hidden">
+  <form id="js-resources-form" class="form-horizontal" method="post" action="/resources">
+    <div id="js-resource-list" class="hidden">
       {{range $._Array}}
         {{._Render}}
       {{end}}
     </div>
     <div>
-      {{range $id, $name := ._.Datasources}}
-        <div class="js-source-type" js-source-type={{$id}}>
+      {{range $id, $name := ._.Resources}}
+        <div class="js-resource-type" js-resource-type={{$id}}>
           <h2>{{$name}}</h2>
           <button type="button" class="js-add-source btn btn-default">+ Add</button>
         </div>

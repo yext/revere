@@ -15,12 +15,12 @@ type VMType interface {
 	blank() (VM, error)
 	Templates() map[string]string
 	Scripts() map[string][]string
-	AcceptedSourceTypes() []db.SourceType
+	AcceptedResourceTypes() []db.ResourceType
 }
 
 type VM interface {
 	VMType
-	HasDatasource(db.DatasourceID) bool
+	HasResource(db.ResourceID) bool
 	SerializeForDB() (string, error)
 	SerializeForFrontend() map[string]string
 	Type() VMType

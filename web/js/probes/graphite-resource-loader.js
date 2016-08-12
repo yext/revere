@@ -1,28 +1,28 @@
 $(document).ready(function() {
-  graphiteDSLoader.init();
+  graphiteResourceLoader.init();
 });
 
-var graphiteDSLoader = function() {
+var graphiteResourceLoader = function() {
   var gdl = {};
 
   gdl.init = function() {
     var probeType = $('#js-probe-type option:selected').val();
     $.ajax({
-      url: '/datasources/probe/' + probeType,
+      url: '/resources/probe/' + probeType,
     }).done(function(data, status, jqXHR) {
-      gdl.displayDataSources(JSON.parse(data));
+      gdl.displayResources(JSON.parse(data));
     }).fail(function(jqXHR, status, error) {
       revere.showErrors([error]);
     });
   };
 
-  gdl.displayDataSources = function(datasources) {
-    var $selector = $('#js-datasources'),
+  gdl.displayResources = function(resources) {
+    var $selector = $('#js-resources'),
       selectedUrl = $selector.data('url');
-    $.each(datasources, function(i, datasource) {
-      var url = datasource.DataSource.URL,
+    $.each(resources, function(i, resource) {
+      var url = resource.Resource.URL,
         selected = url === selectedUrl,
-        id = datasource.SourceID;
+        id = resource.ResourceID;
 
       $selector.append($('<option></option').html(url)
         .data('id',id).attr('selected', selected));

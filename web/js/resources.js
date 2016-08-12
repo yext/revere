@@ -1,8 +1,8 @@
 $(document).ready(function() {
-  datasources.init();
+  resources.init();
 });
 
-var datasources = function() {
+var resources = function() {
   var dsi = {};
   dsi.sourceFunctions = [];
 
@@ -15,12 +15,12 @@ var datasources = function() {
   };
 
   var initForm = function() {
-    $('#js-datasources-form').submit(function(e) {
+    $('#js-resources-form').submit(function(e) {
       e.preventDefault();
       var $form = $(this);
       var url = $form.attr('action'),
         formData = [],
-        sourceFns = datasources.getSourceFunctions();
+        sourceFns = resources.getSourceFunctions();
       $.each(sourceFns, function() {
         formData = formData.concat(this());
       });
@@ -33,7 +33,7 @@ var datasources = function() {
         if (response.errors) {
           return revere.showErrors(response.errors);
         }
-        window.location.replace('/datasources');
+        window.location.replace('/resources');
       }).fail(function(jqXHR, textStatus, errorThrown) {
         revere.showErrors([jqXHR.responseText || textStatus]);
       });
@@ -42,38 +42,38 @@ var datasources = function() {
 
   var clearInputs = function(newField) {
     newField.find('input[type="text"]').val('');
-    newField.find('input[name="SourceID"]').val(0);
+    newField.find('input[name="ResourceID"]').val(0);
     newField.find('input[name="Delete"]').val(false);
   };
 
   var initDeleteButtons = function() {
-    $(document.body).on('click', '.js-remove-datasource', function(e) {
+    $(document.body).on('click', '.js-remove-resource', function(e) {
       e.preventDefault();
-      $dataSource = $(this).parents('.js-datasource');
-      var id = $dataSource.find('input[name="SourceID"]').val();
+      $resource = $(this).parents('.js-resource');
+      var id = $resource.find('input[name="ResourceID"]').val();
       if(id == '0'){
-        $dataSource.remove();
-      } else if (datasourcesLeft === 1) {
-        clearInputs($dataSource);
+        $resource.remove();
+      } else if (resourcesLeft() === 1) {
+        clearInputs($resource);
       } else {
-        $dataSource.find('input[name="Delete"]').prop('checked', true);
-        $dataSource.addClass('hidden');
+        $resource.find('input[name="Delete"]').prop('checked', true);
+        $resource.addClass('hidden');
       }
     });
   }
 
-  var datasourcesLeft = function() {
+  var resourcesLeft = function() {
     var type = $(this).data('sourceref');
     return $('.' + type).not('hidden').length;
   }
 
-  var sortAndArrangeDataSources = function() {
-      // Get datasources as they are displayed
-      var $datasources = $('.js-datasource');
+  var sortAndArrangeResources = function() {
+      // Get resources as they are displayed
+      var $resources = $('.js-resource');
       idToHtmlMap = {};
       var id;
-      $.each($datasources, function(_index, sourceHtml) {
-          id = parseInt($(sourceHtml).find('input[name="SourceType"]').val());
+      $.each($resources, function(_index, sourceHtml) {
+          id = parseInt($(sourceHtml).find('input[name="ResourceType"]').val());
           if (idToHtmlMap[id]) {
               idToHtmlMap[id].push(sourceHtml);
           } else {
@@ -81,11 +81,11 @@ var datasources = function() {
               idToHtmlMap[id].push(sourceHtml);
           }
       });
-      var $typeDivs = $('.js-source-type');
+      var $typeDivs = $('.js-resource-type');
 
-      $('#js-sources').remove();
+      $('#js-resource-list').remove();
       $.each($typeDivs, function(_index, div) {
-          idStr = $(div).attr('js-source-type');
+          idStr = $(div).attr('js-resource-type');
           id = parseInt(idStr);
           $button = $(div).find('button');
           if (idToHtmlMap[id]) {
@@ -94,7 +94,7 @@ var datasources = function() {
             }
           }
           $button.click(function() {
-              $.ajax('datasourcetype/'+idStr, {
+              $.ajax('resourcetype/'+idStr, {
                   success: function(data) {
                     $button.before(data['template']);
                   }
@@ -106,7 +106,7 @@ var datasources = function() {
   dsi.init = function() {
     initForm();
     initDeleteButtons();
-    sortAndArrangeDataSources();
+    sortAndArrangeResources();
   };
   return dsi;
 }();

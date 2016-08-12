@@ -1,0 +1,14 @@
+<div class="js-resource graphite">
+  <div class="revere-row">
+    <div class="col-sm-1">
+      <input type="checkbox" class="form-control hide required" name="Delete" data-json-type="Boolean">
+      <button class="js-remove-resource btn btn-default btn-block">x</button>
+    </div>
+    <input type="hidden" class="form-control required" name="ResourceID" data-json-type="Number" value="{{.ResourceID}}">
+    <input type="hidden" class="form-control required" name="ResourceType" data-json-type="Number" value="{{.ResourceType}}">
+    <label class="col-sm-1 control-label" for="URL">Url</label>
+    <div class="col-sm-4">
+      <input type="text" class="form-control source" name="URL" value={{.Resource.URL}}>
+    </div>
+  </div>
+</div>

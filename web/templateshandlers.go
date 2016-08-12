@@ -8,33 +8,33 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/probe"
+	"github.com/yext/revere/resource"
 	"github.com/yext/revere/target"
 	"github.com/yext/revere/web/vm/renderables"
 )
 
-func LoadDataSourceTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func LoadResourceTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		i, err := strconv.Atoi(p.ByName("id"))
 		if err != nil {
 			http.Error(w, "Id must be an int", http.StatusInternalServerError)
 			return
 		}
-		id := db.SourceType(i)
-		ds, err := datasource.Blank(id)
+		id := db.ResourceType(i)
+		ds, err := resource.Blank(id)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("No data source type with id: %s", err.Error()), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("No resource type with id: %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
-		dsvm := &datasource.VM{
-			SourceType: id,
-			DataSource: ds,
+		rvm := &resource.VM{
+			ResourceType: id,
+			Resource:     ds,
 		}
-		dsv := renderables.NewDataSourceView(dsvm)
+		rv := renderables.NewResourceView(rvm)
 
-		tmpl, err := renderables.RenderPartial(dsv)
+		tmpl, err := renderables.RenderPartial(rv)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Unable to render template: %s", err.Error()),
 				http.StatusInternalServerError)
@@ -42,7 +42,7 @@ func LoadDataSourceTemplate(DB *db.DB) func(w http.ResponseWriter, req *http.Req
 		}
 		template, err := json.Marshal(map[string]template.HTML{"template": tmpl})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Unable to load data source: %s", err.Error()),
+			http.Error(w, fmt.Sprintf("Unable to load resource: %s", err.Error()),
 				http.StatusInternalServerError)
 			return
 		}

@@ -25,7 +25,7 @@ Optional: One or more Trigger(s)
   * Changes should be reflected on the view page after the redirect
 2. Edit Probe attribute
   * Load the page
-  * Modify an attribute of the Probe (e.g. Thresholds, Graphite Data Source)
+  * Modify an attribute of the Probe (e.g. Thresholds, Graphite Resource)
   * Click "Save"
   * Changes should be reflected on the view page after the redirect
 3. Create Trigger

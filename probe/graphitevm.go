@@ -6,8 +6,8 @@ import (
 
 	"github.com/juju/errors"
 
-	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
+	"github.com/yext/revere/resource"
 	"github.com/yext/revere/util"
 )
 
@@ -17,7 +17,7 @@ type GraphiteThresholdProbe struct {
 	GraphiteThresholdType
 
 	URL               string
-	SourceID          db.DatasourceID
+	ResourceID        db.ResourceID
 	Expression        string
 	Thresholds        ThresholdsModel
 	AuditFunction     string
@@ -77,28 +77,28 @@ func (GraphiteThresholdType) loadFromDb(encodedProbe string, tx *db.Tx) (VM, err
 	auditPeriod, auditPeriodType := util.GetPeriodAndType(g.TimeToAuditMilli)
 	ignoredPeriod, ignoredPeriodType := util.GetPeriodAndType(g.RecentTimeToIgnoreMilli)
 
-	dbds, err := tx.LoadDatasource(db.DatasourceID(g.SourceID))
+	dbds, err := tx.LoadResource(db.ResourceID(g.ResourceID))
 	if err != nil {
 		return nil, err
 	}
 
 	if dbds == nil {
-		return nil, errors.Errorf("no data source found: %d")
+		return nil, errors.Errorf("no resource found: %d")
 	}
 
-	ds, err := datasource.LoadFromDB(datasource.GraphiteDataSource{}.Id(), dbds.Source)
+	ds, err := resource.LoadFromDB(resource.GraphiteResource{}.Id(), dbds.Resource)
 	if err != nil {
 		return nil, err
 	}
 
-	gds, found := ds.(*datasource.GraphiteDataSource)
+	gds, found := ds.(*resource.GraphiteResource)
 	if !found {
-		return nil, errors.New("not a graphite data source")
+		return nil, errors.New("not a graphite resource")
 	}
 
 	return &GraphiteThresholdProbe{
 		URL:        gds.URL,
-		SourceID:   db.DatasourceID(g.SourceID),
+		ResourceID: db.ResourceID(g.ResourceID),
 		Expression: g.Expression,
 		Thresholds: ThresholdsModel{
 			g.Thresholds.Warning,
@@ -131,7 +131,7 @@ func (gt GraphiteThresholdType) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"graphite-threshold.js",
-			"graphite-ds-loader.js",
+			"graphite-resource-loader.js",
 		},
 		"preview": []string{
 			"graphite-preview.js",
@@ -139,14 +139,14 @@ func (gt GraphiteThresholdType) Scripts() map[string][]string {
 	}
 }
 
-func (GraphiteThresholdType) AcceptedSourceTypes() []db.SourceType {
-	return []db.SourceType{
-		datasource.Graphite{}.Id(),
+func (GraphiteThresholdType) AcceptedResourceTypes() []db.ResourceType {
+	return []db.ResourceType{
+		resource.Graphite{}.Id(),
 	}
 }
 
-func (g GraphiteThresholdProbe) HasDatasource(id db.DatasourceID) bool {
-	return g.SourceID == id
+func (g GraphiteThresholdProbe) HasResource(id db.ResourceID) bool {
+	return g.ResourceID == id
 }
 
 func (g GraphiteThresholdProbe) SerializeForFrontend() map[string]string {
@@ -175,7 +175,7 @@ func (g GraphiteThresholdProbe) SerializeForDB() (string, error) {
 	ignoredPeriodMilli := util.GetMs(g.IgnoredPeriod, g.IgnoredPeriodType)
 
 	gtDB := GraphiteThresholdDBModel{
-		SourceID:   int64(g.SourceID),
+		ResourceID: int64(g.ResourceID),
 		Expression: g.Expression,
 		Thresholds: GraphiteThresholdThresholdsDBModel{
 			Warning:  g.Thresholds.Warning,

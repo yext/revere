@@ -3,48 +3,48 @@ package renderables
 import (
 	"path"
 
-	"github.com/yext/revere/datasource"
+	"github.com/yext/revere/resource"
 	"github.com/yext/revere/web/vm"
 )
 
-type DataSourceView struct {
-	datasource *datasource.VM
+type ResourceView struct {
+	resource *resource.VM
 }
 
-func NewDataSourceView(ds *datasource.VM) *DataSourceView {
-	dsv := DataSourceView{}
-	dsv.datasource = ds
+func NewResourceView(ds *resource.VM) *ResourceView {
+	dsv := ResourceView{}
+	dsv.resource = ds
 	return &dsv
 }
 
-func (dsv *DataSourceView) name() string {
-	return dsv.datasource.Name()
+func (dsv *ResourceView) name() string {
+	return dsv.resource.Name()
 }
 
-func (dsv *DataSourceView) template() string {
-	return path.Join(datasource.DataSourceDir, dsv.datasource.Templates())
+func (dsv *ResourceView) template() string {
+	return path.Join(resource.ResourceDir, dsv.resource.Templates())
 }
 
-func (dsv *DataSourceView) data() interface{} {
-	return dsv.datasource
+func (dsv *ResourceView) data() interface{} {
+	return dsv.resource
 }
 
-func (dsv *DataSourceView) scripts() []string {
+func (dsv *ResourceView) scripts() []string {
 	return nil
 }
 
-func (dsv *DataSourceView) breadcrumbs() []vm.Breadcrumb {
+func (dsv *ResourceView) breadcrumbs() []vm.Breadcrumb {
 	return nil
 }
 
-func (dsv *DataSourceView) subRenderables() []Renderable {
+func (dsv *ResourceView) subRenderables() []Renderable {
 	return nil
 }
 
-func (dsv *DataSourceView) renderPropagate() (*renderResult, error) {
+func (dsv *ResourceView) renderPropagate() (*renderResult, error) {
 	return renderPropagateImmediate(dsv)
 }
 
-func (dsv *DataSourceView) aggregatePipelineData(parent *renderResult, child *renderResult) {
+func (dsv *ResourceView) aggregatePipelineData(parent *renderResult, child *renderResult) {
 	aggregatePipelineDataArray(parent, child)
 }

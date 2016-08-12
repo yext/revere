@@ -30,7 +30,7 @@ sub-Renderables array, and added to the parent data object under the key
 
 Lastly the renderResult is returned (if the regular renderPropogate method is
 specified, which should be the default in most cases). In the cases of Probes,
-Data Sources, Targets, and Settings, go's template package will not allow
+Resources, Targets, and Settings, go's template package will not allow
 dynamically-specified template files and requires an alternate solution.
 Calling renderPropagateImmediate on the renderPropagate step renders the entire
 Renderable into a template.HTML string, which is then added to the data object

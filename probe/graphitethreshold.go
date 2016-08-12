@@ -9,7 +9,6 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 
-	"github.com/yext/revere/datasource"
 	"github.com/yext/revere/db"
 	"github.com/yext/revere/resource"
 	"github.com/yext/revere/state"
@@ -53,23 +52,23 @@ func newGraphiteThreshold(tx *db.Tx, configJSON types.JSONText, readingsSink cha
 		return nil, errors.Mask(err)
 	}
 
-	dbds, err := tx.LoadDatasource(db.DatasourceID(config.SourceID))
+	dbds, err := tx.LoadResource(db.ResourceID(config.ResourceID))
 	if err != nil {
 		return nil, errors.Mask(err)
 	}
 
 	if dbds == nil {
-		return nil, errors.Errorf("no data source found: %d", config.SourceID)
+		return nil, errors.Errorf("no resource found: %d", config.ResourceID)
 	}
 
-	ds, err := datasource.LoadFromDB(datasource.GraphiteDataSource{}.Id(), dbds.Source)
+	ds, err := resource.LoadFromDB(resource.GraphiteResource{}.Id(), dbds.Resource)
 	if err != nil {
 		return nil, errors.Mask(err)
 	}
 
-	gds, found := ds.(*datasource.GraphiteDataSource)
+	gds, found := ds.(*resource.GraphiteResource)
 	if !found {
-		return nil, errors.New("not a graphite data source")
+		return nil, errors.New("not a graphite resource")
 	}
 
 	gt.graphiteBase = fmt.Sprintf("http://%s/", gds.URL)
@@ -169,7 +168,7 @@ func (gt *GraphiteThreshold) Check() []Reading {
 
 	auditEnd := now.Add(-gt.recentTimeToIgnore)
 
-	g := resource.Graphite{gt.graphiteBase}
+	g := resource.GraphiteDaemon{gt.graphiteBase}
 
 	series, err := g.Query(gt.expression, auditEnd.Add(-gt.timeToAudit), auditEnd)
 	if err != nil {
