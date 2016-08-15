@@ -218,6 +218,11 @@ func (vm *VM) Save(tx *db.Tx) error {
 }
 
 func (vm *VM) Validate() (errs []string) {
+	// Automatically short-circuit all deletions
+	if vm.Delete {
+		return nil
+	}
+
 	var err error
 	vm.DataSource, err = LoadFromParams(vm.SourceType, vm.DataSourceParams)
 	if err != nil {
