@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/braintree/manners"
+	"github.com/yext/revere/boxes"
 	"github.com/yext/revere/env"
 	"github.com/yext/revere/web"
 
@@ -23,6 +24,10 @@ type WebServer struct {
 
 // New initializes the WebServer.
 func New(env *env.Env) *WebServer {
+	cssFiles := boxes.CSS()
+	jsFiles := boxes.JS()
+	favicon := boxes.Favicon()
+
 	router := httprouter.New()
 	router.GET("/", web.ActiveIssues(env.DB))
 	router.GET("/datasources", web.DataSourcesIndex(env.DB))
@@ -48,11 +53,10 @@ func New(env *env.Env) *WebServer {
 	router.GET("/settings", web.SettingsIndex(env.DB))
 	router.POST("/settings", web.SettingsSave(env.DB))
 	router.GET("/redirectToSilence", web.RedirectToSilence(env.DB))
-	router.ServeFiles("/static/css/*filepath", http.Dir("web/css"))
-	router.ServeFiles("/static/js/*filepath", http.Dir("web/js"))
-	router.HandlerFunc("GET", "/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "web/favicon.ico")
-	})
+
+	router.ServeFiles("/static/css/*filepath", cssFiles.HTTPBox())
+	router.ServeFiles("/static/js/*filepath", jsFiles.HTTPBox())
+	router.Handler("GET", "/favicon.ico", http.FileServer(favicon.HTTPBox()))
 
 	return &WebServer{
 		Env:     env,

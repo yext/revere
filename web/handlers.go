@@ -32,8 +32,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var partials = "web/views/partials/*.html"
-
 func init() {
 	tmpl.AddDefaultFunc("isLastBc", vm.IsLastBc)
 	tmpl.AddDefaultFunc("setTitle", tmpl.SetTitle)
@@ -43,7 +41,6 @@ func init() {
 	tmpl.AddDefaultFunc("targets", target.AllTargets)
 	tmpl.AddDefaultFunc("settings", setting.AllTypes)
 	tmpl.AddDefaultFunc("probeTypes", probe.AllTypes)
-	tmpl.SetPartialsLocation(partials)
 }
 
 func ActiveIssues(DB *db.DB) func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
