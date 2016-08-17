@@ -78,6 +78,7 @@ func (EmailType) Scripts() map[string][]string {
 	return map[string][]string{
 		"edit": []string{
 			"email.js",
+			"../bootstrap-tagsinput.js",
 		},
 	}
 }

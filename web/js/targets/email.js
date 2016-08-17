@@ -7,6 +7,7 @@ var emailTarget = function() {
 
   e.init = function() {
     addSerializeFn();
+    initTags();
   };
 
   var addSerializeFn = function() {
@@ -23,6 +24,28 @@ var emailTarget = function() {
       }
       return JSON.stringify({'Addresses':emails});
     });
+  };
+
+  var initTags = function() {
+    var tagConfig = {
+      tagClass: 'label label-primary',
+      trimValue: true
+    };
+
+    $('.js-trigger').find('.js-email-field:visible').tagsinput(tagConfig);
+
+    // Initialize tags for new triggers
+    MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    var target = document.querySelector('#triggers'),
+      config = {childList: true},
+      observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        [].slice.call(mutation.addedNodes).forEach(function(trigger) {
+          $(trigger).find('.js-email-field').tagsinput(tagConfig);
+        });
+      });
+    });
+    observer.observe(target, config);
   };
 
   return e;

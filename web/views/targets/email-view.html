@@ -2,18 +2,16 @@
   <div class="row">
     <div class="col-sm-2 field-label">To:</div>
     <div class="col-sm-10">
-      {{range $i, $Address := .Addresses -}}
-        {{if and $i $Address.To}}, {{end -}}
-        {{$Address.To -}}
+      {{range $i, $Address := .Addresses}}
+        <span class="tag label label-primary">{{$Address.To}}</span>
       {{end}}
     </div>
   </div>
   <div class="row">
     <div class="col-sm-2 field-label">Reply-To:</div>
     <div class="col-sm-10">
-      {{range $i, $Address := .Addresses -}}
-        {{if and $i $Address.ReplyTo}}, {{end -}}
-        {{$Address.ReplyTo -}}
+      {{range $i, $Address := .Addresses}}
+        <span class="tag label label-primary">{{$Address.ReplyTo}}</span>
       {{end}}
     </div>
   </div>
