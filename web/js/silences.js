@@ -116,7 +116,7 @@ var silencesEdit = function() {
     disableAllBoundFields();
 
     var data = getSilenceData(),
-      id = data['SilenceId'];
+      id = data['SilenceID'];
     data.Start = localTimeToUtc(startMoment);
     data.End = localTimeToUtc(endMoment);
     $.ajax({
