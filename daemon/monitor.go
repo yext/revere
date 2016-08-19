@@ -73,7 +73,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 		[]monitorTrigger, 0, len(dbMonitorTriggers)+len(dbLabelTriggers))
 	for _, dbMonitorTrigger := range dbMonitorTriggers {
 		monitorTrigger, err := newMonitorTrigger(
-			dbMonitorTrigger.Subprobes, dbMonitorTrigger.Trigger)
+			dbMonitorTrigger.Subprobes, dbMonitorTrigger.Trigger, env)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"monitor": id,
@@ -85,7 +85,7 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	}
 	for _, dbLabelTrigger := range dbLabelTriggers {
 		monitorTrigger, err := newMonitorTrigger(
-			dbLabelTrigger.Subprobes, dbLabelTrigger.Trigger)
+			dbLabelTrigger.Subprobes, dbLabelTrigger.Trigger, env)
 		if err != nil {
 			log.WithError(err).WithFields(log.Fields{
 				"monitor": id,
@@ -128,13 +128,13 @@ func newMonitor(id db.MonitorID, env *env.Env) (*monitor, error) {
 	return monitor, nil
 }
 
-func newMonitorTrigger(subprobes string, dbTrigger *db.Trigger) (*monitorTrigger, error) {
+func newMonitorTrigger(subprobes string, dbTrigger *db.Trigger, env *env.Env) (*monitorTrigger, error) {
 	subprobesRegexp, err := regexp.Compile(subprobes)
 	if err != nil {
 		return nil, errors.Maskf(err, "compile regexp")
 	}
 
-	triggerTemplate, err := newTriggerTemplate(dbTrigger)
+	triggerTemplate, err := newTriggerTemplate(dbTrigger, env)
 	if err != nil {
 		return nil, errors.Maskf(err, "make trigger")
 	}

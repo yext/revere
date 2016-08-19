@@ -12,6 +12,7 @@ import (
 	"github.com/juju/errors"
 
 	"github.com/yext/revere/db"
+	"github.com/yext/revere/setting"
 	"github.com/yext/revere/state"
 )
 
@@ -25,7 +26,7 @@ func (_ emailType) New(config types.JSONText) (Target, error) {
 	return newEmail(config)
 }
 
-func (_ emailType) Alert(a *Alert, toAlert map[db.TriggerID]Target, inactive []Target) []ErrorAndTriggerIDs {
+func (_ emailType) Alert(Db *db.DB, a *Alert, toAlert map[db.TriggerID]Target, inactive []Target) []ErrorAndTriggerIDs {
 	triggerIDs := make([]db.TriggerID, 0, len(toAlert))
 	for id := range toAlert {
 		triggerIDs = append(triggerIDs, id)
@@ -52,21 +53,45 @@ func (_ emailType) Alert(a *Alert, toAlert map[db.TriggerID]Target, inactive []T
 	// TODO(eefi): Respect line length limits. Encode headers and body to
 	// avoid UTF-8 causing breaks.
 
+	emailSetting := setting.OutgoingEmailSetting{}
+
+	dbSettings, err := Db.LoadSettingsOfType(emailSetting.Type().Id())
+	if err != nil || len(dbSettings) == 0 {
+		return []ErrorAndTriggerIDs{{
+			Err: errors.Maskf(err, "getting settings from db"),
+			IDs: triggerIDs,
+		}}
+	}
+
+	settingsFromDB, err := setting.LoadFromDB(emailSetting.Type().Id(), dbSettings[0].Setting)
+	if err != nil {
+		return []ErrorAndTriggerIDs{{
+			Err: errors.Maskf(err, "unparsing db settings"),
+			IDs: triggerIDs,
+		}}
+	}
+
+	emailSettings, found := settingsFromDB.(*setting.OutgoingEmailSetting)
+	if !found {
+		return []ErrorAndTriggerIDs{{
+			Err: errors.Maskf(err, "extracting email settings"),
+			IDs: triggerIDs,
+		}}
+	}
+
 	var b bytes.Buffer
 	b.WriteString(fmt.Sprintf(
 		"Date: %s\n", time.Now().UTC().Format(time.RFC822Z)))
-	// TODO(eefi): Update from address.
 	b.WriteString(fmt.Sprintf(
-		"From: %s\n", "Revere <revere@yext.com>"))
+		"From: %s <%s>\n", emailSettings.FromName, emailSettings.FromEmail))
 	b.WriteString(fmt.Sprintf(
 		"Reply-To: %s\n", strings.Join(replyTo, ", ")))
 	b.WriteString(fmt.Sprintf(
 		"To: %s\n", strings.Join(to, ", ")))
-	// TODO(eefi): Custom subject prefix.
 	b.WriteString(fmt.Sprintf(
-		"Subject: [Revere] %s/%s\n", a.MonitorName, a.SubprobeName))
+		"Subject: [%s] %s/%s\n", emailSettings.SubjectLinePrefix, a.MonitorName, a.SubprobeName))
 
-	err := emailTmpl.Execute(&b, a)
+	err = emailTmpl.Execute(&b, a)
 	if err != nil {
 		return []ErrorAndTriggerIDs{{
 			Err: errors.Maskf(err, "render email"),
@@ -76,9 +101,8 @@ func (_ emailType) Alert(a *Alert, toAlert map[db.TriggerID]Target, inactive []T
 
 	msg := []byte(strings.Replace(b.String(), "\n", "\r\n", -1))
 
-	// TODO(eefi): Update auth, SMTP host, from address.
 	auth := smtp.PlainAuth("", "", "", "")
-	err = smtp.SendMail("localhost:25", auth, "revere@yext.com", to, msg)
+	err = smtp.SendMail(emailSettings.SmtpServer, auth, emailSettings.FromEmail, to, msg)
 	if err != nil {
 		return []ErrorAndTriggerIDs{{
 			Err: errors.Maskf(err, "send email"),

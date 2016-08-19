@@ -23,7 +23,7 @@ type Type interface {
 	// Alert returns errors encountered during the sending of alerts,
 	// associated with the trigger IDs of the targets that failed with those
 	// errors.
-	Alert(a *Alert, toAlert map[db.TriggerID]Target, inactive []Target) []ErrorAndTriggerIDs
+	Alert(Db *db.DB, a *Alert, toAlert map[db.TriggerID]Target, inactive []Target) []ErrorAndTriggerIDs
 }
 
 type ErrorAndTriggerIDs struct {

@@ -7,6 +7,7 @@ import (
 	"github.com/juju/errors"
 
 	"github.com/yext/revere/db"
+	"github.com/yext/revere/env"
 	"github.com/yext/revere/state"
 	"github.com/yext/revere/target"
 )
@@ -19,7 +20,7 @@ type triggerTemplate struct {
 	target        target.Target
 }
 
-func newTriggerTemplate(dbModel *db.Trigger) (*triggerTemplate, error) {
+func newTriggerTemplate(dbModel *db.Trigger, env *env.Env) (*triggerTemplate, error) {
 	target, err := target.New(dbModel.TargetType, dbModel.Target)
 	if err != nil {
 		return nil, errors.Maskf(err, "make target")
@@ -37,10 +38,12 @@ func newTriggerTemplate(dbModel *db.Trigger) (*triggerTemplate, error) {
 type trigger struct {
 	*triggerTemplate
 	lastAlert time.Time
+
+	*env.Env
 }
 
-func newTrigger(template *triggerTemplate) *trigger {
-	return &trigger{triggerTemplate: template}
+func newTrigger(template *triggerTemplate, Env *env.Env) *trigger {
+	return &trigger{triggerTemplate: template, Env: Env}
 }
 
 func (t *trigger) shouldTrigger(a *target.Alert) bool {
@@ -72,7 +75,9 @@ func (s sameTypeTriggerSet) alert(a *target.Alert) {
 	toAlert := make(map[db.TriggerID]target.Target)
 	var inactive []target.Target
 	var targetType target.Type
+	var Db *db.DB
 	for _, trigger := range s {
+		Db = trigger.Env.DB
 		if trigger.shouldTrigger(a) {
 			toAlert[trigger.id] = trigger.target
 			targetType = trigger.target.Type()
@@ -97,7 +102,7 @@ func (s sameTypeTriggerSet) alert(a *target.Alert) {
 		}).Debug("Sending alerts.")
 	}
 
-	errors := targetType.Alert(a, toAlert, inactive)
+	errors := targetType.Alert(Db, a, toAlert, inactive)
 
 	for _, errAndIDs := range errors {
 		log.WithError(errAndIDs.Err).WithFields(log.Fields{

@@ -105,7 +105,7 @@ func newSubprobeTriggerSets(monitor *monitor, name string) map[db.TargetType]sam
 				triggerSets[targetType] = triggerSet
 			}
 
-			triggerSet.add(newTrigger(triggerTemplate))
+			triggerSet.add(newTrigger(triggerTemplate, monitor.Env))
 		}
 	}
 	return triggerSets
