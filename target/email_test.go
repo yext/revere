@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/yext/revere/targets"
+	. "github.com/yext/revere/target"
 	"github.com/yext/revere/test"
 )
 
 var (
-	emailTargetType = Email{}
-	emailId         = 0
+	emailTargetType = EmailType{}
+	emailId         = 1
 	emailName       = "Email"
 	validEmailJson  = test.DefaultTargetJson
 
@@ -20,7 +20,7 @@ var (
 )
 
 func validEmailTarget() (*EmailTarget, error) {
-	target, err := emailTargetType.Load(validEmailJson)
+	target, err := LoadFromParams(emailTargetType.Id(), validEmailJson)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func validEmailTarget() (*EmailTarget, error) {
 		return nil, fmt.Errorf("Invalid target loaded for target type: %s\n", emailTargetType.Name())
 	}
 
-	if len(emailTarget.EmailAddresses) < 1 {
+	if len(emailTarget.Addresses) < 1 {
 		return nil, errors.New("Email json contains no email addresses")
 	}
 
@@ -50,7 +50,7 @@ func TestEmailName(t *testing.T) {
 }
 
 func TestLoadEmptyEmail(t *testing.T) {
-	target, err := emailTargetType.Load(`{}`)
+	target, err := LoadFromParams(emailTargetType.Id(), "{}")
 	if err != nil {
 		t.Fatalf("Failed to load empty email target: %s\n", err.Error())
 	}
@@ -68,7 +68,7 @@ func TestInvalidEmailTo(t *testing.T) {
 	}
 
 	for _, e := range invalidEmailAddresses {
-		et.EmailAddresses[0].EmailTo = e
+		et.Addresses[0].To = e
 		errs := et.Validate()
 		if errs == nil {
 			t.Errorf("Expected error for email-to: %s\n", e)
@@ -83,7 +83,7 @@ func TestValidEmailTo(t *testing.T) {
 	}
 
 	for _, e := range validEmailAddresses {
-		et.EmailAddresses[0].EmailTo = e
+		et.Addresses[0].To = e
 		errs := et.Validate()
 		if errs != nil {
 			t.Errorf("Unexpected error for email-to: %v\n", errs)
@@ -98,9 +98,9 @@ func TestInvalidReplyTo(t *testing.T) {
 	}
 
 	for _, e := range invalidEmailAddresses {
-		et.EmailAddresses[0].ReplyTo = e
+		et.Addresses[0].ReplyTo = e
 		errs := et.Validate()
-		if errs == nil {
+		if errs == nil && e != "" {
 			t.Errorf("Expected error for reply-to: %s\n", e)
 		}
 	}
@@ -113,7 +113,7 @@ func TestValidReplyTo(t *testing.T) {
 	}
 
 	for _, e := range validEmailAddresses {
-		et.EmailAddresses[0].ReplyTo = e
+		et.Addresses[0].ReplyTo = e
 		errs := et.Validate()
 		if errs != nil {
 			t.Errorf("Unexpected error for reply-to: %v\n", errs)

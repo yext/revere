@@ -15,8 +15,8 @@ const (
 		"auditPeriodType": "minute"
 	}`
 	DefaultTargetJson = `{
-		"emails": [
-			{"emailTo":"test@ex.com", "replyTo":"test2@ex.com"}
+		"Addresses": [
+			{"To":"test@ex.com", "ReplyTo":"test2@ex.com"}
 		]
 	}`
 )
