@@ -1,18 +1,16 @@
 <input id="js-email-target-type" type="hidden" value="{{.Id}}">
-<div class="form-group">
+<div class="form-group js-email-address">
   <label class="col-sm-2 control-label" for="To">To</label>
   <div class="col-sm-4">
-    <input type="text" class="form-control js-email-field" name="To"
+    <input type="text" class="form-control" name="To"
     value="{{range $i, $Address := .Addresses -}}
       {{if and $i $Address.To}}, {{end -}}
       {{$Address.To -}}
     {{end}}">
   </div>
-</div>
-<div class="form-group">
-  <label class="col-sm-2 control-label" for="ReplyTo">Reply-To</label>
+  <label class="col-sm-1 control-label" for="ReplyTo">Reply-To</label>
   <div class="col-sm-4">
-    <input type="text" class="form-control js-email-field" name="ReplyTo"
+    <input type="text" class="form-control" name="ReplyTo"
     value="{{range $i, $Address := .Addresses -}}
       {{if and $i $Address.ReplyTo}}, {{end -}}
       {{$Address.ReplyTo -}}
