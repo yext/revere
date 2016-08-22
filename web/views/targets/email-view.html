@@ -1,20 +1,15 @@
+{{define "email-address"}}
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-2 field-label">To:</div>
-    <div class="col-sm-10">
-      {{range $i, $Address := .Addresses -}}
-        {{if and $i $Address.To}}, {{end -}}
-        {{$Address.To -}}
-      {{end}}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-2 field-label">Reply-To:</div>
-    <div class="col-sm-10">
-      {{range $i, $Address := .Addresses -}}
-        {{if and $i $Address.ReplyTo}}, {{end -}}
-        {{$Address.ReplyTo -}}
-      {{end}}
-    </div>
+    <div class="col-sm-4">{{.To}}</div>
+    <div class="col-sm-2 field-label">Reply To:</div>
+    <div class="col-sm-4">{{.ReplyTo}}</div>
   </div>
 </div>
+{{end}}
+{{range .Addresses}}
+  {{template "email-address" .}}
+{{else}}
+  {{template "email-address"}}
+{{end}}

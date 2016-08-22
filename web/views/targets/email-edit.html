@@ -1,19 +1,21 @@
 <input id="js-email-target-type" type="hidden" value="{{.Id}}">
+{{define "email-address"}}
 <div class="form-group js-email-address">
   <label class="col-sm-2 control-label" for="To">To</label>
   <div class="col-sm-4">
-    <input type="text" class="form-control" name="To"
-    value="{{range $i, $Address := .Addresses -}}
-      {{if and $i $Address.To}}, {{end -}}
-      {{$Address.To -}}
-    {{end}}">
+    <input type="text" class="form-control" name="To" value="{{.To}}">
   </div>
   <label class="col-sm-1 control-label" for="ReplyTo">Reply-To</label>
   <div class="col-sm-4">
-    <input type="text" class="form-control" name="ReplyTo"
-    value="{{range $i, $Address := .Addresses -}}
-      {{if and $i $Address.ReplyTo}}, {{end -}}
-      {{$Address.ReplyTo -}}
-    {{end}}">
+    <input type="text" class="form-control" name="ReplyTo" value="{{.ReplyTo}}">
+  </div>
+  <div class="col-sm-1">
+    <button class="js-add-email btn btn-default btn-block">+</button>
   </div>
 </div>
+{{end}}
+{{range .Addresses}}
+  {{template "email-address" .}}
+{{else}}
+  {{template "email-address"}}
+{{end}}
