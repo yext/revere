@@ -15,15 +15,9 @@ var emailTarget = function() {
   var initRemove = function() {
     $.each($('.js-trigger'), function(i) {
       var $emails = $(this).find('.js-email-address');
-      $.each($(this).find('.js-email-address'), function(j) {
-        if (j === 0) {
-          return;
-        }
-        $(this).find('button')
-          .removeClass('js-add-email')
-          .addClass('js-remove-email')
-          .text('-');
-      });
+      if ($emails.length == 1) {
+        $emails.find('.js-remove-email').addClass('hidden');
+      }
     });
   };
 
@@ -39,11 +33,9 @@ var emailTarget = function() {
       e.preventDefault();
       var $emailField = $('.js-email-address').first().clone();
       $emailField.find('input[type="text"]').val('');
-      $emailField.find('button')
-        .removeClass('js-add-email')
-        .addClass('js-remove-email')
-        .text('-');
-      $emailField.appendTo($(this).parents('.js-target'));
+      $emailField.find('.js-remove-email')
+        .removeClass('hidden');
+      $emailField.insertAfter($(this).parents('.js-target').find('.js-email-address:last'));
     });
   };
 

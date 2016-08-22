@@ -10,7 +10,7 @@
     <input type="text" class="form-control" name="ReplyTo" value="{{.ReplyTo}}">
   </div>
   <div class="col-sm-1">
-    <button class="js-add-email btn btn-default btn-block">+</button>
+    <button class="js-remove-email btn btn-default btn-block">-</button>
   </div>
 </div>
 {{end}}
@@ -19,3 +19,8 @@
 {{else}}
   {{template "email-address"}}
 {{end}}
+<div class="form-group">
+  <div class="col-sm-offset-2 col-sm-2">
+    <button class="js-add-email btn btn-default btn-block">+ Add email</button>
+  </div>
+</div>
