@@ -5,14 +5,14 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/yext/revere/probes"
+	. "github.com/yext/revere/probe"
 	"github.com/yext/revere/test"
 )
 
 var (
-	gtId        = 0
+	gtId        = 1
 	gtName      = "Graphite Threshold"
-	gtProbeType = GraphiteThreshold{}
+	gtProbeType = GraphiteThresholdType{}
 	validGtJson = test.DefaultProbeJson
 )
 
@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func validGraphiteThresholdProbe() (*GraphiteThresholdProbe, error) {
-	probe, err := gtProbeType.Load(validGtJson)
+	probe, err := LoadFromParams(gtProbeType.Id(), validGtJson)
 	if err != nil {
 		return nil, err
 	}
@@ -36,18 +36,18 @@ func validGraphiteThresholdProbe() (*GraphiteThresholdProbe, error) {
 
 func TestGraphiteThresholdId(t *testing.T) {
 	if int(gtProbeType.Id()) != gtId {
-		t.Errorf("Expected graphite threshold probe type id: %d, got %d\n", gtId, gtProbeType.Id)
+		t.Errorf("Expected graphite threshold probe type id: %d, got %d\n", gtId, gtProbeType.Id())
 	}
 }
 
 func TestGraphiteThresholdName(t *testing.T) {
 	if gtProbeType.Name() != gtName {
-		t.Errorf("Expected graphite threshold probe type name: %s, got %s\n", gtName, gtProbeType.Name)
+		t.Errorf("Expected graphite threshold probe type name: %s, got %s\n", gtName, gtProbeType.Name())
 	}
 }
 
 func TestGraphiteThresholdEmptyLoad(t *testing.T) {
-	probe, err := gtProbeType.Load(`{}`)
+	probe, err := LoadFromParams(gtProbeType.Id(), `{}`)
 	if err != nil {
 		t.Fatalf("Failed to load empty graphite threshold probe: %s\n", err.Error())
 	}
