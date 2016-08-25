@@ -8,9 +8,9 @@ import (
 func presentSilence() *Silence {
 	now := time.Now()
 	s := new(Silence)
-	s.SilenceId = 1
-	s.Subprobe = "test.*.example"
-	s.MonitorId = 1
+	s.SilenceID = 1
+	s.Subprobes = "test.*.example"
+	s.MonitorID = 1
 	s.MonitorName = "test monitor"
 	s.Start = now.AddDate(0, 0, -1)
 	s.End = now.AddDate(0, 0, 1)
@@ -71,7 +71,7 @@ func TestPastSilenceCreate(t *testing.T) {
 
 func TestCreateSilenceInvalidMonitorId(t *testing.T) {
 	s := futureSilence()
-	s.MonitorId = 0
+	s.MonitorID = 0
 	errs := append(s.validate(), s.validateNew()...)
 	if errs == nil {
 		t.Error("Expected error trying to create a silence with an invalid monitor id")
@@ -81,7 +81,7 @@ func TestCreateSilenceInvalidMonitorId(t *testing.T) {
 func TestEditSilenceInvalidMonitorId(t *testing.T) {
 	old := futureSilence()
 	s := presentSilence()
-	s.MonitorId = 2
+	s.MonitorID = 2
 	errs := append(s.validate(), s.validateOld(old)...)
 	if errs == nil {
 		t.Error("Expected error trying to edit a silence with a different monitor id")
@@ -91,7 +91,7 @@ func TestEditSilenceInvalidMonitorId(t *testing.T) {
 func TestEditSilenceInvalidSubprobes(t *testing.T) {
 	old := presentSilence()
 	s := presentSilence()
-	s.Subprobe = ""
+	s.Subprobes = ""
 	errs := append(s.validate(), s.validateOld(old)...)
 	if errs == nil {
 		t.Error("Expected error trying to edit a silence with a different subprobe")

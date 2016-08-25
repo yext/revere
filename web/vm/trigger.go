@@ -58,11 +58,12 @@ func (t *Trigger) Id() int64 {
 func (t *Trigger) validate() (errs []string) {
 	var err error
 	target, err := target.LoadFromParams(t.TargetType, t.TargetParams)
-	if err != nil {
+	if err == nil {
+		t.Target = target
+		errs = append(errs, target.Validate()...)
+	} else {
 		errs = append(errs, fmt.Sprintf("Unable to load target for trigger: %s", t.TargetParams))
 	}
-	t.Target = target
-	errs = append(errs, target.Validate()...)
 
 	if err = t.Level.Validate(); err != nil {
 		errs = append(errs, fmt.Sprintf("Invalid state for trigger: %d", t.Level))
