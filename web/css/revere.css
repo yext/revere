@@ -134,3 +134,11 @@ strong {
 .field-label {
 	font-weight: bold;
 }
+
+.js-add-source {
+    margin-top: 10px;
+}
+
+.settings-save {
+    margin-top: 10px;
+}
