@@ -56,10 +56,6 @@ var (
 	logLevel = flag.String("logLevel", "warn", "Logrus `level` to log at")
 )
 
-const (
-	SQL_SETUP_SCRIPT = "conf/setup/initialize_db.sql"
-)
-
 func main() {
 	flag.Parse()
 
@@ -79,7 +75,7 @@ func main() {
 	ifErrPrintAndExit(err)
 
 	if modes[0] == "initdb" {
-		err := initDB(env)
+		err := env.DB.Init()
 		ifErrPrintAndExit(err)
 		return
 	}
@@ -160,19 +156,6 @@ func parseMode() ([]string, error) {
 		i++
 	}
 	return modesSlice, nil
-}
-
-func initDB(e *env.Env) error {
-	setupBytes, err := ioutil.ReadFile(SQL_SETUP_SCRIPT)
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	setupScript := string(setupBytes)
-
-	err = e.DB.Setup(setupScript)
-
-	return errors.Maskf(err, "unable to run setup script")
 }
 
 func waitForExitSignal() {
