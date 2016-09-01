@@ -25,9 +25,7 @@ MySQL is required for Revere - you should make sure that's working on your machi
 
 This section walks through getting Revere up and creating a basic monitor.
 
-First, get Revere:
-
-		go get -u github.com/yext/revere
+First, get Revere by downloading the binary from the latest release.
 
 Revere has two arguments on the command line:
 
