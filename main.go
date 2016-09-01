@@ -52,7 +52,7 @@ import (
 
 var (
 	conf     = flag.String("conf", "", "JSON `file` configuring Revere's static environment")
-	mode     = flag.String("mode", "daemon,web,initdb", "comma-separated `modes` to run")
+	mode     = flag.String("mode", "daemon,web", "comma-separated `modes` to run")
 	logLevel = flag.String("logLevel", "warn", "Logrus `level` to log at")
 )
 
@@ -109,18 +109,14 @@ func initLog() error {
 }
 
 func loadEnv() (*env.Env, error) {
-	var json []byte
-	var desc string
-	if *conf != "" {
-		desc = "env conf " + *conf
+	if *conf == "" {
+		return nil, errors.New("No configuration file provided")
+	}
 
-		var err error
-		json, err = ioutil.ReadFile(*conf)
-		if err != nil {
-			return nil, errors.Maskf(err, "load %s", desc)
-		}
-	} else {
-		desc = "default env conf"
+	desc := "env conf " + *conf
+	json, err := ioutil.ReadFile(*conf)
+	if err != nil {
+		return nil, errors.Maskf(err, "load %s", desc)
 	}
 
 	env, err := env.New(json)
