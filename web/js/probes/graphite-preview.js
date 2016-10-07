@@ -87,7 +87,7 @@ var graphitePreview = function() {
   var getGraphiteTargets = function(gtFields) {
     var targetExpression = "";
     if (gtFields['SubprobeName']) {
-        targetExpression = "grep("+gtFields['Expression']+",'"+gtFields['SubprobeName']+"')"
+        targetExpression = "grep("+gtFields['Expression']+",'"+gtFields['SubprobeName'].regexEscape()+"')"
     } else {
         targetExpression = gtFields['Expression']
     }

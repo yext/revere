@@ -77,3 +77,7 @@ $.fn.serializeObject = function() {
   });
   return o;
 };
+
+String.prototype.regexEscape = function regexEscape() {
+      return this.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+};
