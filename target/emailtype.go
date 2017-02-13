@@ -18,6 +18,10 @@ import (
 
 type emailType struct{}
 
+func init() {
+	registerTargetType(emailType{})
+}
+
 func (_ emailType) ID() db.TargetType {
 	return 1
 }
