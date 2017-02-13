@@ -1,0 +1,26 @@
+<div class="js-slack">
+  <h4 class="setting-title">Slack Configuration</h4>
+  <input type="checkbox" class="form-control hide required" name="Delete" data-json-type="Boolean">
+  <input type="hidden" class="form-control required" name="SettingID" data-json-type="Number" value="{{.SettingID}}">
+  <input type="hidden" class="form-control required" name="SettingType" data-json-type="Number" value="{{.SettingType}}">
+  {{with .Setting}}
+    <div class="form-group">
+      <label class="col-md-2 control-label">API Token:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="APIToken" value="{{.APIToken}}"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-md-2 control-label">Bot Name:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="BotName" value="{{.BotName}}"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-md-2 control-label">Webhook URL:</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control json" name="WebhookURL" value="{{.WebhookURL}}"/>
+      </div>
+    </div>
+  {{end}}
+</div>

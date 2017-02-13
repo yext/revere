@@ -46,7 +46,8 @@ var triggersEdit = function() {
       }
     });
 
-    $('.js-targetType').change(function() {
+    $(document.body).on('change', '.js-targetType', function(e) {
+      e.preventDefault();
       $that = $(this);
       $.ajax({
         url: '/monitors/new/target/edit/' + encodeURIComponent($that.val()),

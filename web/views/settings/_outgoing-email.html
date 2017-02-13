@@ -4,25 +4,25 @@
   <input type="hidden" class="form-control required" name="SettingID" data-json-type="Number" value="{{.SettingID}}">
   <input type="hidden" class="form-control required" name="SettingType" data-json-type="Number" value="{{.SettingType}}">
   {{with .Setting}}
-    <div class="revere-row">
+    <div class="form-group">
       <label class="col-md-2 control-label">"From" Name:</label>
       <div class="col-md-6">
         <input type="text" class="form-control json" name="FromName" value="{{.FromName}}"/>
       </div>
     </div>
-    <div class="revere-row">
+    <div class="form-group">
       <label class="col-md-2 control-label">"From" Email:</label>
       <div class="col-md-6">
         <input type="text" class="form-control json" name="FromEmail" value="{{.FromEmail}}"/>
       </div>
     </div>
-    <div class="revere-row">
+    <div class="form-group">
       <label class="col-md-2 control-label">Subject Line Prefix:</label>
       <div class="col-md-6">
         <input type="text" class="form-control json" name="SubjectLinePrefix" value="{{.SubjectLinePrefix}}"/>
       </div>
     </div>
-    <div class="revere-row">
+    <div class="form-group">
       <label class="col-md-2 control-label">SMTP Server:</label>
       <div class="col-md-6">
         <input type="text" class="form-control json" name="SmtpServer" value="{{.SmtpServer}}"/>

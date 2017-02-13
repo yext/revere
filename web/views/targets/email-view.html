@@ -8,6 +8,9 @@
   </div>
 </div>
 {{end}}
+<div class="container-fluid">
+  <h4>{{.Name}}</h4>
+</div>
 {{range .Addresses}}
   {{template "email-address" .}}
 {{else}}
