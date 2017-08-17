@@ -31,6 +31,11 @@ strong {
 	float: right;
 }
 
+.delete-btn {
+	vertical-align: top;
+	float:right;
+}
+
 .revere-row {
 	padding: 10px 15px;
 	border-bottom: 1px solid #ccc;

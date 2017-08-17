@@ -101,3 +101,27 @@ func SubprobesView(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p h
 		}
 	}
 }
+
+func DeleteSubprobe(DB *db.DB) func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		subprobeId, err := strconv.Atoi(p.ByName("subprobeId"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Subprobe not found: %s", p.ByName("subprobeId")),
+				http.StatusNotFound);
+		}
+		err = DB.Tx(func(tx *db.Tx) error {
+			var err error
+			err = vm.DeleteSubprobe(tx, subprobeId)
+			if err != nil {
+				return errors.Trace(err)
+			}
+			return nil
+		})
+
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Unable to delete subprobes: %v", err),
+				http.StatusInternalServerError)
+			return
+		}
+	}
+}

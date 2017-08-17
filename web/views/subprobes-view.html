@@ -11,9 +11,10 @@
     <input class="js-preview-params" name="SubprobeName" value="{{.Subprobe.Name}}" hidden>
   </div>
   {{template "preview.html" .}}
-  <br>
-  <a href="/../redirectToSilence?subprobe={{.Subprobe.Name}}&id={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
-  <br>
+  <div class="form-group-row row">
+    <a href="/../redirectToSilence?subprobe={{.Subprobe.Name}}&id={{.Subprobe.MonitorID}}">Create Silence for Subprobe</a>
+    <button class="btn btn-danger delete-btn" id="delete">Delete Subprobe</button>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover">
       <thead>

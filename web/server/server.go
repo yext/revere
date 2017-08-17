@@ -40,6 +40,7 @@ func New(env *env.Env) *WebServer {
 	router.POST("/monitors/:id/edit", web.MonitorsSave(env.DB))
 	router.GET("/monitors/:id/subprobes", web.SubprobesIndex(env.DB))
 	router.GET("/monitors/:id/subprobes/:subprobeId", web.SubprobesView(env.DB))
+	router.DELETE("/monitors/:id/subprobes/:subprobeId/delete", web.DeleteSubprobe(env.DB));
 	router.GET("/monitors/:id/probe/edit/:probeType", web.LoadProbeTemplate(env.DB))
 	router.GET("/monitors/:id/target/edit/:targetType", web.LoadTargetTemplate)
 	router.GET("/silences", web.SilencesIndex(env.DB))

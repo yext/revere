@@ -101,3 +101,11 @@ func (tx *Tx) InsertSubprobe(monitorID MonitorID, name string) (SubprobeID, erro
 
 	return SubprobeID(id), nil
 }
+
+func (tx *Tx) DeleteSubprobe(subprobeId int) error {
+	q := fmt.Sprintf(
+		`DELETE FROM pfx_subprobes WHERE subprobeid=%d;`, subprobeId)
+	_, err := tx.Exec(cq(tx, q))
+	return err
+}
+

@@ -100,6 +100,10 @@ func BlankSubprobe() *Subprobe {
 	return &Subprobe{}
 }
 
+func DeleteSubprobe(tx *db.Tx, subprobeId int) error {
+	return tx.DeleteSubprobe(subprobeId)
+}
+
 func AllSubprobesFromMonitor(tx *db.Tx, id db.MonitorID) ([]*Subprobe, error) {
 	ss, err := tx.LoadSubprobesByName(id)
 	if err != nil {
