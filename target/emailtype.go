@@ -105,8 +105,7 @@ func (_ emailType) Alert(Db *db.DB, a *Alert, toAlert map[db.TriggerID]Target, i
 
 	msg := []byte(strings.Replace(b.String(), "\n", "\r\n", -1))
 
-	auth := smtp.PlainAuth("", "", "", "")
-	err = smtp.SendMail(emailSettings.SmtpServer, auth, emailSettings.FromEmail, to, msg)
+	err = smtp.SendMail(emailSettings.SmtpServer, nil, emailSettings.FromEmail, to, msg)
 	if err != nil {
 		return []ErrorAndTriggerIDs{{
 			Err: errors.Maskf(err, "send email"),
