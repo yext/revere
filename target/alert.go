@@ -26,4 +26,6 @@ type Alert struct {
 	LastNormal   time.Time
 
 	Details probe.Details
+
+	Host string
 }

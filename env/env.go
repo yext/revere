@@ -15,6 +15,7 @@ import (
 type Env struct {
 	DB   *db.DB
 	Port uint16
+	Host string
 }
 
 // New initializes an Env based on the configuration found in conf, which
@@ -41,6 +42,7 @@ func New(conf []byte) (*Env, error) {
 		return nil, errors.Maskf(err, "load DB")
 	}
 	e.Port = model.Port
+	e.Host = model.Host
 
 	return &e, nil
 }
@@ -50,4 +52,5 @@ func New(conf []byte) (*Env, error) {
 type EnvJSONModel struct {
 	DB   db.DBJSONModel
 	Port uint16
+	Host string
 }

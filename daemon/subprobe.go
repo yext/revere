@@ -171,6 +171,7 @@ func (s *subprobe) newAlert(oldState state.State, r probe.Reading) *target.Alert
 		LastNormal:   s.lastNormal,
 
 		Details: r.Details,
+		Host:    s.Env.Host,
 	}
 }
 

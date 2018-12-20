@@ -116,11 +116,10 @@ func (_ emailType) Alert(Db *db.DB, a *Alert, toAlert map[db.TriggerID]Target, i
 	return nil
 }
 
-// TODO(eefi): Update Revere link.
 const emailText = `
 {{.NewState}} is the state of {{.MonitorName}}/{{.SubprobeName}} as of {{time .Recorded}}.
 
-http://revere.khan/monitors/{{.MonitorID}}/subprobes/{{.SubprobeID}}
+{{.Host}}/monitors/{{.MonitorID}}/subprobes/{{.SubprobeID}}
 
 {{if ne .OldState .NewState -}}
 State change: {{.OldState}}->{{.NewState}}

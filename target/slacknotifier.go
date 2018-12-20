@@ -107,8 +107,8 @@ func (s slackNotifier) formatMessage(channel string) (io.Reader, error) {
 		Attachments: []attachment{
 			{
 				Title: fmt.Sprintf("%s/%s", s.alert.MonitorName, s.alert.SubprobeName),
-				TitleLink: fmt.Sprintf("http://revere.khan/monitors/%d/subprobes/%d",
-					s.alert.MonitorID, s.alert.SubprobeID),
+				TitleLink: fmt.Sprintf("%s/monitors/%d/subprobes/%d",
+					s.alert.Host, s.alert.MonitorID, s.alert.SubprobeID),
 				Fallback: fmt.Sprintf("%s/%s entered state: %s",
 					s.alert.MonitorName, s.alert.SubprobeName, s.alert.NewState),
 				Color:     stateColors[s.alert.NewState],
