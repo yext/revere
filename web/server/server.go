@@ -10,7 +10,7 @@ import (
 	"github.com/yext/revere/env"
 	"github.com/yext/revere/web"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 )
 

@@ -25,6 +25,3 @@ _testmain.go
 *.swp
 
 .DS_Store
-
-# Generated files
-rice-box.go

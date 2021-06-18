@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/juju/errors"
 
