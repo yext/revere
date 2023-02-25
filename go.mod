@@ -11,5 +11,5 @@ require (
 	github.com/juju/testing v0.0.0-20210324180055-18c50b0c2098 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/sirupsen/logrus v1.8.1
-	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
+	golang.org/x/sys v0.1.0
 )
